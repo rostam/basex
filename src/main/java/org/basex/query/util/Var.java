@@ -30,7 +30,7 @@ public final class Var extends ParseExpr {
   /** Annotations. */
   public final Ann ann;
   /** Variable ID. */
-  private final int id;
+  public final int id;
 
   /** Expected return type. */
   public SeqType ret;
@@ -236,11 +236,6 @@ public final class Var extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    return is(v) ? 1 : 0;
-  }
-
-  @Override
   public boolean removable(final Var v) {
     // only VarRefs can be removed
     return false;
@@ -280,5 +275,10 @@ public final class Var extends ParseExpr {
     }
     if(type != null) tb.add(" " + type);
     return tb.toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return expr == null || expr.visitVars(visitor);
   }
 }

@@ -10,8 +10,7 @@ import org.basex.query.QueryText;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.FTNode;
 import org.basex.query.iter.FTIter;
-import org.basex.query.util.IndexContext;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -90,11 +89,6 @@ public final class FTWeight extends FTExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    return weight.count(v) + super.count(v);
-  }
-
-  @Override
   public boolean removable(final Var v) {
     return weight.removable(v) && super.removable(v);
   }
@@ -116,5 +110,10 @@ public final class FTWeight extends FTExpr {
   @Override
   public String toString() {
     return expr[0] + " " + QueryText.WEIGHT + ' ' + weight;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(expr) && weight.visitVars(visitor);
   }
 }

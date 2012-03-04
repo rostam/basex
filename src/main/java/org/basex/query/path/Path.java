@@ -364,11 +364,6 @@ public abstract class Path extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    return root != null ? root.count(v) : 0;
-  }
-
-  @Override
   public boolean removable(final Var v) {
     return root == null || root.removable(v);
   }
@@ -394,5 +389,10 @@ public abstract class Path extends ParseExpr {
     if(root != null) sb.append(root);
     for(final Expr s : steps) sb.append(sb.length() != 0 ? "/" : "").append(s);
     return sb.toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return (root == null || root.visitVars(visitor)) && visitor.visitAll(steps);
   }
 }

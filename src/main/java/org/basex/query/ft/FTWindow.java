@@ -9,7 +9,7 @@ import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.QueryText;
 import org.basex.query.expr.Expr;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.ft.FTLexer;
 import org.basex.util.ft.FTUnit;
@@ -83,11 +83,6 @@ public final class FTWindow extends FTFilter {
   }
 
   @Override
-  public int count(final Var v) {
-    return win.count(v) + super.count(v);
-  }
-
-  @Override
   public boolean removable(final Var v) {
     return win.removable(v) && super.removable(v);
   }
@@ -108,5 +103,10 @@ public final class FTWindow extends FTFilter {
   @Override
   public String toString() {
     return super.toString() + QueryText.WINDOW + ' ' + win + ' ' + unit;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(expr) && win.visitVars(visitor);
   }
 }

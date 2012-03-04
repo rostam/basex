@@ -8,7 +8,7 @@ import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.TokenBuilder;
 import org.basex.util.Util;
@@ -95,13 +95,6 @@ public final class TypeSwitch extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    int c = ts.count(v);
-    for(final TypeCase t : cases) c += t.count(v);
-    return c;
-  }
-
-  @Override
   public boolean removable(final Var v) {
     for(final TypeCase c : cases) if(!c.removable(v)) return false;
     return ts.removable(v);
@@ -132,5 +125,10 @@ public final class TypeSwitch extends ParseExpr {
   public Expr markTailCalls() {
     for(final TypeCase t : cases) t.markTailCalls();
     return this;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return ts.visitVars(visitor) && visitor.visitAll(cases);
   }
 }

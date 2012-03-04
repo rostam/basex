@@ -2,15 +2,13 @@ package org.basex.query.func;
 
 import static org.basex.query.QueryText.*;
 import java.io.IOException;
-
 import org.basex.io.serial.Serializer;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.expr.Arr;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.QNm;
-import org.basex.query.util.Var;
-import org.basex.query.util.VarStack;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
 import org.basex.util.TokenBuilder;

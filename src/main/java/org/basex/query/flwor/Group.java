@@ -24,7 +24,7 @@ public final class Group extends ParseExpr {
   /** Group by specification. */
   private final Spec[] groupby;
   /** Non-grouping variables. */
-  private final Var[][] nongroup;
+  final Var[][] nongroup;
   /** Grouping partition. **/
   GroupPartition gp;
 
@@ -69,15 +69,6 @@ public final class Group extends ParseExpr {
   public boolean uses(final Use use) {
     for(final Spec v : groupby) if(v.uses(use)) return true;
     return false;
-  }
-
-  @Override
-  public int count(final Var v) {
-    // non-grouping variables must be counted here (not in the return clause)
-    int c = 0;
-    for(final Spec g : groupby) c += g.count(v);
-    for(final Var g : nongroup[0]) c += g.count(v);
-    return c;
   }
 
   @Override
@@ -151,5 +142,10 @@ public final class Group extends ParseExpr {
       if(val.size() > 1) throw Err.XGRP.thrw(input);
       return val.isEmpty() ? val : StandardFunc.atom(val.itemAt(0), input);
     }
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(groupby) && visitor.visitAll(nongroup[0]);
   }
 }

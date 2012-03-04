@@ -17,8 +17,7 @@ import org.basex.query.item.FTNode;
 import org.basex.query.item.Item;
 import org.basex.query.iter.FTIter;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.IndexContext;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.TokenBuilder;
 import org.basex.util.ft.FTLexer;
@@ -422,13 +421,6 @@ public final class FTWords extends FTExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    int c = 0;
-    if(occ != null) for(final Expr o : occ) c += o.count(v);
-    return c + query.count(v);
-  }
-
-  @Override
   public boolean removable(final Var v) {
     if(occ != null) for(final Expr o : occ) if(!o.removable(v)) return false;
     return query.removable(v);
@@ -482,5 +474,11 @@ public final class FTWords extends FTExpr {
       sb.append(OCCURS + ' ' + occ[0] + ' ' + TO + ' ' + occ[1] + ' ' + TIMES);
     }
     return sb.toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(expr) && query.visitVars(visitor)
+        && (occ == null || visitor.visitAll(occ));
   }
 }

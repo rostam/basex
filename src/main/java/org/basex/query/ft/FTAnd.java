@@ -7,7 +7,7 @@ import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.item.FTNode;
 import org.basex.query.iter.FTIter;
-import org.basex.query.util.IndexContext;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.ft.Scoring;
 
@@ -145,5 +145,10 @@ public final class FTAnd extends FTExpr {
   @Override
   public String toString() {
     return PAR1 + toString(' ' + FTAND + ' ') + PAR2;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(expr);
   }
 }

@@ -10,7 +10,7 @@ import org.basex.query.QueryException;
 import org.basex.query.item.Item;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -101,13 +101,6 @@ public final class Switch extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    int c = cond.count(v);
-    for(final SwitchCase sc : cases) c += sc.count(v);
-    return c;
-  }
-
-  @Override
   public boolean removable(final Var v) {
     for(final SwitchCase sc : cases) if(!sc.removable(v)) return false;
     return cond.removable(v);
@@ -161,5 +154,10 @@ public final class Switch extends ParseExpr {
   public Expr markTailCalls() {
     for(final SwitchCase sc : cases) sc.markTailCalls();
     return this;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return cond.visitVars(visitor) && visitor.visitAll(cases);
   }
 }

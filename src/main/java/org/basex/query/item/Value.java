@@ -6,7 +6,7 @@ import org.basex.query.QueryException;
 import org.basex.query.expr.Expr;
 import org.basex.query.iter.ItemCache;
 import org.basex.query.iter.ValueIter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -77,11 +77,6 @@ public abstract class Value extends Expr {
   }
 
   @Override
-  public int count(final Var v) {
-    return 0;
-  }
-
-  @Override
   public final boolean removable(final Var v) {
     return true;
   }
@@ -140,4 +135,9 @@ public abstract class Value extends Expr {
    * @return result of check
    */
   public abstract boolean homogenous();
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return true;
+  }
 }

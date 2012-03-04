@@ -67,13 +67,6 @@ public abstract class FTExpr extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    int c = 0;
-    for(final FTExpr e : expr) c += e.count(v);
-    return c;
-  }
-
-  @Override
   public boolean removable(final Var v) {
     for(final Expr e : expr) if(!e.removable(v)) return false;
     return true;

@@ -47,7 +47,7 @@ public abstract class ForLet extends Single {
        - depends on context, eg:
          (<a/>,<b/>)/(let $a := position() return $a=last())
      */
-    if(expr.hasFreeVars(ctx) || expr.uses(Use.NDT) || expr.uses(Use.CTX) ||
+    if(expr.hasFreeVars() || expr.uses(Use.NDT) || expr.uses(Use.CTX) ||
         expr.uses(Use.CNS) || ctx.grouping) return;
 
     ctx.compInfo(OPTBIND, var);

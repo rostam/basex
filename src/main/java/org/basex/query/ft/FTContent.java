@@ -7,6 +7,7 @@ import org.basex.data.FTMatch;
 import org.basex.data.FTStringMatch;
 import org.basex.io.serial.Serializer;
 import org.basex.query.QueryContext;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.ft.FTLexer;
 
@@ -72,5 +73,10 @@ public final class FTContent extends FTFilter {
   public String toString() {
     return super.toString() + (start || end ? AT + ' ' +
         (start ? START : END) : ENTIRE + ' ' + CONTENT);
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return true;
   }
 }

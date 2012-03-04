@@ -14,7 +14,7 @@ import org.basex.query.item.Item;
 import org.basex.query.item.SeqType;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.ft.Scoring;
 
@@ -147,5 +147,11 @@ public final class Let extends ForLet {
   @Override
   public Var[] vars() {
     return new Var[]{ var };
+  }
+
+  /** {@inheritDoc} This method doesn't undeclare the variables. */
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return expr.visitVars(visitor) && visitor.declared(var);
   }
 }

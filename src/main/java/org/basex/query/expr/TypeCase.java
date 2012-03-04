@@ -9,7 +9,7 @@ import org.basex.query.QueryException;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
 import org.basex.query.iter.ValueIter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
 import org.basex.util.TokenBuilder;
@@ -103,5 +103,10 @@ public final class TypeCase extends Single {
   public TypeCase markTailCalls() {
     expr = expr.markTailCalls();
     return this;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.declared(var) && expr.visitVars(visitor) && visitor.undeclared(var);
   }
 }

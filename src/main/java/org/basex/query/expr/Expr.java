@@ -1,5 +1,6 @@
 package org.basex.query.expr;
 
+import java.util.*;
 import org.basex.data.ExprInfo;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
@@ -13,9 +14,7 @@ import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
 import org.basex.query.path.AxisPath;
 import org.basex.query.path.MixedPath;
-import org.basex.query.util.IndexContext;
-import org.basex.query.util.Var;
-import org.basex.query.util.VarStack;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -159,7 +158,18 @@ public abstract class Expr extends ExprInfo {
    * @param v variable to be checked
    * @return number of occurrences
    */
-  public abstract int count(final Var v);
+  public final int count(final Var v) {
+    // circumventing the final-variables restriction
+    final int[] res = new int[1];
+    visitVars(new VarVisitor() {
+      @Override
+      public boolean used(final Var var) {
+        if(var.is(v)) res[0]++;
+        return true;
+      }
+    });
+    return res[0];
+  }
 
   /**
    * Checks if the specified variable is replaceable by a context item.
@@ -278,21 +288,32 @@ public abstract class Expr extends ExprInfo {
   }
 
   /**
+   * Traverses this expression, notifying the visitor of all declared and used variables.
+   * Variable declarations have to be reported before all uses of the variable.
+   * @param visitor variable visitor
+   * @return if the walk should be continued
+   */
+  public abstract boolean visitVars(final VarVisitor visitor);
+
+  /**
    * Checks if this expression has free variables.
-   * @param ctx query context on the level of this expression
    * @return {@code true} if there are variables which are used but not declared
    *         in this expression, {@code false} otherwise
    */
-  public boolean hasFreeVars(final QueryContext ctx) {
-    final VarStack global = ctx.vars.globals();
-    for(int i = global.size; --i >= 0;) {
-      if(count(global.vars[i]) > 0) return true;
-    }
-    final VarStack vars = ctx.vars.locals();
-    for(int i = vars.size; --i >= 0;) {
-      if(count(vars.vars[i]) > 0) return true;
-    }
-    return false;
+  public boolean hasFreeVars() {
+    final BitSet declared = new BitSet();
+    return !visitVars(new VarVisitor() {
+      @Override
+      public boolean declared(final Var var) {
+        declared.set(var.id);
+        return true;
+      }
+
+      @Override
+      public boolean used(final Var var) {
+        return declared.get(var.id);
+      }
+    });
   }
 
   /**

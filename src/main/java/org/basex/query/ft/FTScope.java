@@ -7,6 +7,7 @@ import org.basex.data.FTMatch;
 import org.basex.data.FTStringMatch;
 import org.basex.io.serial.Serializer;
 import org.basex.query.QueryContext;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.ft.FTLexer;
 import org.basex.util.ft.FTUnit;
@@ -73,5 +74,10 @@ public final class FTScope extends FTFilter {
   @Override
   public String toString() {
     return super.toString() + (same ? SAME : DIFFERENT) + ' ' + unit;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(expr);
   }
 }

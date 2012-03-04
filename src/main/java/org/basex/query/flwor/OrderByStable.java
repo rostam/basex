@@ -10,7 +10,7 @@ import org.basex.query.expr.Expr;
 import org.basex.query.item.Item;
 import org.basex.query.item.Int;
 import org.basex.query.item.SeqType;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -45,11 +45,6 @@ public final class OrderByStable extends OrderBy {
   }
 
   @Override
-  public int count(final Var v) {
-    return 0;
-  }
-
-  @Override
   public boolean removable(final Var v) {
     return true;
   }
@@ -62,5 +57,10 @@ public final class OrderByStable extends OrderBy {
   @Override
   public String toString() {
     return "";
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return true;
   }
 }

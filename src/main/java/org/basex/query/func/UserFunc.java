@@ -205,4 +205,9 @@ public class UserFunc extends Single {
   boolean tco() {
     return true;
   }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return true;
+  }
 }

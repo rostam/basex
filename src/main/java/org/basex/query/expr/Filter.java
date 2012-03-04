@@ -12,7 +12,7 @@ import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
 import org.basex.query.iter.ItemCache;
 import org.basex.query.path.AxisPath;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.Array;
 import org.basex.util.InputInfo;
 
@@ -152,11 +152,6 @@ public class Filter extends Preds {
   }
 
   @Override
-  public final int count(final Var v) {
-    return root.count(v) + super.count(v);
-  }
-
-  @Override
   public final boolean removable(final Var v) {
     return root.removable(v) && super.removable(v);
   }
@@ -178,5 +173,10 @@ public class Filter extends Preds {
   @Override
   public final String toString() {
     return "(" + root + ')' + super.toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return root.visitVars(visitor) && visitor.visitAll(preds);
   }
 }

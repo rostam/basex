@@ -37,7 +37,7 @@ public final class InlineFunc extends UserFunc {
   public Expr comp(final QueryContext ctx) throws QueryException {
     comp(ctx, false);
     // only evaluate if the closure is empty, so we don't lose variables
-    return expr.hasFreeVars(ctx) ? this : optPre(item(ctx, input), ctx);
+    return expr.hasFreeVars() ? this : optPre(item(ctx, input), ctx);
   }
 
   @Override

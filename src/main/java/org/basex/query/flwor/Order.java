@@ -85,13 +85,6 @@ public final class Order extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    int c = 0;
-    for(final OrderBy o : ob) c += o.count(v);
-    return c;
-  }
-
-  @Override
   public boolean removable(final Var v) {
     for(final OrderBy o : ob) if(!o.removable(v)) return false;
     return true;
@@ -271,6 +264,11 @@ public final class Order extends ParseExpr {
       return d(ka, kb) < 0 ? d(kb, kc) < 0 ? b : d(ka, kc) < 0 ? c : a :
           d(kb, kc) > 0 ? b : d(ka, kc) > 0 ? c : a;
     }
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(ob);
   }
 }
 

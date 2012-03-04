@@ -10,7 +10,7 @@ import org.basex.query.func.UserFuncCall;
 import org.basex.query.item.Item;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.TokenBuilder;
 
@@ -90,11 +90,6 @@ public final class VarRef extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    return var.is(v) ? 1 : 0;
-  }
-
-  @Override
   public boolean removable(final Var v) {
     return true;
   }
@@ -124,5 +119,10 @@ public final class VarRef extends ParseExpr {
   @Override
   public String toString() {
     return new TokenBuilder(DOLLAR).add(var.name.string()).toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.used(var) && var.visitVars(visitor);
   }
 }

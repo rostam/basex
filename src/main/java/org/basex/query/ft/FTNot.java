@@ -8,7 +8,7 @@ import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.item.FTNode;
 import org.basex.query.iter.FTIter;
-import org.basex.query.util.IndexContext;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.ft.Scoring;
 
@@ -111,5 +111,10 @@ public final class FTNot extends FTExpr {
   @Override
   public String toString() {
     return FTNOT + ' ' + expr[0];
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return expr[0].visitVars(visitor);
   }
 }

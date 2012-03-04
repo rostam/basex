@@ -19,8 +19,7 @@ import org.basex.query.iter.Iter;
 import org.basex.query.iter.ValueIter;
 import org.basex.query.up.ContextModifier;
 import org.basex.query.up.TransformModifier;
-import org.basex.query.util.DataBuilder;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -108,13 +107,6 @@ public final class Transform extends Arr {
   }
 
   @Override
-  public int count(final Var v) {
-    int c = 0;
-    for(final Let l : copies) c += l.count(v);
-    return c + super.count(v);
-  }
-
-  @Override
   public boolean removable(final Var v) {
     for(final Let c : copies) if(!c.removable(v)) return false;
     return super.removable(v);
@@ -141,5 +133,13 @@ public final class Transform extends Arr {
       sb.append(t.var + " " + ASSIGN + ' ' + t.expr + ' ');
     return sb.append(MODIFY + ' ' + expr[0] + ' ' + RETURN + ' ' +
         expr[1]).toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    if(!(visitor.visitAll(copies) && visitor.visitAll(expr))) return false;
+    for(int i = copies.length; --i >= 0;)
+      if(!visitor.undeclared(copies[i].var)) return false;
+    return true;
   }
 }

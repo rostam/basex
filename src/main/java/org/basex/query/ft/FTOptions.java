@@ -7,6 +7,7 @@ import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.item.FTNode;
 import org.basex.query.iter.FTIter;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.Util;
 import org.basex.util.ft.FTOpt;
@@ -66,5 +67,10 @@ public final class FTOptions extends FTExpr {
   public FTIter iter(final QueryContext ctx) {
     // shouldn't be called, as compile returns argument
     throw Util.notexpected();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return expr[0].visitVars(visitor);
   }
 }

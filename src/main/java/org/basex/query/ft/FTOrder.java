@@ -7,6 +7,7 @@ import org.basex.data.FTStringMatch;
 import org.basex.io.serial.Serializer;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryText;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.ft.FTLexer;
 
@@ -53,5 +54,10 @@ public final class FTOrder extends FTFilter {
   @Override
   public String toString() {
     return super.toString() + QueryText.ORDERED;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return expr[0].visitVars(visitor);
   }
 }

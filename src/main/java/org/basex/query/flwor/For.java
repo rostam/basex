@@ -14,7 +14,7 @@ import org.basex.query.item.Int;
 import org.basex.query.item.SeqType;
 import org.basex.query.item.SeqType.Occ;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -183,5 +183,12 @@ public final class For extends ForLet {
     }
     if(score != null) return new Var[]{ var, score };
     return new Var[]{ var };
+  }
+
+  /** {@inheritDoc} This method doesn't undeclare the variables. */
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.declared(var) && (pos == null || visitor.declared(pos))
+        && (score == null || visitor.declared(score)) && expr.visitVars(visitor);
   }
 }

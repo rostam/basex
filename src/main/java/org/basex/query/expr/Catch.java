@@ -11,8 +11,7 @@ import org.basex.query.item.QNm;
 import org.basex.query.item.SeqType;
 import org.basex.query.item.Str;
 import org.basex.query.item.Value;
-import org.basex.query.util.Err;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -135,5 +134,10 @@ public final class Catch extends Single {
    */
   private static QNm create(final byte[] n) {
     return new QNm(concat(ERR, COLON, n), ERRORURI);
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.withVars(vars, expr);
   }
 }

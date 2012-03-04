@@ -19,8 +19,7 @@ import org.basex.query.item.SeqType;
 import org.basex.query.iter.Iter;
 import org.basex.query.path.AxisPath;
 import org.basex.query.path.AxisStep;
-import org.basex.query.util.IndexContext;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.ft.FTLexer;
 import org.basex.util.ft.FTOpt;
@@ -126,11 +125,6 @@ public class FTContains extends ParseExpr {
   }
 
   @Override
-  public final int count(final Var v) {
-    return expr.count(v) + ftexpr.count(v);
-  }
-
-  @Override
   public final boolean removable(final Var v) {
     return expr.removable(v) && ftexpr.removable(v);
   }
@@ -153,5 +147,10 @@ public class FTContains extends ParseExpr {
   @Override
   public String toString() {
     return expr + " " + CONTAINS + ' ' + TEXT + ' ' + ftexpr;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return expr.visitVars(visitor) && ftexpr.visitVars(visitor);
   }
 }

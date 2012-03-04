@@ -12,7 +12,7 @@ import org.basex.query.item.Item;
 import org.basex.query.item.QNm;
 import org.basex.query.item.Type;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.TokenBuilder;
 import org.basex.util.XMLToken;
@@ -110,11 +110,6 @@ public abstract class CName extends CFrag {
   }
 
   @Override
-  public final int count(final Var v) {
-    return name.count(v) + super.count(v);
-  }
-
-  @Override
   public final void plan(final Serializer ser) throws IOException {
     ser.openElement(this);
     name.plan(ser);
@@ -130,5 +125,10 @@ public abstract class CName extends CFrag {
   @Override
   public final String toString() {
     return toString(desc + " { " + name + " }");
+  }
+
+  @Override
+  public final boolean visitVars(final VarVisitor visitor) {
+    return name.visitVars(visitor) && visitor.visitAll(expr);
   }
 }

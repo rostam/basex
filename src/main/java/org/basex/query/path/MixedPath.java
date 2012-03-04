@@ -14,7 +14,7 @@ import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
 import org.basex.query.iter.NodeCache;
 import org.basex.query.iter.ItemCache;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -113,13 +113,6 @@ public final class MixedPath extends Path {
       ctx.size = cs;
       ctx.pos = cp;
     }
-  }
-
-  @Override
-  public int count(final Var v) {
-    int c = 0;
-    for(final Expr e : steps) c += e.count(v);
-    return c + super.count(v);
   }
 
   @Override

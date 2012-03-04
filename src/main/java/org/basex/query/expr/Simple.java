@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
 import org.basex.query.QueryContext;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -33,11 +33,6 @@ public abstract class Simple extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    return 0;
-  }
-
-  @Override
   public boolean removable(final Var v) {
     return true;
   }
@@ -50,5 +45,10 @@ public abstract class Simple extends ParseExpr {
   @Override
   public void plan(final Serializer ser) throws IOException {
     ser.emptyElement(this);
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return true;
   }
 }

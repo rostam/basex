@@ -8,7 +8,7 @@ import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.item.FTNode;
 import org.basex.query.iter.FTIter;
-import org.basex.query.util.IndexContext;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -106,5 +106,10 @@ public final class FTMildNot extends FTExpr {
   @Override
   public String toString() {
     return toString(' ' + NOT + ' ' + IN + ' ');
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(expr);
   }
 }

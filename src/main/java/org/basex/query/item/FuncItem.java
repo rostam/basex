@@ -158,11 +158,6 @@ public final class FuncItem extends FItem {
     return expr.uses(u);
   }
 
-  @Override
-  public int count(final Var v) {
-    return expr.count(v);
-  }
-
   /**
    * Coerces a function item to the given type.
    * @param ctx query context

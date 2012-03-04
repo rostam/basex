@@ -11,7 +11,7 @@ import org.basex.query.flwor.ForLet;
 import org.basex.query.item.Bln;
 import org.basex.query.item.SeqType;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
 
@@ -98,13 +98,6 @@ public final class Quantifier extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    int c = 0;
-    for(final ForLet f : fl) c += f.count(v);
-    return c + sat.count(v);
-  }
-
-  @Override
   public boolean removable(final Var v) {
     for(final ForLet f : fl) if(!f.removable(v)) return false;
     return sat.removable(v);
@@ -130,5 +123,16 @@ public final class Quantifier extends ParseExpr {
     final StringBuilder sb = new StringBuilder(every ? EVERY : SOME);
     for(final For f : fl) sb.append(' ').append(f);
     return sb.append(' ' + SATISFIES + ' ' + sat).toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    if(!(visitor.visitAll(fl) && sat.visitVars(visitor))) return false;
+    for(int i = fl.length; --i >= 0;) {
+      final Var[] vars = fl[i].vars();
+      for(int j = vars.length; --j >= 0;)
+        if(!visitor.undeclared(vars[j])) return false;
+    }
+    return true;
   }
 }

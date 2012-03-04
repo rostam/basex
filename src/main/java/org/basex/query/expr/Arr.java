@@ -5,8 +5,7 @@ import java.io.IOException;
 import org.basex.io.serial.Serializer;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
-import org.basex.query.util.IndexContext;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.TokenBuilder;
 
@@ -41,13 +40,6 @@ public abstract class Arr extends ParseExpr {
   public boolean uses(final Use u) {
     for(final Expr e : expr) if(e.uses(u)) return true;
     return false;
-  }
-
-  @Override
-  public int count(final Var v) {
-    int c = 0;
-    for(final Expr e : expr) c += e.count(v);
-    return c;
   }
 
   @Override
@@ -100,5 +92,10 @@ public abstract class Arr extends ParseExpr {
    */
   protected String toString(final String sep) {
     return new TokenBuilder().addSep(expr, sep).toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(expr);
   }
 }

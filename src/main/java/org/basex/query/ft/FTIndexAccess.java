@@ -15,8 +15,7 @@ import org.basex.query.item.ANode;
 import org.basex.query.item.Str;
 import org.basex.query.iter.FTIter;
 import org.basex.query.iter.NodeIter;
-import org.basex.query.util.IndexContext;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -72,11 +71,6 @@ public final class FTIndexAccess extends Simple {
   }
 
   @Override
-  public int count(final Var v) {
-    return ftexpr.count(v);
-  }
-
-  @Override
   public boolean removable(final Var v) {
     return ftexpr.removable(v);
   }
@@ -103,5 +97,10 @@ public final class FTIndexAccess extends Simple {
   public String toString() {
     return Function._DB_FULLTEXT.get(input, Str.get(ictx.data.meta.name),
         ftexpr).toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return ftexpr.visitVars(visitor);
   }
 }

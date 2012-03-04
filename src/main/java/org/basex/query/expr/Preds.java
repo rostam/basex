@@ -143,13 +143,6 @@ public abstract class Preds extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    int c = 0;
-    for(final Expr p : preds) c += p.count(v);
-    return c;
-  }
-
-  @Override
   public boolean removable(final Var v) {
     for(final Expr p : preds) if(p.count(v) != 0) return false;
     return true;

@@ -9,7 +9,7 @@ import org.basex.query.QueryException;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.Item;
 import org.basex.query.item.Str;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import static org.basex.util.Token.token;
 
@@ -61,11 +61,6 @@ public final class OrderByExpr extends OrderBy {
   }
 
   @Override
-  public int count(final Var v) {
-    return expr.count(v);
-  }
-
-  @Override
   public boolean removable(final Var v) {
     return expr.removable(v);
   }
@@ -90,5 +85,10 @@ public final class OrderByExpr extends OrderBy {
     if(desc) sb.append(' ' + DESCENDING);
     if(!lst) sb.append(' ' + EMPTYORD + ' ' + GREATEST);
     return sb.toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return expr.visitVars(visitor);
   }
 }

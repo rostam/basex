@@ -23,7 +23,7 @@ import org.basex.util.*;
  */
 public class GFLWOR extends ParseExpr {
   /** Return expression. */
-  Expr ret;
+  public Expr ret;
   /** For/Let expression. */
   ForLet[] fl;
   /** Where clause. */
@@ -325,11 +325,6 @@ public class GFLWOR extends ParseExpr {
     return u == Use.VAR || ret.uses(u);
   }
 
-  @Override
-  public final int count(final Var v) {
-    return count(v, 0);
-  }
-
   /**
    * Counts how often the specified variable is used, starting from the
    * specified for/let index.
@@ -389,5 +384,41 @@ public class GFLWOR extends ParseExpr {
     if(group != null) sb.append(group);
     if(order != null) sb.append(order);
     return sb.append(' ' + RETURN + ' ' + ret).toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    // For / Let
+    for(final ForLet f : fl) if(!f.visitVars(visitor)) return false;
+
+    // Where
+    if(where != null && !where.visitVars(visitor)) return false;
+
+    // Group By
+    Var[] grp = null;
+    if(group != null) {
+      grp = group.nongroup[1];
+      for(final Var v : grp) if(!visitor.declared(v)) return false;
+      if(!group.visitVars(visitor)) return false;
+    }
+    // Order
+    if(order != null && !order.visitVars(visitor)) return false;
+
+    // Return
+    if(!ret.visitVars(visitor)) return false;
+
+    // undeclare grouping vars
+    if(grp != null)
+      for(int i = grp.length; --i >= 0;)
+        if(!visitor.undeclared(grp[i])) return false;
+
+    // undeclare For / Let vars
+    for(int i = fl.length; --i >= 0;) {
+      final Var[] vars = fl[i].vars();
+      for(int j = vars.length; --j >= 0;)
+        if(!visitor.undeclared(vars[j])) return false;
+    }
+
+    return true;
   }
 }

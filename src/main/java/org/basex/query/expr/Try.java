@@ -7,7 +7,7 @@ import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -100,13 +100,6 @@ public final class Try extends Single {
   }
 
   @Override
-  public int count(final Var v) {
-    int c = super.count(v);
-    for(final Catch ct : ctch) c += ct.count(v);
-    return c;
-  }
-
-  @Override
   public boolean uses(final Use u) {
     for(final Catch c : ctch) if(c.uses(u)) return true;
     return super.uses(u);
@@ -137,5 +130,10 @@ public final class Try extends Single {
     final StringBuilder sb = new StringBuilder("try { " + expr + " }");
     for(final Catch c : ctch) sb.append(' ').append(c);
     return sb.toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return expr.visitVars(visitor) && visitor.visitAll(ctch);
   }
 }

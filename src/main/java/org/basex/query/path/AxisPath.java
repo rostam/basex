@@ -403,13 +403,6 @@ public class AxisPath extends Path {
   }
 
   @Override
-  public final int count(final Var v) {
-    int c = 0;
-    for(final Expr s : steps) c += s.count(v);
-    return c + super.count(v);
-  }
-
-  @Override
   public final boolean removable(final Var v) {
     for(final Expr s : steps) if(!s.removable(v)) return false;
     return super.removable(v);

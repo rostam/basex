@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.basex.io.serial.Serializer;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -40,11 +40,6 @@ public abstract class Single extends ParseExpr {
   }
 
   @Override
-  public int count(final Var v) {
-    return expr.count(v);
-  }
-
-  @Override
   public boolean removable(final Var v) {
     return expr.removable(v);
   }
@@ -60,5 +55,10 @@ public abstract class Single extends ParseExpr {
     ser.openElement(this);
     expr.plan(ser);
     ser.closeElement();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return expr.visitVars(visitor);
   }
 }

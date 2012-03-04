@@ -15,6 +15,7 @@ import org.basex.query.expr.*;
 import org.basex.query.item.*;
 import org.basex.query.iter.*;
 import org.basex.query.path.Test.Mode;
+import org.basex.query.util.*;
 import org.basex.util.*;
 
 /**
@@ -252,5 +253,10 @@ public class AxisStep extends Preds {
       sb.append(test);
     }
     return sb.append(super.toString()).toString();
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(preds);
   }
 }
