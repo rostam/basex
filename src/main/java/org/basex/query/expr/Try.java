@@ -67,18 +67,12 @@ public final class Try extends Single {
 
   @Override
   public Value value(final QueryContext ctx) throws QueryException {
-    final int s = ctx.vars.size();
+    // don't catch errors from error handlers
+    if(qe != null) return err(ctx, qe);
     try {
-      // don't catch errors from error handlers
-      if(qe != null) return err(ctx, qe);
-      try {
-        return ctx.value(expr);
-      } catch(final QueryException ex) {
-        return err(ctx, ex);
-      }
-    } finally {
-      // always reset the scope
-      ctx.vars.size(s);
+      return ctx.value(expr);
+    } catch(final QueryException ex) {
+      return err(ctx, ex);
     }
   }
 

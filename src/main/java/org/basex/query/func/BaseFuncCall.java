@@ -7,8 +7,6 @@ import org.basex.query.item.Item;
 import org.basex.query.item.QNm;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Var;
-import org.basex.query.util.VarStack;
 import org.basex.util.InputInfo;
 
 /**
@@ -32,11 +30,11 @@ public final class BaseFuncCall extends UserFuncCall {
   public Item item(final QueryContext ctx, final InputInfo ii)
       throws QueryException {
 
-    Expr fun = func;
-    Var[] args = args(ctx);
+    UserFunc fun = func;
+    Value[] args = args(ctx);
     do {
       // cache arguments, evaluate function and reset variable scope
-      final VarStack cs = addArgs(ctx, args);
+      final Expr[] sf = addArgs(ctx, fun.args, args);
       ctx.tailCalls = 0;
       try {
         return fun.item(ctx, ii);
@@ -44,18 +42,18 @@ public final class BaseFuncCall extends UserFuncCall {
         fun = c.getFunc();
         args = c.getArgs();
       } finally {
-        ctx.vars.reset(cs);
+        ctx.resetStackFrame(sf);
       }
     } while(true);
   }
 
   @Override
   public Value value(final QueryContext ctx) throws QueryException {
-    Expr fun = func;
-    Var[] args = args(ctx);
+    UserFunc fun = func;
+    Value[] args = args(ctx);
     do {
       // cache arguments, evaluate function and reset variable scope
-      final VarStack cs = addArgs(ctx, args);
+      final Expr[] sf = addArgs(ctx, fun.args, args);
       ctx.tailCalls = 0;
       try {
         return ctx.value(fun);
@@ -63,7 +61,7 @@ public final class BaseFuncCall extends UserFuncCall {
         fun = c.getFunc();
         args = c.getArgs();
       } finally {
-        ctx.vars.reset(cs);
+        ctx.resetStackFrame(sf);
       }
     } while(true);
   }

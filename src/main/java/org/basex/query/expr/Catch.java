@@ -46,16 +46,7 @@ public final class Catch extends Single {
   public Catch(final InputInfo ii, final QNm[] c, final QueryContext ctx) {
     super(ii, null);
     codes = c;
-    for(int i = 0; i < QNM.length; i++) vars[i] =
-      Var.create(ctx, null, QNM[i], TYPES[i], null);
-  }
-
-  @Override
-  public Catch comp(final QueryContext ctx) throws QueryException {
-    final int s = prepare(ctx);
-    super.comp(ctx);
-    ctx.vars.size(s);
-    return this;
+    for(int i = 0; i < QNM.length; i++) vars[i] = new Var(ctx, QNM[i], TYPES[i]);
   }
 
   /**
@@ -70,31 +61,23 @@ public final class Catch extends Single {
 
     if(!find(ex.err(), ex.qname())) return null;
 
-    final int s = prepare(ctx);
-    try {
-      int i = 0;
-      final byte[] io = ex.file() == null ? EMPTY : token(ex.file().path());
-      final Value val = ex.value();
-      for(final Value v : new Value[] { ex.qname(),
-          Str.get(ex.getLocalizedMessage()), val == null ? Empty.SEQ : val,
-          Str.get(io), Int.get(ex.col()), Int.get(ex.line()), Empty.SEQ }) {
-        vars[i++].bind(v, ctx);
-      }
-      return ctx.value(expr);
-    } finally {
-      ctx.vars.size(s);
+    int i = 0;
+    final byte[] io = ex.file() == null ? EMPTY : token(ex.file().path());
+    final Value val = ex.value();
+    for(final Value v : new Value[] { ex.qname(),
+        Str.get(ex.getLocalizedMessage()), val == null ? Empty.SEQ : val,
+        Str.get(io), Int.get(ex.col()), Int.get(ex.line()), Empty.SEQ }) {
+      ctx.set(vars[i++], v);
     }
+    return ctx.value(expr);
   }
 
   /**
-   * Prepares the catch construction.
-   * @param ctx query context
-   * @return number of variables
+   * Returns the variables used in the {@code catch} expression.
+   * @return variables
    */
-  public int prepare(final QueryContext ctx) {
-    final int s = ctx.vars.size();
-    for(final Var v : vars) ctx.vars.add(v);
-    return s;
+  public Var[] vars() {
+    return vars;
   }
 
   /**

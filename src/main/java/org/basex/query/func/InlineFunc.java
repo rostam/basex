@@ -3,6 +3,8 @@ package org.basex.query.func;
 import static org.basex.query.QueryText.*;
 
 import java.io.*;
+import java.util.*;
+import java.util.Map.Entry;
 
 import org.basex.io.serial.*;
 import org.basex.query.*;
@@ -26,10 +28,11 @@ public final class InlineFunc extends UserFunc {
    * @param v arguments
    * @param e function body
    * @param a annotations
+   * @param scp scope
    */
   public InlineFunc(final InputInfo ii, final SeqType r, final Var[] v,
-      final Expr e, final Ann a) {
-    super(ii, null, v, r, a);
+      final Expr e, final Ann a, final VarScope scp) {
+    super(ii, null, v, r, a, scp);
     expr = e;
   }
 
@@ -37,23 +40,29 @@ public final class InlineFunc extends UserFunc {
   public Expr comp(final QueryContext ctx) throws QueryException {
     comp(ctx, false);
     // only evaluate if the closure is empty, so we don't lose variables
-    return expr.hasFreeVars() ? this : optPre(item(ctx, input), ctx);
+    return expr.hasFreeVars() ? this : preEval(ctx);
   }
 
   @Override
-  public FuncItem item(final QueryContext ctx, final InputInfo ii) {
+  public FuncItem item(final QueryContext ctx, final InputInfo ii) throws QueryException {
     final FuncType ft = FuncType.get(this);
     final boolean c = ft.ret != null && !expr.type().instance(ft.ret);
-    return new FuncItem(args, expr, ft, ctx.vars.locals(), c);
+
+    // collect closure
+    final Map<Var, Value> clos = new HashMap<Var, Value>();
+    for(final Entry<Var, Var> e : scope.closure().entrySet())
+      clos.put(e.getKey(), ctx.get(e.getValue()));
+
+    return new FuncItem(args, expr, ft, c, clos, scope.stackSize());
   }
 
   @Override
-  public Value value(final QueryContext ctx) {
+  public Value value(final QueryContext ctx) throws QueryException {
     return item(ctx, input);
   }
 
   @Override
-  public ValueIter iter(final QueryContext ctx) {
+  public ValueIter iter(final QueryContext ctx) throws QueryException {
     return value(ctx).iter();
   }
 

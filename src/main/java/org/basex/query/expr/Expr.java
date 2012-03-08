@@ -5,7 +5,6 @@ import org.basex.data.ExprInfo;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.flwor.GFLWOR;
-import org.basex.query.flwor.Group;
 import org.basex.query.func.Function;
 import org.basex.query.item.Empty;
 import org.basex.query.item.Item;
@@ -15,6 +14,8 @@ import org.basex.query.iter.Iter;
 import org.basex.query.path.AxisPath;
 import org.basex.query.path.MixedPath;
 import org.basex.query.util.*;
+import org.basex.query.util.IndexContext;
+import org.basex.query.util.Var;
 import org.basex.util.InputInfo;
 
 /**
@@ -163,8 +164,8 @@ public abstract class Expr extends ExprInfo {
     final int[] res = new int[1];
     visitVars(new VarVisitor() {
       @Override
-      public boolean used(final Var var) {
-        if(var.is(v)) res[0]++;
+      public boolean used(final VarRef ref) {
+        if(ref.var.is(v)) res[0]++;
         return true;
       }
     });
@@ -179,7 +180,7 @@ public abstract class Expr extends ExprInfo {
    * a predicate.</li>
    * <li>{@link MixedPath#removable}, if the variable occurs within
    * the path.</li>
-   * <li>{@link Group#removable}, as the group by expression depends on
+   * <li>{@link GFLWOR#inlineable}, as the group by expression depends on
    * variable references.</li>
    * </ul>
    * This method is called by {@link GFLWOR#comp} to rewrite where clauses
@@ -310,8 +311,8 @@ public abstract class Expr extends ExprInfo {
       }
 
       @Override
-      public boolean used(final Var var) {
-        return declared.get(var.id);
+      public boolean used(final VarRef ref) {
+        return declared.get(ref.var.id);
       }
     });
   }

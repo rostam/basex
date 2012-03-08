@@ -50,16 +50,11 @@ public final class Transform extends Arr {
     final boolean u = ctx.updating();
     ctx.updating(true);
 
-    final int s = ctx.vars.size();
-    for(final Let c : copies) {
-      c.expr = checkUp(c.expr, ctx).comp(ctx);
-      ctx.vars.add(c.var);
-    }
+    for(final Let c : copies) c.expr = checkUp(c.expr, ctx).comp(ctx);
     for(int e = 0; e != expr.length; ++e) expr[e] = expr[e].comp(ctx);
 
     if(!expr[0].uses(Use.UPD) && !expr[0].isVacuous()) UPEXPECTT.thrw(input);
     checkUp(expr[1], ctx);
-    ctx.vars.size(s);
     ctx.updating(u);
     return this;
   }
@@ -71,34 +66,29 @@ public final class Transform extends Arr {
 
   @Override
   public Value value(final QueryContext ctx) throws QueryException {
-    final int s = ctx.vars.size();
-    try {
-      final TransformModifier pu = new TransformModifier();
-      for(final Let fo : copies) {
-        final Iter ir = ctx.iter(fo.expr);
-        final Item i = ir.next();
-        if(i == null || !i.type.isNode() || ir.next() != null)
-          UPCOPYMULT.thrw(input);
+    final TransformModifier pu = new TransformModifier();
+    for(final Let fo : copies) {
+      final Iter ir = ctx.iter(fo.expr);
+      final Item i = ir.next();
+      if(i == null || !i.type.isNode() || ir.next() != null)
+        UPCOPYMULT.thrw(input);
 
-        // copy node to main memory data instance
-        final MemData md = new MemData(ctx.context.prop);
-        new DataBuilder(md).build((ANode) i);
+      // copy node to main memory data instance
+      final MemData md = new MemData(ctx.context.prop);
+      new DataBuilder(md).build((ANode) i);
 
-        // add resulting node to variable
-        ctx.vars.add(fo.var.bind(new DBNode(md), ctx).copy());
-        pu.addData(md);
-      }
-
-      final ContextModifier tmp = ctx.updates.mod;
-      ctx.updates.mod = pu;
-      ctx.value(expr[0]);
-      ctx.updates.apply();
-      ctx.updates.mod = tmp;
-
-      return ctx.value(expr[1]);
-    } finally {
-      ctx.vars.size(s);
+      // add resulting node to variable
+      ctx.set(fo.var, new DBNode(md));
+      pu.addData(md);
     }
+
+    final ContextModifier tmp = ctx.updates.mod;
+    ctx.updates.mod = pu;
+    ctx.value(expr[0]);
+    ctx.updates.apply();
+    ctx.updates.mod = tmp;
+
+    return ctx.value(expr[1]);
   }
 
   @Override

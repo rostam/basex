@@ -5,7 +5,6 @@ import java.util.Arrays;
 import org.basex.core.Text;
 import org.basex.data.ExprInfo;
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryException;
 import org.basex.query.item.QNm;
 import org.basex.util.Array;
 
@@ -81,7 +80,7 @@ public final class VarStack extends ExprInfo {
    * @param v variable
    * @return index
    */
-  private int indexOf(final Var v) {
+  public int indexOf(final Var v) {
     for(int s = size - 1; s >= 0; s--) if(v.is(vars[s])) return s;
     return -1;
   }
@@ -93,14 +92,6 @@ public final class VarStack extends ExprInfo {
    */
   public boolean contains(final Var v) {
     return indexOf(v) != -1;
-  }
-
-  /**
-   * Checks if none of the variables contains an updating expression.
-   * @throws QueryException query exception
-   */
-  public void checkUp() throws QueryException {
-    for(int i = 0; i < size; ++i) vars[i].checkUp();
   }
 
   @Override

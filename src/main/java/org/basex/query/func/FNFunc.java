@@ -1,10 +1,8 @@
 package org.basex.query.func;
 
-import static org.basex.query.util.Err.*;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.expr.Expr;
-import org.basex.query.expr.VarRef;
 import org.basex.query.item.AtomType;
 import org.basex.query.item.Empty;
 import org.basex.query.item.FItem;
@@ -15,7 +13,6 @@ import org.basex.query.item.QNm;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.Err;
-import org.basex.query.util.Var;
 import org.basex.util.InputInfo;
 
 /**
@@ -55,8 +52,6 @@ public final class FNFunc extends StandardFunc {
         return Int.get(getFun(0, FuncType.ANY_FUN, ctx).arity());
       case FUNCTION_NAME:
         return getFun(0, FuncType.ANY_FUN, ctx).fName();
-      case PARTIAL_APPLY:
-        return partApp(ctx, ii);
       case FUNCTION_LOOKUP:
         return lookup(ctx, ii);
       default:
@@ -81,35 +76,6 @@ public final class FNFunc extends StandardFunc {
       // function not found
       return null;
     }
-  }
-
-  /**
-   * Partially applies the function to one argument.
-   * @param ctx query context
-   * @param ii input info
-   * @return function item
-   * @throws QueryException query exception
-   */
-  private Item partApp(final QueryContext ctx, final InputInfo ii)
-      throws QueryException {
-    final FItem f = getFun(0, FuncType.ANY_FUN, ctx);
-    final long pos = expr.length == 2 ? 0 : checkItr(expr[2], ctx) - 1;
-
-    final int arity = f.arity();
-    if(pos < 0 || pos >= arity) INVPOS.thrw(ii, f.info(), pos + 1);
-
-    final FuncType ft = (FuncType) f.type;
-    final Var[] vars = new Var[arity - 1];
-    final Expr[] vals = new Expr[arity];
-    vals[(int) pos] = expr[1];
-    for(int i = 0, j = 0; i < arity - 1; i++, j++) {
-      if(i == pos) j++;
-      vars[i] = ctx.uniqueVar(ii, ft.args[j]);
-      vals[j] = new VarRef(ii, vars[i]);
-    }
-
-    return new PartFunc(ii, new DynamicFunc(ii, f, vals),
-        vars).comp(ctx).item(ctx, ii);
   }
 
   /**
@@ -258,8 +224,7 @@ public final class FNFunc extends StandardFunc {
 
   @Override
   public boolean uses(final Use u) {
-    return (sig == Function.PARTIAL_APPLY ||
-        sig == Function.FUNCTION_LOOKUP) &&
-        u == Use.CTX || u == Use.X30 || super.uses(u);
+    return sig == Function.FUNCTION_LOOKUP && u == Use.CTX || u == Use.X30
+        || super.uses(u);
   }
 }

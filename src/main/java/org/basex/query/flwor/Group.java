@@ -2,17 +2,16 @@ package org.basex.query.flwor;
 
 import static org.basex.query.QueryText.*;
 import java.io.IOException;
-import org.basex.io.serial.Serializer;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.expr.*;
 import org.basex.query.func.*;
 import org.basex.query.item.*;
-import org.basex.query.iter.Iter;
+import org.basex.data.*;
+import org.basex.io.serial.*;
 import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.TokenBuilder;
-import org.basex.util.Util;
 
 /**
  * Implementation of the group by clause.
@@ -20,13 +19,15 @@ import org.basex.util.Util;
  * @author BaseX Team 2005-12, BSD License
  * @author Michael Seiferle
  */
-public final class Group extends ParseExpr {
+public final class Group extends ExprInfo {
   /** Group by specification. */
   private final Spec[] groupby;
   /** Non-grouping variables. */
   final Var[][] nongroup;
   /** Grouping partition. **/
   GroupPartition gp;
+  /** Input info. */
+  private final InputInfo input;
 
   /**
    * Constructor.
@@ -35,7 +36,7 @@ public final class Group extends ParseExpr {
    * @param ng non-grouping variables and their copies
    */
   public Group(final InputInfo ii, final Spec[] gb, final Var[][] ng) {
-    super(ii);
+    input = ii;
     groupby = gb;
     nongroup = ng;
   }
@@ -46,42 +47,6 @@ public final class Group extends ParseExpr {
    */
   void init(final Order ob) {
     gp = new GroupPartition(groupby, nongroup, ob, input);
-  }
-
-  @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    for(final Spec g : groupby) {
-      g.comp(ctx);
-      if(g.grp.ret != null) g.grp.ret = SeqType.get(g.grp.ret.type, 1);
-      ctx.vars.add(g.grp);
-    }
-
-    for(final Var v : nongroup[1]) ctx.vars.add(v);
-    return this;
-  }
-
-  @Override
-  public Iter iter(final QueryContext ctx) {
-    throw Util.notexpected(this);
-  }
-
-  @Override
-  public boolean uses(final Use use) {
-    for(final Spec v : groupby) if(v.uses(use)) return true;
-    return false;
-  }
-
-  @Override
-  public boolean removable(final Var v) {
-    // don't allow removal if variable is used
-    for(final Spec g : groupby) if(g.count(v) != 0) return false;
-    for(final Var g : nongroup[0]) if(g.count(v) != 0) return false;
-    return true;
-  }
-
-  @Override
-  public Expr remove(final Var v) {
-    return this;
   }
 
   @Override
@@ -142,10 +107,5 @@ public final class Group extends ParseExpr {
       if(val.size() > 1) throw Err.XGRP.thrw(input);
       return val.isEmpty() ? val : StandardFunc.atom(val.itemAt(0), input);
     }
-  }
-
-  @Override
-  public boolean visitVars(final VarVisitor visitor) {
-    return visitor.visitAll(groupby) && visitor.visitAll(nongroup[0]);
   }
 }

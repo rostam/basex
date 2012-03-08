@@ -54,27 +54,20 @@ public final class Let extends ForLet {
   public Let comp(final QueryContext ctx) throws QueryException {
     expr = checkUp(expr, ctx).comp(ctx);
     type = SeqType.ITEM;
-    size = 1;
-    var.size = expr.size();
-    var.ret = score ? SeqType.DBL : expr.type();
-    ctx.vars.add(var);
+    size = var.size = expr.size();
+    var.refineType(score ? SeqType.DBL : expr.type());
     return this;
   }
 
   @Override
   public Iter iter(final QueryContext ctx) {
-    final Var vr = var.copy();
-
     return new Iter() {
-      /** Variable stack size. */
-      private int vs;
       /** Iterator flag. */
       private boolean more;
 
       @Override
       public Item next() throws QueryException {
         if(!more) {
-          vs = ctx.vars.size();
           final Value v;
           if(score) {
             // assign average score value
@@ -89,7 +82,7 @@ public final class Let extends ForLet {
           } else {
             v = ctx.value(expr);
           }
-          ctx.vars.add(vr.bind(v, ctx));
+          ctx.set(var, v);
           more = true;
           return Bln.TRUE;
         }
@@ -110,10 +103,7 @@ public final class Let extends ForLet {
 
       @Override
       public boolean reset() {
-        if(more) {
-          ctx.vars.size(vs);
-          more = false;
-        }
+        if(more) more = false;
         return true;
       }
     };

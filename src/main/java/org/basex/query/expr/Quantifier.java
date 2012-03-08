@@ -48,10 +48,8 @@ public final class Quantifier extends ParseExpr {
   @Override
   public Expr comp(final QueryContext ctx) throws QueryException {
     // compile for clauses
-    final int vs = ctx.vars.size();
     for(final For f : fl) f.comp(ctx);
     sat = checkUp(sat, ctx).comp(ctx).compEbv(ctx);
-    ctx.vars.size(vs);
 
     // find empty sequences
     boolean empty = sat.isEmpty();

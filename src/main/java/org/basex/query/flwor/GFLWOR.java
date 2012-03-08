@@ -78,12 +78,11 @@ public class GFLWOR extends ParseExpr {
     ctx.grouping = group != null;
 
     // optimize for/let clauses
-    final int vs = ctx.vars.size();
     for(int f = 0; f < fl.length; ++f) {
       final ForLet flt = fl[f];
       flt.comp(ctx);
       // bind variable if it contains a value or occurs only once
-      if(flt.expr.isValue() || count(flt.var, f) == 1) flt.bind(ctx);
+      if(flt.expr.isValue() || inlineable(flt.var, f)) flt.bind(ctx);
 
       /* ...or if all inner clauses return only one item. This rewriting would
        * disallow repeated evaluations of the same expression, but it prevents
@@ -109,10 +108,8 @@ public class GFLWOR extends ParseExpr {
       }
     }
 
-    if(group != null) group.comp(ctx);
     if(order != null) order.comp(ctx);
     ret = ret.comp(ctx);
-    ctx.vars.size(vs);
     ctx.grouping = grp;
 
     // remove FLWOR expression if WHERE clause always returns false
@@ -131,7 +128,8 @@ public class GFLWOR extends ParseExpr {
       final ForLet l = fl[f];
       // do not optimize non-deterministic expressions. example:
       // let $a := file:write('file', 'content') return ...
-      if(l.var.expr() != null || l.simple(true) && count(l.var, f) == 0 &&
+      final Expr bound = ctx.getExpr(l.var);
+      if(bound != null || l.simple(true) && count(l.var) == 0 &&
           !l.expr.uses(Use.NDT)) {
         ctx.compInfo(OPTVAR, l.var);
         fl = Array.delete(fl, f--);
@@ -270,7 +268,6 @@ public class GFLWOR extends ParseExpr {
   @Override
   public Iter iter(final QueryContext ctx) throws QueryException {
     final Iter[] iter = new Iter[fl.length];
-    final int vs = ctx.vars.size();
     for(int f = 0; f < fl.length; ++f) iter[f] = ctx.iter(fl[f]);
 
     // evaluate pre grouping tuples
@@ -282,14 +279,12 @@ public class GFLWOR extends ParseExpr {
     }
     if(group != null) group.init(order);
     iter(ctx, iter, 0, keys, vals);
-    ctx.vars.size(vs);
 
-    for(final ForLet f : fl) ctx.vars.add(f.var);
+    // [LW] for(final ForLet f : fl) ctx.vars.add(f.var);
 
     // order != null, otherwise it would have been handled in group
     final Iter ir = group != null ?
         group.gp.ret(ctx, ret, keys, vals) : ctx.iter(order.set(keys, vals));
-    ctx.vars.size(vs);
     return ir;
   }
 
@@ -326,19 +321,14 @@ public class GFLWOR extends ParseExpr {
   }
 
   /**
-   * Counts how often the specified variable is used, starting from the
-   * specified for/let index.
-   * @param v variable to be checked
-   * @param i index
-   * @return number of occurrences
+   * Checks if the given variable can be inlined.
+   * @param var variable to be inlined
+   * @param pos position of the declaring for/let clause
+   * @return {@code true} if the variable can be inlined, false otherwise
    */
-  final int count(final Var v, final int i) {
-    int c = 0;
-    for(int f = i; f < fl.length; f++) c += fl[f].count(v);
-    if(where != null) c += where.count(v);
-    if(order != null) c += order.count(v);
-    if(group != null) c += group.count(v);
-    return c + ret.count(v);
+  final boolean inlineable(final Var var, final int pos) {
+    // [LW] implement
+    return false;
   }
 
   @Override
@@ -346,7 +336,8 @@ public class GFLWOR extends ParseExpr {
     for(final ForLet f : fl) if(!f.removable(v)) return false;
     return (where == null || where.removable(v))
         && (order == null || order.removable(v))
-        && (group == null || group.removable(v)) && ret.removable(v);
+        // [LW] what about group-by?
+        && (group == null) && ret.removable(v);
   }
 
   @Override
@@ -399,8 +390,8 @@ public class GFLWOR extends ParseExpr {
     if(group != null) {
       grp = group.nongroup[1];
       for(final Var v : grp) if(!visitor.declared(v)) return false;
-      if(!group.visitVars(visitor)) return false;
     }
+
     // Order
     if(order != null && !order.visitVars(visitor)) return false;
 

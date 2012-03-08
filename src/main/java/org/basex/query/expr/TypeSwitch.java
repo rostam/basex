@@ -46,10 +46,9 @@ public final class TypeSwitch extends ParseExpr {
 
     // static condition: return branch in question
     if(ts.isValue()) {
-      for(final TypeCase c : cases) {
-        if(c.var.type == null || c.var.type.instance(ts.value(ctx)))
-          return optPre(c.comp(ctx, (Value) ts).expr, ctx);
-      }
+      final Value val = ts.value(ctx);
+      for(final TypeCase c : cases)
+        if(c.matches(val)) return optPre(c.comp(ctx, (Value) ts).expr, ctx);
     }
 
     // compile branches

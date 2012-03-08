@@ -6,7 +6,6 @@ import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.func.UserFunc;
 import org.basex.query.util.Err;
-import org.basex.query.util.Var;
 import static org.basex.query.QueryText.*;
 import static org.basex.util.Token.*;
 
@@ -152,24 +151,9 @@ public class FuncType implements Type {
   public static FuncType get(final UserFunc f) {
     final SeqType[] at = new SeqType[f.args.length];
     for(int a = 0; a < at.length; a++) {
-      at[a] = f.args[a] == null || f.args[a].type == null ?
-          SeqType.ITEM_ZM : f.args[a].type;
+      at[a] = f.args[a] == null ? SeqType.ITEM_ZM : f.args[a].type();
     }
     return new FuncType(at, f.ret == null ? SeqType.ITEM_ZM : f.ret);
-  }
-
-  /**
-   * Sets the types of the given variables.
-   * @param vars variables to type
-   * @return the variables for convenience
-   */
-  public final Var[] type(final Var[] vars) {
-    if(this != ANY_FUN) {
-      for(int v = 0; v < vars.length; v++)
-        if(vars[v] != null && args[v] != SeqType.ITEM_ZM)
-          vars[v].type = args[v];
-    }
-    return vars;
   }
 
   @Override

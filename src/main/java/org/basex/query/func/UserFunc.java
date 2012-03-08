@@ -5,8 +5,7 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.expr.Single;
 import org.basex.query.item.AtomType;
@@ -41,6 +40,9 @@ public class UserFunc extends Single {
   /** Updating flag. */
   public final boolean updating;
 
+  /** Local variables in the scope of this function. */
+  protected VarScope scope;
+
   /** Cast flag. */
   private boolean cast;
   /** Compilation flag. */
@@ -53,10 +55,11 @@ public class UserFunc extends Single {
    * @param v arguments
    * @param r return type
    * @param a annotations
+   * @param scp scope
    */
   public UserFunc(final InputInfo ii, final QNm n, final Var[] v,
-      final SeqType r, final Ann a) {
-    this(ii, n, v, r, a, true);
+      final SeqType r, final Ann a, final VarScope scp) {
+    this(ii, n, v, r, a, scp, true);
   }
 
   /**
@@ -66,10 +69,11 @@ public class UserFunc extends Single {
    * @param v arguments
    * @param r return type
    * @param a annotations
+   * @param scp scope
    * @param d declaration flag
    */
-  public UserFunc(final InputInfo ii, final QNm n, final Var[] v,
-      final SeqType r, final Ann a, final boolean d) {
+  public UserFunc(final InputInfo ii, final QNm n, final Var[] v, final SeqType r,
+      final Ann a, final VarScope scp, final boolean d) {
 
     super(ii, null);
     name = n;
@@ -79,6 +83,7 @@ public class UserFunc extends Single {
     ann = a == null ? new Ann() : a;
     declared = d;
     updating = ann.contains(Ann.UPDATING);
+    scope = scp;
   }
 
   /**
@@ -115,12 +120,9 @@ public class UserFunc extends Single {
     if(compiled) return;
     compiled = true;
 
-    final int vs = ctx.vars.size();
-    final VarStack vl = cache ? ctx.vars.cache(args.length) : null;
-    for(final Var v : args) ctx.vars.add(v);
+    final Expr[] sf = ctx.pushStackFrame(scope.stackSize());
     expr = expr.comp(ctx);
-    if(cache) ctx.vars.reset(vl);
-    else ctx.vars.size(vs);
+    ctx.resetStackFrame(sf);
 
     // convert all function calls in tail position to proper tail calls
     if(tco()) expr = expr.markTailCalls();

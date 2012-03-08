@@ -60,28 +60,18 @@ public final class For extends ForLet {
     type = expr.type();
     size = expr.size();
     if(ctx.grouping) {
-      var.ret = SeqType.get(type.type, Occ.ZERO_MORE);
+      var.refineType(SeqType.get(type.type, Occ.ZERO_MORE));
     } else {
-      var.size = Math.min(1, size);
-      var.ret = type.type.seqType();
+      var.size = 1;
+      var.refineType(type.type.seqType());
     }
-
-    ctx.vars.add(var);
-    if(pos   != null) ctx.vars.add(pos);
-    if(score != null) ctx.vars.add(score);
     return this;
   }
 
   @Override
   public Iter iter(final QueryContext ctx) {
-    final Var v = var.copy();
-    final Var p = pos != null ? pos.copy() : null;
-    final Var s = score != null ? score.copy() : null;
-
     return new Iter() {
-      /** Variable stack size. */
-      private int vs;
-      /** Iterator flag. */
+      /** Iterator. */
       private Iter ir;
       /** Counter. */
       private int c;
@@ -109,7 +99,6 @@ public final class For extends ForLet {
       @Override
       public boolean reset() {
         if(ir != null) {
-          ctx.vars.size(vs);
           ir.reset();
           ir = null;
           c = 0;
@@ -122,13 +111,7 @@ public final class For extends ForLet {
        * @throws QueryException query exception
        */
       private void init() throws QueryException {
-        if(ir == null) {
-          vs = ctx.vars.size();
-          ir = ctx.iter(expr);
-          ctx.vars.add(v);
-          if(p != null) ctx.vars.add(p);
-          if(s != null) ctx.vars.add(s);
-        }
+        if(ir == null) ir = ctx.iter(expr);
       }
 
       /**
@@ -136,12 +119,12 @@ public final class For extends ForLet {
        * @param it item
        * @param i position counter
        * @return specified item
-       * @throws QueryException query exception
+       * @throws QueryException if the items can't be bound
        */
       private Item bind(final Item it, final long i) throws QueryException {
-        v.bind(it, ctx);
-        if(p != null) p.bind(Int.get(i), ctx);
-        if(s != null) s.bind(Dbl.get(it.score()), ctx);
+        ctx.set(var, it);
+        if(pos != null) ctx.set(pos, Int.get(i));
+        if(score != null) ctx.set(score, Dbl.get(it.score()));
         return it;
       }
     };

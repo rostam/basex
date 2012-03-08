@@ -8,7 +8,8 @@ import org.basex.query.QueryException;
 import org.basex.query.expr.Arr;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.QNm;
-import org.basex.query.util.*;
+import org.basex.query.item.Value;
+import org.basex.query.util.Var;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
 import org.basex.util.TokenBuilder;
@@ -26,13 +27,13 @@ public abstract class UserFuncCall extends Arr {
    */
   final class Continuation extends RuntimeException {
     /** Arguments. */
-    private final Var[] args;
+    private final Value[] args;
 
     /**
      * Constructor.
      * @param arg arguments
      */
-    Continuation(final Var[] arg) {
+    Continuation(final Value[] arg) {
       args = arg;
     }
 
@@ -40,7 +41,7 @@ public abstract class UserFuncCall extends Arr {
      * Getter for the continuation function.
      * @return the next function to call
      */
-    Expr getFunc() {
+    UserFunc getFunc() {
       return func;
     }
 
@@ -48,7 +49,7 @@ public abstract class UserFuncCall extends Arr {
      * Getter for the function arguments.
      * @return the next function call's arguments
      */
-    Var[] getArgs() {
+    Value[] getArgs() {
       return args;
     }
 
@@ -103,7 +104,7 @@ public abstract class UserFuncCall extends Arr {
     func.comp(ctx);
     if(func.expr.isValue() && allAreValues() && !func.uses(Use.NDT)) {
       // evaluate arguments to catch cast exceptions
-      for(int a = 0; a < expr.length; ++a) func.args[a].bind(expr[a], ctx);
+      for(int a = 0; a < expr.length; ++a) ctx.set(func.args[a], expr[a]);
       ctx.compInfo(OPTINLINE, func.name.string());
       return func.value(ctx);
     }
@@ -116,14 +117,17 @@ public abstract class UserFuncCall extends Arr {
   /**
    * Adds the given arguments to the variable stack.
    * @param ctx query context
-   * @param vs variables to add
-   * @return old stack size
+   * @param vars formal parameters
+   * @param vals values to add
+   * @return old stack frame
+   * @throws QueryException if the arguments can't be bound
    */
-  static VarStack addArgs(final QueryContext ctx, final Var[] vs) {
+  static Expr[] addArgs(final QueryContext ctx, final Var[] vars, final Value[] vals)
+      throws QueryException {
     // move variables to stack
-    final VarStack vl = ctx.vars.cache(vs.length);
-    for(final Var v : vs) ctx.vars.add(v);
-    return vl;
+    final Expr[] old = ctx.pushStackFrame(vars.length);
+    for(int i = 0; i < vars.length; i++) ctx.set(vars[i], vals[i]);
+    return old;
   }
 
   /**
@@ -132,12 +136,11 @@ public abstract class UserFuncCall extends Arr {
    * @return argument values
    * @throws QueryException query exception
    */
-  Var[] args(final QueryContext ctx) throws QueryException {
+  Value[] args(final QueryContext ctx) throws QueryException {
     final int al = expr.length;
-    final Var[] args = new Var[al];
+    final Value[] args = new Value[al];
     // evaluate arguments
-    for(int a = 0; a < al; ++a)
-      args[a] = func.args[a].bind(expr[a].value(ctx), ctx).copy();
+    for(int a = 0; a < al; ++a) args[a] = expr[a].value(ctx);
     return args;
   }
 

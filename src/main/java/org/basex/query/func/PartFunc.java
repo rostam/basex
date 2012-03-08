@@ -4,13 +4,11 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
-import org.basex.query.item.QNm;
+import org.basex.query.item.*;
 import org.basex.query.util.TypedFunc;
 import org.basex.query.util.Var;
-import org.basex.util.Array;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
 
@@ -26,9 +24,12 @@ public final class PartFunc extends UserFunc {
    * @param ii input info
    * @param fun typed function expression
    * @param arg arguments
+   * @param scp scope
+   * @throws QueryException exception
    */
-  public PartFunc(final InputInfo ii, final TypedFunc fun, final Var[] arg) {
-    super(ii, new QNm(), nn(fun.type.type(arg)), fun.ret(), null);
+  public PartFunc(final InputInfo ii, final TypedFunc fun, final Var[] arg,
+      final VarScope scp) throws QueryException {
+    super(ii, new QNm(), type(arg, fun.type), fun.ret(), null, scp);
     expr = fun.fun;
   }
 
@@ -37,11 +38,29 @@ public final class PartFunc extends UserFunc {
    * @param ii input info
    * @param func function expression
    * @param arg arguments
+   * @param scp scope
    */
-  public PartFunc(final InputInfo ii, final Expr func, final Var[] arg) {
+  public PartFunc(final InputInfo ii, final Expr func, final Var[] arg,
+      final VarScope scp) {
     // [LW] XQuery/HOF: dynamic type propagation
-    super(ii, new QNm(), nn(arg), func.type(), null);
+    super(ii, new QNm(), arg, func.type(), null, scp);
     expr = func;
+  }
+
+  /**
+   * Sets the types of the given variables.
+   * @param vars variables to type
+   * @param ft function type
+   * @return the variables for convenience
+   * @throws QueryException exception
+   */
+  public static Var[] type(final Var[] vars, final FuncType ft) throws QueryException {
+    if(ft != FuncType.ANY_FUN) {
+      for(int v = 0; v < vars.length; v++)
+        if(vars[v] != null && ft.args[v] != SeqType.ITEM_ZM)
+          vars[v].setRetType(ft.args[v]);
+    }
+    return vars;
   }
 
   @Override
@@ -58,7 +77,7 @@ public final class PartFunc extends UserFunc {
   public Expr comp(final QueryContext ctx) throws QueryException {
     comp(ctx, false);
     // defer creation of function item because of closure
-    return new InlineFunc(input, ret, args, expr, ann).comp(ctx);
+    return new InlineFunc(input, ret, args, expr, ann, scope).comp(ctx);
   }
 
   @Override
@@ -67,17 +86,6 @@ public final class PartFunc extends UserFunc {
     for(final Var v : args)
       sb.append(v).append(v == args[args.length - 1] ? "" : ", ");
     return sb.append(") { ").append(expr).append(" }").toString();
-  }
-
-  /**
-   * Collects all non-{@code null} variables from the array.
-   * @param vars array of variables, can contain {@code null}s
-   * @return all non-{@code null} variables
-   */
-  private static Var[] nn(final Var[] vars) {
-    Var[] out = {};
-    for(final Var v : vars) if(v != null) out = Array.add(out, v);
-    return out;
   }
 
   @Override

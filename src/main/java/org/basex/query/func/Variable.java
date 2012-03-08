@@ -4,12 +4,12 @@ import static org.basex.query.QueryText.*;
 
 import java.io.File;
 
-import org.basex.query.QueryContext;
+import org.basex.query.*;
 import org.basex.query.item.QNm;
 import org.basex.query.item.Str;
 import org.basex.query.item.Value;
-import org.basex.query.util.NSGlobal;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
+import org.basex.query.util.Var.VarKind;
 import org.basex.util.TokenBuilder;
 
 /**
@@ -46,20 +46,27 @@ public enum Variable {
     value = val;
   }
 
-  /**
-   * Initializes all variables.
-   * @param ctx query context
-   */
-  public static void init(final QueryContext ctx) {
-    for(final Variable v : values()) {
-      ctx.vars.updateGlobal(Var.create(ctx, null, v.qname, v.value, null));
-    }
-  }
-
   @Override
   public final String toString() {
     final byte[] pref = NSGlobal.prefix(qname.uri());
     return new TokenBuilder("$").add(pref).add(':').add(
         qname.local()).toString();
+  }
+
+  /**
+   * Tries to find the variable with the given name.
+   * @param name name of the variable
+   * @param ctx query context
+   * @return variable if found, {@code null} otherwise
+   * @throws QueryException exception
+   */
+  public static Var get(final QNm name, final QueryContext ctx) throws QueryException {
+    for(final Variable v : values())
+      if(v.qname.eq(name)) {
+        final Var var = new Var(ctx, v.qname, v.value.type(), VarKind.GLOBAL);
+        ctx.globals.set(ctx, null, var, null, v.value, true);
+        return var;
+      }
+    return null;
   }
 }

@@ -1,20 +1,11 @@
 package org.basex.query.util;
 
-import static org.basex.query.QueryText.*;
-import static org.basex.query.util.Err.*;
+import org.basex.query.*;
 import java.io.IOException;
-
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
-import org.basex.query.expr.Expr;
-import org.basex.query.expr.ParseExpr;
-import org.basex.query.item.Item;
+import org.basex.data.ExprInfo;
 import org.basex.query.item.QNm;
 import org.basex.query.item.SeqType;
-import org.basex.query.item.Value;
-import org.basex.query.iter.Iter;
-import org.basex.util.InputInfo;
 import org.basex.util.Token;
 import org.basex.util.TokenBuilder;
 
@@ -23,175 +14,109 @@ import org.basex.util.TokenBuilder;
  *
  * @author BaseX Team 2005-12, BSD License
  * @author Christian Gruen
+ * @author Leo Woerteler
  */
-public final class Var extends ParseExpr {
+public final class Var extends ExprInfo {
+  /**
+   * Variable kinds.
+   * @author Leo Woerteler
+   */
+  public static enum VarKind {
+    /** Local variable. */
+    LOCAL,
+    /** Global variable. */
+    GLOBAL,
+    /** Function parameter. */
+    FUNC_PARAM;
+  };
+
   /** Variable name. */
   public final QNm name;
-  /** Annotations. */
-  public final Ann ann;
   /** Variable ID. */
   public final int id;
 
-  /** Expected return type. */
-  public SeqType ret;
-  /** Global flag. */
-  public boolean global;
-  /** Declaration flag. */
-  public boolean declared;
+  /** Stack slot number. */
+  public int slot = -1;
 
-  /** Bound value. */
-  private Value value;
-  /** Bound expression. */
-  private Expr expr;
+  /** Expected result size. */
+  public long size;
+
+  /** Expected return type, {@code null} if not important. */
+  private SeqType ret;
+  /** Actual return type (by type inference). */
+  private SeqType type;
+  /** Flag for global variables. */
+  public final VarKind kind;
 
   /**
    * Constructor.
-   * @param ii input info
-   * @param n variable name
-   * @param t data type
-   * @param i variable ID
-   * @param a annotations
+   * @param ctx query context, used for generating a variable ID
+   * @param n variable name, {@code null} for unnamed variable
+   * @param typ expected type, {@code null} for no check
+   * @param k kind of variable
    */
-  private Var(final InputInfo ii, final QNm n, final SeqType t, final int i,
-      final Ann a) {
-    super(ii);
+  public Var(final QueryContext ctx, final QNm n, final SeqType typ, final VarKind k) {
     name = n;
+    ret = typ;
+    type = typ != null ? typ : SeqType.ITEM_ZM;
+    id = ctx.varIDs++;
+    kind = k;
+    size = type.occ();
+  }
+
+  /**
+   * Constructor for local variables.
+   * @param ctx query context, used for generating a variable ID
+   * @param n variable name, {@code null} for unnamed variable
+   * @param typ expected type, {@code null} for no check
+   */
+  public Var(final QueryContext ctx, final QNm n, final SeqType typ) {
+    this(ctx, n, typ, VarKind.LOCAL);
+  }
+
+  /**
+   * Creates a copy of this variable with the given type and casting behavior.
+   * @param ctx query context for new variable ID
+   * @param t type to be assigned
+   * @return copy of the variable
+   */
+  public Var withType(final QueryContext ctx, final SeqType t) {
+    return new Var(ctx, name, t, kind);
+  }
+
+  /**
+   * Type of values bound to this variable.
+   * @return (non-{@code null}) type
+   */
+  public SeqType type() {
+    return type;
+  }
+
+  /**
+   * Tries to refine the compile-time type of this variable through the type of the bound
+   * expression.
+   * @param t type of the bound expression
+   * @throws QueryException if the types are incompatible
+   */
+  public void refineType(final SeqType t) throws QueryException {
+    // [LW] insert checks here
     type = t;
-    id = i;
-    ann = a == null ? new Ann() : a;
   }
 
   /**
-   * Creates a new variable.
-   * @param ctx query context
-   * @param ii input info
-   * @param n variable name
-   * @param t type
-   * @param a annotations
-   * @return variable
+   * Checks if this variable is global.
+   * @return result of check
    */
-  public static Var create(final QueryContext ctx, final InputInfo ii,
-      final QNm n, final SeqType t, final Ann a) {
-    return new Var(ii, n, t, ctx.varIDs++, a);
+  public boolean global() {
+    return kind == VarKind.GLOBAL;
   }
 
   /**
-   * Creates a new variable.
-   * @param ctx query context
-   * @param ii input info
-   * @param n variable name
-   * @param a annotations
-   * @return variable
+   * Determines if this variable checks the type of the expression bound to it.
+   * @return {@code true} if the type is checked or promoted, {@code false} otherwise
    */
-  public static Var create(final QueryContext ctx, final InputInfo ii,
-      final QNm n, final Ann a) {
-    return create(ctx, ii, n, (SeqType) null, a);
-  }
-
-  /**
-   * Creates a new variable.
-   * @param ctx query context
-   * @param ii input info
-   * @param n variable name
-   * @param v variable to be bound
-   * @param a annotations
-   * @return variable
-   */
-  public static Var create(final QueryContext ctx, final InputInfo ii,
-      final QNm n, final Value v, final Ann a) {
-    final Var var = create(ctx, ii, n, v.type(), a);
-    var.expr = v;
-    var.value = v;
-    return var;
-  }
-
-  /**
-   * Checks if the variable contains no updating expression.
-   * @throws QueryException query exception
-   */
-  public void checkUp() throws QueryException {
-    if(expr != null && expr.uses(Use.UPD)) UPNOT.thrw(input, description());
-  }
-
-  @Override
-  public Var comp(final QueryContext ctx) throws QueryException {
-    if(expr != null) bind(checkUp(expr, ctx).comp(ctx), ctx);
-    return this;
-  }
-
-  /**
-   * Sets the specified variable type.
-   * @param t type
-   * @param ctx query context
-   * @throws QueryException query exception
-   */
-  public void reset(final SeqType t, final QueryContext ctx)
-      throws QueryException {
-
-    type = t;
-    if(value != null && !value.type.instanceOf(t.type) &&
-        value instanceof Item) {
-      value = type.type.cast((Item) value, ctx, input);
-    }
-  }
-
-  /**
-   * Binds the specified expression to the variable.
-   * @param e expression to be set
-   * @param ctx query context
-   * @return self reference
-   * @throws QueryException query exception
-   */
-  public Var bind(final Expr e, final QueryContext ctx) throws QueryException {
-    expr = e;
-    return e.isValue() ? bind((Value) e, ctx) : this;
-  }
-
-  /**
-   * Returns the bound expression.
-   * @return expression
-   */
-  public Expr expr() {
-    return expr;
-  }
-
-  /**
-   * Binds the specified value to the variable.
-   * @param v value to be set
-   * @param ctx query context
-   * @return self reference
-   * @throws QueryException query exception
-   */
-  public Var bind(final Value v, final QueryContext ctx) throws QueryException {
-    expr = v;
-    value = cast(v, ctx);
-    return this;
-  }
-
-  @Override
-  public Item item(final QueryContext ctx, final InputInfo ii)
-      throws QueryException {
-    return value(ctx).item(ctx, ii);
-  }
-
-  @Override
-  public Iter iter(final QueryContext ctx) throws QueryException {
-    return value(ctx).iter();
-  }
-
-  @Override
-  public Value value(final QueryContext ctx) throws QueryException {
-    if(value == null) {
-      if(expr == null) VAREMPTY.thrw(input, this);
-      final Value v = ctx.value;
-      ctx.value = null;
-      try {
-        value = cast(ctx.value(expr.comp(ctx)), ctx);
-      } finally {
-        ctx.value = v;
-      }
-    }
-    return value;
+  public boolean checksType() {
+    return ret != null;
   }
 
   /**
@@ -204,81 +129,40 @@ public final class Var extends ParseExpr {
     return id == v.id;
   }
 
-  /**
-   * If necessary, casts the specified value if a type is specified.
-   * @param v input value
-   * @param ctx query context
-   * @return cast value
-   * @throws QueryException query exception
-   */
-  private Value cast(final Value v, final QueryContext ctx)
-      throws QueryException {
-    return type == null ? v : type.promote(v, ctx, input);
-  }
-
-  /**
-   * Returns a copy of the variable.
-   * @return copy
-   */
-  public Var copy() {
-    final Var v = new Var(input, name, type, id, ann);
-    v.global = global;
-    v.value = value;
-    v.expr = expr;
-    v.type = type;
-    v.ret = ret;
-    return v;
-  }
-
-  @Override
-  public boolean uses(final Use u) {
-    return u == Use.VAR;
-  }
-
-  @Override
-  public boolean removable(final Var v) {
-    // only VarRefs can be removed
-    return false;
-  }
-
-  @Override
-  public Var remove(final Var v) {
-    return this;
-  }
-
-  @Override
-  public SeqType type() {
-    return ret != null ? ret : type != null ? type :
-      expr != null ? expr.type() : SeqType.ITEM_ZM;
-  }
-
-  @Override
-  public boolean sameAs(final Expr cmp) {
-    if(!(cmp instanceof Var)) return false;
-    final Var v = (Var) cmp;
-    return name.eq(v.name) && type().eq(v.type());
-  }
-
   @Override
   public void plan(final Serializer ser) throws IOException {
-    ser.openElement(this, NAM, Token.token(toString()), ID, Token.token(id));
-    if(expr != null) expr.plan(ser);
-    ser.closeElement();
+    ser.emptyElement(this, QueryText.NAM, Token.token(toString()),
+        QueryText.ID, Token.token(id));
   }
 
   @Override
   public String toString() {
     final TokenBuilder tb = new TokenBuilder();
     if(name != null) {
-      tb.add(DOLLAR).add(name.string());
-      if(type != null) tb.add(' ' + AS);
+      tb.add(QueryText.DOLLAR).add(name.string());
+      if(type != null) tb.add(' ' + QueryText.AS);
     }
     if(type != null) tb.add(" " + type);
     return tb.toString();
   }
 
   @Override
-  public boolean visitVars(final VarVisitor visitor) {
-    return expr == null || expr.visitVars(visitor);
+  public boolean equals(final Object obj) {
+    return obj instanceof Var && is((Var) obj);
+  }
+
+  @Override
+  public int hashCode() {
+    return id;
+  }
+
+  /**
+   * Sets the return type of this variable.
+   * @param rt return type
+   * @throws QueryException if the return type is incompatible
+   */
+  public void setRetType(final SeqType rt) throws QueryException {
+    refineType(ret);
+    ret = rt;
   }
 }

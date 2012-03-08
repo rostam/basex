@@ -4,16 +4,16 @@ import static org.basex.query.QueryText.*;
 import static org.basex.query.util.Err.*;
 import static org.basex.util.Token.*;
 
-import java.util.Arrays;
+import java.util.*;
 
 import org.basex.core.*;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.expr.Expr.Use;
 import org.basex.query.item.*;
 import org.basex.query.item.SeqType.*;
 import org.basex.query.util.*;
+import org.basex.query.util.Var.VarKind;
 import org.basex.util.InputInfo;
 import org.basex.util.Levenshtein;
 import org.basex.util.TokenBuilder;
@@ -94,10 +94,13 @@ public final class Functions extends TokenSet {
   public static FItem get(final QNm name, final long arity, final boolean dyn,
       final QueryContext ctx, final InputInfo ii) throws QueryException {
 
+    // use empty scope
+    final VarScope sc = new VarScope();
+
     final Expr[] args = new Expr[(int) arity];
     final Var[] vars = new Var[args.length];
     for(int i = 0; i < args.length; i++) {
-      vars[i] = ctx.uniqueVar(ii, null);
+      vars[i] = sc.uniqueVar(ctx, null, VarKind.FUNC_PARAM);
       args[i] = new VarRef(ii, vars[i]);
     }
 
@@ -113,8 +116,7 @@ public final class Functions extends TokenSet {
       if(usf != null && usf.declared) usf.comp(ctx);
     }
 
-    final FuncType ft = f.type;
-    return new FuncItem(name, vars, f.fun, ft, false);
+    return new FuncItem(name, vars, f.fun, f.type, false, null, vars.length);
   }
 
   /**

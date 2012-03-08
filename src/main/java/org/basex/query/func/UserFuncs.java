@@ -48,7 +48,8 @@ public final class UserFuncs extends ExprInfo {
       type = FuncType.get(funcs[id]);
     } else if(!dyn && FuncType.find(name) == null) {
       // add function call for function that has not been defined yet
-      final UserFunc uf = new UserFunc(ii, name, new Var[al], null, null, false);
+      final UserFunc uf = new UserFunc(ii, name, new Var[al], null, null, new VarScope(),
+          false);
       call = add(ii, name, add(uf, ii), args);
       type = FuncType.arity(al);
     } else {

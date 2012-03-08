@@ -7,7 +7,6 @@ import org.basex.query.item.Item;
 import org.basex.query.item.QNm;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.VarStack;
 import org.basex.util.InputInfo;
 
 /**
@@ -34,9 +33,9 @@ final class TailFuncCall extends UserFuncCall {
     checkHeight(ctx);
 
     // cache arguments, evaluate function and reset variable scope
-    final VarStack cs = addArgs(ctx, args(ctx));
+    final Expr[] cs = addArgs(ctx, func.args, args(ctx));
     final Item it = func.item(ctx, ii);
-    ctx.vars.reset(cs);
+    ctx.resetStackFrame(cs);
     return it;
   }
 
@@ -45,9 +44,9 @@ final class TailFuncCall extends UserFuncCall {
     checkHeight(ctx);
 
     // cache arguments, evaluate function and reset variable scope
-    final VarStack cs = addArgs(ctx, args(ctx));
+    final Expr[] cs = addArgs(ctx, func.args, args(ctx));
     final Value v = ctx.value(func);
-    ctx.vars.reset(cs);
+    ctx.resetStackFrame(cs);
     return v;
   }
 

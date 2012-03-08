@@ -70,7 +70,7 @@ final class GroupPartition {
     final int gl = gv.length;
     final Value[] vals = new Value[gl];
     for(int i = 0; i < gl; i++) {
-      final Value val = ctx.value(gv[i]);
+      final Value val = ctx.get(gv[i].grp);
       if(val.size() > 1) XGRP.thrw(input);
       vals[i] = val;
     }
@@ -111,7 +111,7 @@ final class GroupPartition {
 
     for(int i = 0; i < ngl; ++i) {
       ItemCache ic = sq[i];
-      final Value result = ctx.value(ctx.vars.get(ngv[0][i]));
+      final Value result = ctx.get(ngv[0][i]);
       if(ic == null) {
         ic = new ItemCache();
         sq[i] = ic;
@@ -135,14 +135,11 @@ final class GroupPartition {
 
     for(int i = 0; i < part.size(); ++i) {
       final GroupNode gn = part.get(i);
-      for(int j = 0; j < gv.length; ++j)
-        ctx.vars.add(gv[j].grp.copy().bind(gn.vals[j], ctx));
+      for(int j = 0; j < gv.length; ++j) ctx.set(gv[j].grp, gn.vals[j]);
 
       if(items != null) {
         final ItemCache[] ii = items.get(i);
-        for(int j = 0; j < ii.length; ++j) {
-          ctx.vars.add(ngv[1][j].copy().bind(ii[j].value(), ctx));
-        }
+        for(int j = 0; j < ii.length; ++j) ctx.set(ngv[1][j], ii[j].value());
       }
       if(order != null) {
         order.add(ctx, ret, ks, vs);

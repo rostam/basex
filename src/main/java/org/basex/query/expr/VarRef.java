@@ -36,12 +36,12 @@ public final class VarRef extends ParseExpr {
 
   @Override
   public Expr comp(final QueryContext ctx) throws QueryException {
-    var = ctx.vars.get(var);
+    Expr e = ctx.getExpr(var);
+
     type = var.type();
-    size = var.size();
+    size = var.size;
 
     // return if variable expression has not yet been assigned
-    Expr e = var.expr();
     if(e == null) return this;
 
     /* Choose expressions to be pre-evaluated.
@@ -56,9 +56,8 @@ public final class VarRef extends ParseExpr {
      * - they contain an element constructor (mandatory)
      * - they contain a function call
      */
-    if(var.global || var.type != null || e.uses(Use.CNS) ||
-        e instanceof UserFuncCall) {
-      e = var.value(ctx);
+    if(var.global() || var.checksType() || e.uses(Use.CNS) || e instanceof UserFuncCall) {
+      e = ctx.get(var);
     }
 
     return e;
@@ -67,26 +66,22 @@ public final class VarRef extends ParseExpr {
   @Override
   public Item item(final QueryContext ctx, final InputInfo ii)
       throws QueryException {
-    var = ctx.vars.get(var);
-    return var.item(ctx, ii);
+    return ctx.get(var).item(ctx, ii);
   }
 
   @Override
   public Iter iter(final QueryContext ctx) throws QueryException {
-    var = ctx.vars.get(var);
-    return ctx.iter(var);
+    return ctx.get(var).iter();
   }
 
   @Override
   public Value value(final QueryContext ctx) throws QueryException {
-    var = ctx.vars.get(var);
-    return ctx.value(var);
+    return ctx.get(var);
   }
 
   @Override
   public boolean uses(final Use u) {
-    return u == Use.VAR || u != Use.CTX && u != Use.NDT &&
-      var.expr() != null && var.expr().uses(u);
+    return u == Use.VAR;
   }
 
   @Override
@@ -101,7 +96,7 @@ public final class VarRef extends ParseExpr {
 
   @Override
   public boolean sameAs(final Expr cmp) {
-    return cmp instanceof VarRef && var.sameAs(((VarRef) cmp).var);
+    return cmp instanceof VarRef && var.is(((VarRef) cmp).var);
   }
 
   @Override
@@ -123,6 +118,6 @@ public final class VarRef extends ParseExpr {
 
   @Override
   public boolean visitVars(final VarVisitor visitor) {
-    return visitor.used(var) && var.visitVars(visitor);
+    return visitor.used(this);
   }
 }

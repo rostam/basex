@@ -1,6 +1,6 @@
 package org.basex.query.util;
 
-import org.basex.query.expr.Expr;
+import org.basex.query.expr.*;
 
 /**
  * A visitor for variables declared and used in an {@link Expr}. All methods return a
@@ -25,7 +25,7 @@ public abstract class VarVisitor {
    * @param var used variable
    * @return if more variables should be visited
    */
-  public boolean used(final Var var) {
+  public boolean used(final VarRef var) {
     return true;
   };
 

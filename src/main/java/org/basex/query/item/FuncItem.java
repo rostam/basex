@@ -1,18 +1,19 @@
 package org.basex.query.item;
 
 import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
+
 import static org.basex.query.QueryText.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.expr.VarRef;
 import org.basex.query.func.DynamicFunc;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Err;
-import org.basex.query.util.Var;
-import org.basex.query.util.VarStack;
+import org.basex.query.util.*;
+import org.basex.query.util.Var.VarKind;
 import org.basex.util.InputInfo;
 import static org.basex.util.Token.*;
 import org.basex.util.Util;
@@ -34,7 +35,9 @@ public final class FuncItem extends FItem {
   private final SeqType cast;
 
   /** The closure of this function item. */
-  private final VarStack closure = new VarStack();
+  private final Map<Var, Value> closure;
+  /** Size of the stack frame needed for this function. */
+  private final int stackSize;
 
   /**
    * Constructor.
@@ -43,14 +46,18 @@ public final class FuncItem extends FItem {
    * @param body function body
    * @param t function type
    * @param cst cast flag
+   * @param cls closure
+   * @param ssz stack size
    */
-  public FuncItem(final QNm n, final Var[] arg, final Expr body,
-      final FuncType t, final boolean cst) {
+  public FuncItem(final QNm n, final Var[] arg, final Expr body, final FuncType t,
+      final boolean cst, final Map<Var, Value> cls, final int ssz) {
     super(t);
     name = n;
     vars = arg;
     expr = body;
     cast = cst && t.ret != null ? t.ret : null;
+    closure = cls != null ? cls : Collections.<Var, Value>emptyMap();
+    stackSize = ssz;
   }
 
   /**
@@ -58,19 +65,13 @@ public final class FuncItem extends FItem {
    * @param arg function arguments
    * @param body function body
    * @param t function type
-   * @param cl variables in the closure
    * @param cst cast flag
+   * @param clos closure
+   * @param ssz stack size
    */
-  public FuncItem(final Var[] arg, final Expr body, final FuncType t,
-      final VarStack cl, final boolean cst) {
-
-    this(null, arg, body, t, cst);
-    if(cl != null) {
-      for(int i = cl.size; --i >= 0;) {
-        final Var v = cl.vars[i];
-        if(body.count(v) != 0 && !closure.contains(v)) closure.add(v.copy());
-      }
-    }
+  public FuncItem(final Var[] arg, final Expr body, final FuncType t, final boolean cst,
+      final Map<Var, Value> clos, final int ssz) {
+    this(null, arg, body, t, cst, clos, ssz);
   }
 
   @Override
@@ -86,15 +87,12 @@ public final class FuncItem extends FItem {
   /**
    * Binds all variables to the context.
    * @param ctx query context
-   * @param args argument values
-   * @throws QueryException query exception
+   * @param arg argument values
+   * @throws QueryException if the arguments can't be bound
    */
-  private void bindVars(final QueryContext ctx, final Value[] args)
-      throws QueryException {
-    for(int v = closure.size; --v >= 0;)
-      ctx.vars.add(closure.vars[v].copy());
-    for(int v = vars.length; --v >= 0;)
-      ctx.vars.add(vars[v].bind(args[v], ctx).copy());
+  private void bindVars(final QueryContext ctx, final Value[] arg) throws QueryException {
+    for(final Entry<Var, Value> e : closure.entrySet()) ctx.set(e.getKey(), e.getValue());
+    for(int v = vars.length; --v >= 0;) ctx.set(vars[v], arg[v]);
   }
 
   @Override
@@ -102,7 +100,7 @@ public final class FuncItem extends FItem {
       final Value... args) throws QueryException {
 
     // bind variables and cache context
-    final VarStack cs = ctx.vars.cache(args.length);
+    final Expr[] sf = ctx.pushStackFrame(stackSize);
     final Value cv = ctx.value;
     try {
       bindVars(ctx, args);
@@ -112,7 +110,7 @@ public final class FuncItem extends FItem {
       return cast != null ? cast.promote(v, ctx, ii) : v;
     } finally {
       ctx.value = cv;
-      ctx.vars.reset(cs);
+      ctx.resetStackFrame(sf);
     }
   }
 
@@ -129,7 +127,7 @@ public final class FuncItem extends FItem {
       final Value... args) throws QueryException {
 
     // bind variables and cache context
-    final VarStack cs = ctx.vars.cache(args.length);
+    final Expr[] sf = ctx.pushStackFrame(stackSize);
     final Value cv = ctx.value;
     try {
       bindVars(ctx, args);
@@ -139,7 +137,7 @@ public final class FuncItem extends FItem {
       return cast != null ? cast.cast(it, expr, false, ctx, ii) : it;
     } finally {
       ctx.value = cv;
-      ctx.vars.reset(cs);
+      ctx.resetStackFrame(sf);
     }
   }
 
@@ -168,15 +166,15 @@ public final class FuncItem extends FItem {
    */
   private static FuncItem coerce(final QueryContext ctx, final InputInfo ii,
       final FuncItem fun, final FuncType t) {
-
+    final VarScope sc = new VarScope();
     final Var[] vars = new Var[fun.vars.length];
     final Expr[] refs = new Expr[vars.length];
     for(int i = vars.length; i-- > 0;) {
-      vars[i] = ctx.uniqueVar(ii, t.args[i]);
+      vars[i] = sc.uniqueVar(ctx, t.args[i], VarKind.FUNC_PARAM);
       refs[i] = new VarRef(ii, vars[i]);
     }
     return new FuncItem(fun.name, vars, new DynamicFunc(ii, fun, refs), t,
-        fun.cast != null);
+        fun.cast != null, null, vars.length);
   }
 
   @Override

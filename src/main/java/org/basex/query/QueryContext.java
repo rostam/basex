@@ -4,7 +4,6 @@ import static org.basex.core.Text.*;
 import static org.basex.query.QueryText.*;
 import static org.basex.query.util.Err.*;
 import static org.basex.util.Token.*;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -12,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.basex.core.Context;
 import org.basex.core.Progress;
 import org.basex.core.Prop;
@@ -32,11 +30,9 @@ import org.basex.query.item.*;
 import org.basex.query.iter.ItemCache;
 import org.basex.query.iter.Iter;
 import org.basex.query.up.Updates;
-import org.basex.query.util.JDBCConnections;
-import org.basex.query.util.Var;
-import org.basex.query.util.VarContext;
+import org.basex.query.util.*;
+import org.basex.query.util.Var.VarKind;
 import org.basex.query.util.json.JsonMapConverter;
-import org.basex.util.InputInfo;
 import org.basex.util.JarLoader;
 import org.basex.util.TokenBuilder;
 import org.basex.util.Util;
@@ -60,7 +56,11 @@ public final class QueryContext extends Progress {
   /** Static context of an expression. */
   public StaticContext sc = new StaticContext();
   /** Variables. */
-  public final VarContext vars = new VarContext();
+  // [LW] public final VarContext vars = new VarContext();
+  /** Global variables. */
+  public final Globals globals = new Globals();
+  /** Current stack frame. */
+  private Expr[] stackFrame;
   /** Functions. */
   public final UserFuncs funcs = new UserFuncs();
 
@@ -368,16 +368,10 @@ public final class QueryContext extends Progress {
 
     // bind variable
     final QNm qnm = uri.length == 0 ? new QNm(ln, this) : new QNm(ln, uri);
-    final Var gl = vars.globals().get(qnm);
-    if(gl == null) {
-      // assign new variable
-      vars.updateGlobal(Var.create(this, null, qnm, null).bind(ex, this));
-    } else {
-      // reset declaration state and bind new expression
-      gl.declared = false;
-      gl.bind(gl.type != null ? gl.type.type.cast(ex.item(this, null),
-          this, null) : ex, this);
-    }
+    final StaticVar gl = globals.get(qnm);
+    final Var var = gl != null ? gl.var : new Var(this, qnm, null, VarKind.GLOBAL);
+    globals.set(this, null, var, null,
+        gl.type != null ? gl.type.type.cast(ex.item(this, null), this, null) : ex, false);
   }
 
   /**
@@ -387,10 +381,10 @@ public final class QueryContext extends Progress {
    */
   void plan(final Serializer ser) throws IOException {
     // only show root node if functions or variables exist
-    final boolean r = funcs.funcs().length != 0 || vars.globals().size != 0;
+    final boolean r = funcs.funcs().length != 0 || globals.size() != 0;
     if(r) ser.openElement(PLAN);
     funcs.plan(ser);
-    vars.plan(ser);
+    globals.plan(ser);
     root.plan(ser);
     if(r) ser.closeElement();
   }
@@ -426,13 +420,59 @@ public final class QueryContext extends Progress {
   }
 
   /**
-   * Creates a variable with a unique, non-clashing variable name.
-   * @param ii input info
-   * @param type type
-   * @return variable
+   * Puts a new stack frame in place and returns the old one.
+   * @param sz size of the new stack frame
+   * @return old stack frame if present, {@code null} otherwise
    */
-  public Var uniqueVar(final InputInfo ii, final SeqType type) {
-    return Var.create(this, ii, new QNm(token(varIDs)), type, null);
+  public Expr[] pushStackFrame(final int sz) {
+    final Expr[] old = stackFrame;
+    stackFrame = new Expr[sz];
+    return old;
+  }
+
+  /**
+   * Resets the stack frame.
+   * @param sf old stack frame to be put in place of the current one
+   */
+  public void resetStackFrame(final Expr[] sf) {
+    stackFrame = sf;
+  }
+
+  /**
+   * Gets the expression currently bound to the given variable.
+   * @param var variable
+   * @return bound expression
+   */
+  public Expr getExpr(final Var var) {
+    return stackFrame[var.slot];
+  }
+
+  /**
+   * Gets the value currently bound to the given variable.
+   * @param var variable
+   * @return bound value
+   * @throws QueryException evaluation exception
+   */
+  public Value get(final Var var) throws QueryException {
+    final Expr bound = stackFrame[var.slot];
+    final Value result;
+    if(!bound.isValue()) {
+      result = value(bound);
+      stackFrame[var.slot] = result;
+    } else {
+      result = (Value) bound;
+    }
+    return result;
+  }
+
+  /**
+   * Binds an expression to a local variable.
+   * @param var variable
+   * @param val expression to be bound
+   * @throws QueryException exception
+   */
+  public void set(final Var var, final Expr val) throws QueryException {
+    stackFrame[var.slot] = val;
   }
 
   /**
