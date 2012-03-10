@@ -1,7 +1,9 @@
 package org.basex.query.gflwor;
 
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import java.io.*;
+
+import org.basex.io.serial.*;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.Dbl;
@@ -10,6 +12,7 @@ import org.basex.query.item.Int;
 import org.basex.query.item.Item;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.Var;
+import org.basex.util.*;
 
 /**
  * FLWOR {@code for} clause, iterating over a sequence.
@@ -45,7 +48,7 @@ public class For extends GFLWOR.Clause {
       /** Expression iterator. */
       private Iter iter = Empty.ITER;
       /** Current position. */
-      private long p = 1;
+      private long p;
       @Override
       public boolean next(final QueryContext ctx) throws QueryException {
         while(true) {
@@ -59,8 +62,37 @@ public class For extends GFLWOR.Clause {
 
           if(!sub.next(ctx)) return false;
           iter = expr.iter(ctx);
+          p = 1;
         }
       }
     };
+  }
+
+  @Override
+  public void plan(final Serializer ser) throws IOException {
+    ser.openElement(this);
+    var.plan(ser);
+    if(pos != null) {
+      ser.openElement(Token.token(QueryText.AT));
+      pos.plan(ser);
+      ser.closeElement();
+    }
+
+    if(score != null) {
+      ser.openElement(Token.token(QueryText.SCORE));
+      score.plan(ser);
+      ser.closeElement();
+    }
+
+    expr.plan(ser);
+    ser.closeElement();
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder(QueryText.FOR).append(' ').append(var);
+    if(pos != null) sb.append(' ').append(QueryText.AT).append(' ').append(pos);
+    if(score != null) sb.append(' ').append(QueryText.SCORE).append(' ').append(score);
+    return sb.append(' ').append(QueryText.IN).append(' ').append(expr).toString();
   }
 }

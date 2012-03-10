@@ -1,7 +1,9 @@
 package org.basex.query.gflwor;
 
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import java.io.*;
+
+import org.basex.io.serial.*;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.util.InputInfo;
@@ -37,5 +39,17 @@ public class Where extends GFLWOR.Clause {
         return false;
       }
     };
+  }
+
+  @Override
+  public void plan(final Serializer ser) throws IOException {
+    ser.openElement(this);
+    pred.plan(ser);
+    ser.closeElement();
+  }
+
+  @Override
+  public String toString() {
+    return QueryText.WHERE + ' ' + pred;
   }
 }

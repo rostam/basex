@@ -1,17 +1,22 @@
 package org.basex.query.gflwor;
 
 import static org.basex.util.Array.*;
+import static org.basex.query.QueryText.*;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.basex.io.serial.*;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
-import org.basex.query.expr.Expr;
+import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.Item;
 import org.basex.query.item.Value;
 import org.basex.query.util.Var;
-import org.basex.util.InputInfo;
+import org.basex.util.*;
 
 
 /**
@@ -196,19 +201,30 @@ public class OrderBy extends GFLWOR.Clause {
     };
   }
 
+  @Override
+  public void plan(final Serializer ser) throws IOException {
+    ser.openElement(this, Token.token(STABLE), Token.token(stable));
+    for(final Key k : keys) k.plan(ser);
+    ser.closeElement();
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder(ORDER).append(' ').append(BY);
+    for(int i = 0; i < keys.length; i++) sb.append(i == 0 ? " " : SEP).append(keys[i]);
+    if(stable) sb.append(' ').append(STABLE);
+    return sb.toString();
+  }
+
   /**
    * Sort key.
    * @author Leo Woerteler
    */
-  public static class Key {
-    /** Sort key expression. */
-    final Expr expr;
+  public static class Key extends Single {
     /** Descending order flag. */
     final boolean desc;
     /** Position of empty sort keys. */
     final boolean least;
-    /** Input info. */
-    final InputInfo input;
 
     /**
      * Constructor.
@@ -218,10 +234,25 @@ public class OrderBy extends GFLWOR.Clause {
      * @param lst empty least
      */
     public Key(final InputInfo ii, final Expr k, final boolean dsc, final boolean lst) {
-      expr = k;
+      super(ii, k);
       desc = dsc;
       least = lst;
-      input = ii;
+    }
+
+    @Override
+    public void plan(final Serializer ser) throws IOException {
+      ser.openElement(this, DIR, Token.token(desc ? DESCENDING : ASCENDING),
+          Token.token(EMPTYORD), Token.token(least ? LEAST : GREATEST));
+      expr.plan(ser);
+      ser.closeElement();
+    }
+
+    @Override
+    public String toString() {
+      final StringBuilder sb = new StringBuilder(expr.toString());
+      if(desc) sb.append(' ').append(DESCENDING);
+      if(least) sb.append(' ').append(EMPTYORD).append(' ').append(LEAST);
+      return sb.toString();
     }
   }
 }

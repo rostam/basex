@@ -1,7 +1,10 @@
 package org.basex.query.gflwor;
 
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import java.io.*;
+
+import org.basex.io.serial.*;
+import static org.basex.query.QueryText.*;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.Dbl;
@@ -9,6 +12,7 @@ import org.basex.query.item.Item;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.Var;
+import org.basex.util.*;
 import org.basex.util.ft.Scoring;
 
 
@@ -56,6 +60,20 @@ public class Let extends GFLWOR.Clause {
         return true;
       }
     };
+  }
+
+  @Override
+  public void plan(final Serializer ser) throws IOException {
+    ser.openElement(this);
+    if(score) ser.attribute(Token.token(SCORE), Token.TRUE);
+    var.plan(ser);
+    expr.plan(ser);
+    ser.closeElement();
+  }
+
+  @Override
+  public String toString() {
+    return LET + ' ' + (score ? SCORE + ' ' : "") + var + ' ' + ASSIGN + ' ' + expr;
   }
 
 }

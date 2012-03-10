@@ -1,5 +1,8 @@
 package org.basex.query.gflwor;
 
+import java.io.*;
+
+import org.basex.io.serial.*;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.gflwor.GFLWOR.Eval;
@@ -35,5 +38,17 @@ public class Count extends GFLWOR.Clause {
         return true;
       }
     };
+  }
+
+  @Override
+  public void plan(final Serializer ser) throws IOException {
+    ser.openElement(this);
+    count.plan(ser);
+    ser.closeElement();
+  }
+
+  @Override
+  public String toString() {
+    return "count " + count;
   }
 }

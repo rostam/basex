@@ -1,6 +1,8 @@
 package org.basex.query.gflwor;
 
 import java.util.ArrayList;
+
+import org.basex.data.*;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.expr.Expr;
@@ -86,7 +88,7 @@ public class GFLWOR {
    * A FLWOR clause.
    * @author Leo Woerteler
    */
-  abstract static class Clause {
+  abstract static class Clause extends ExprInfo {
     /**
      * Evaluates the clause.
      * @param sub wrapped evaluator
