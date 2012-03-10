@@ -4,8 +4,9 @@ import java.io.*;
 
 import org.basex.io.serial.*;
 import org.basex.query.*;
-import org.basex.query.expr.Expr;
+import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 
 
@@ -16,17 +17,15 @@ import org.basex.util.InputInfo;
  */
 public class Where extends GFLWOR.Clause {
   /** Predicate expression. */
-  final Expr pred;
-  /** Input info. */
-  final InputInfo input;
+  Expr pred;
 
   /**
    * Constructor.
    * @param ii input info
    * @param e predicate expression
    */
-  public Where(final InputInfo ii, final Expr e) {
-    input = ii;
+  public Where(final Expr e, final InputInfo ii) {
+    super(ii);
     pred = e;
   }
 
@@ -51,5 +50,37 @@ public class Where extends GFLWOR.Clause {
   @Override
   public String toString() {
     return QueryText.WHERE + ' ' + pred;
+  }
+
+  @Override
+  public boolean uses(final Use u) {
+    return pred.uses(u);
+  }
+
+  @Override
+  public Where comp(final QueryContext ctx) throws QueryException {
+    pred = pred.comp(ctx);
+    return this;
+  }
+
+  @Override
+  public boolean removable(final Var v) {
+    return pred.removable(v);
+  }
+
+  @Override
+  public Expr remove(final Var v) {
+    pred = pred.remove(v);
+    return this;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return pred.visitVars(visitor);
+  }
+
+  @Override
+  boolean undeclare(final VarVisitor visitor) {
+    return true;
   }
 }

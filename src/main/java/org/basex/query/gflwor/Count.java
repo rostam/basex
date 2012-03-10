@@ -5,9 +5,11 @@ import java.io.*;
 import org.basex.io.serial.*;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
+import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.Int;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
+import org.basex.util.*;
 
 
 /**
@@ -21,8 +23,10 @@ public class Count extends GFLWOR.Clause {
   /**
    * Constructor.
    * @param v variable
+   * @param ii input info
    */
-  public Count(final Var v) {
+  public Count(final Var v, final InputInfo ii) {
+    super(ii);
     count = v;
   }
 
@@ -50,5 +54,35 @@ public class Count extends GFLWOR.Clause {
   @Override
   public String toString() {
     return "count " + count;
+  }
+
+  @Override
+  public boolean uses(final Use u) {
+    return u == Use.VAR || u == Use.X30;
+  }
+
+  @Override
+  public Count comp(final QueryContext ctx) throws QueryException {
+    return this;
+  }
+
+  @Override
+  public boolean removable(final Var v) {
+    return true;
+  }
+
+  @Override
+  public Expr remove(final Var v) {
+    return this;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.declared(count);
+  }
+
+  @Override
+  boolean undeclare(final VarVisitor visitor) {
+    return visitor.undeclared(count);
   }
 }

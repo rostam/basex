@@ -15,7 +15,7 @@ import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.Item;
 import org.basex.query.item.Value;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.*;
 
 
@@ -36,8 +36,10 @@ public class OrderBy extends GFLWOR.Clause {
    * @param vs variables to sort
    * @param ks sort keys
    * @param stbl stable sort
+   * @param ii input info
    */
-  public OrderBy(final Var[] vs, final Key[] ks, final boolean stbl) {
+  public OrderBy(final Var[] vs, final Key[] ks, final boolean stbl, final InputInfo ii) {
+    super(ii);
     vars = vs;
     keys = ks;
     stable = stbl;
@@ -216,6 +218,36 @@ public class OrderBy extends GFLWOR.Clause {
     return sb.toString();
   }
 
+  @Override
+  public boolean uses(final Use u) {
+    if(u == Use.VAR) return true;
+    for(final Key k : keys) if(k.uses(u)) return true;
+    return false;
+  }
+
+  @Override
+  public OrderBy comp(final QueryContext ctx) throws QueryException {
+    for(final Key k : keys) k.comp(ctx);
+    return this;
+  }
+
+  @Override
+  public boolean removable(final Var v) {
+    for(final Key k : keys) if(!k.removable(v)) return false;
+    return true;
+  }
+
+  @Override
+  public OrderBy remove(final Var v) {
+    for(final Key k : keys) k.remove(v);
+    return this;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return visitor.visitAll(keys);
+  }
+
   /**
    * Sort key.
    * @author Leo Woerteler
@@ -254,5 +286,10 @@ public class OrderBy extends GFLWOR.Clause {
       if(least) sb.append(' ').append(EMPTYORD).append(' ').append(LEAST);
       return sb.toString();
     }
+  }
+
+  @Override
+  boolean undeclare(final VarVisitor visitor) {
+    return true;
   }
 }

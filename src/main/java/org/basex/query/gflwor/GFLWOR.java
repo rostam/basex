@@ -1,31 +1,42 @@
 package org.basex.query.gflwor;
 
-import java.util.ArrayList;
+import java.io.*;
+import java.util.*;
 
-import org.basex.data.*;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
-import org.basex.query.expr.Expr;
+import org.basex.io.serial.*;
+import org.basex.query.*;
+import org.basex.query.expr.*;
 import org.basex.query.item.Empty;
 import org.basex.query.item.Item;
 import org.basex.query.iter.Iter;
+import org.basex.query.util.*;
+import org.basex.util.*;
 
 /**
  * General FLWOR expression.
  * @author Leo Woerteler
  */
-public class GFLWOR {
+public class GFLWOR extends ParseExpr {
   /** Return expression. */
   Expr ret;
   /** FLWOR clauses. */
-  private ArrayList<Clause> clauses;
+  private final ArrayList<Clause> clauses;
+  /** XQuery 3.0 flag. */
+  private boolean xq30;
 
   /**
-   * Iterator.
-   * @param ctx query context
-   * @return iterator
-   * @throws QueryException exception
+   * Constructor.
+   * @param ii input info
+   * @param cls FLWOR clauses
+   * @param rt return expression
    */
+  public GFLWOR(final InputInfo ii, final ArrayList<Clause> cls, final Expr rt) {
+    super(ii);
+    clauses = cls;
+    ret = rt;
+  }
+
+  @Override
   public Iter iter(final QueryContext ctx) throws QueryException {
     Eval e = start();
     for(final Clause cls : clauses) e = cls.eval(e);
@@ -57,7 +68,7 @@ public class GFLWOR {
   private Eval start() {
     return new Eval() {
       /** First-evaluation flag. */
-      private boolean first;
+      private boolean first = true;
       @Override
       public boolean next(final QueryContext ctx) {
         if(!first) return false;
@@ -65,6 +76,55 @@ public class GFLWOR {
         return true;
       }
     };
+  }
+
+  @Override
+  public Expr comp(final QueryContext ctx) throws QueryException {
+    // TODO Auto-generated method stub
+    return this;
+  }
+
+  @Override
+  public boolean uses(final Use u) {
+    if(u == Use.VAR || u == Use.X30 && xq30) return true;
+    for(final Clause cls : clauses) if(cls.uses(u)) return true;
+    return ret.uses(u);
+  }
+
+  @Override
+  public boolean removable(final Var v) {
+    for(final Clause cl : clauses) if(!cl.removable(v)) return false;
+    return ret.removable(v);
+  }
+
+  @Override
+  public Expr remove(final Var v) {
+    for(final Clause cl : clauses) cl.remove(v);
+    return ret.remove(v);
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    for(final Clause cl : clauses) if(!cl.visitVars(visitor)) return false;
+    if(!ret.visitVars(visitor)) return false;
+    for(int i = clauses.size(); --i >= 0;)
+      if(!clauses.get(i).undeclare(visitor)) return false;
+    return true;
+  }
+
+  @Override
+  public void plan(final Serializer ser) throws IOException {
+    ser.openElement(this);
+    for(final Clause cl : clauses) cl.plan(ser);
+    ret.plan(ser);
+    ser.closeElement();
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    for(final Clause cl : clauses) sb.append(cl).append(' ');
+    return sb.append(QueryText.RETURN).append(' ').append(ret).toString();
   }
 
   /**
@@ -88,12 +148,30 @@ public class GFLWOR {
    * A FLWOR clause.
    * @author Leo Woerteler
    */
-  abstract static class Clause extends ExprInfo {
+  public abstract static class Clause extends ParseExpr {
+    /**
+     * Constructor.
+     * @param ii input info
+     */
+    protected Clause(final InputInfo ii) {
+      super(ii);
+    }
+
     /**
      * Evaluates the clause.
      * @param sub wrapped evaluator
      * @return evaluator
      */
     abstract Eval eval(final Eval sub);
+
+    @Override
+    public abstract Clause comp(QueryContext ctx) throws QueryException;
+
+    /**
+     * Undeclares all declared variables.
+     * @param visitor variable visitor
+     * @return continue
+     */
+    abstract boolean undeclare(final VarVisitor visitor);
   }
 }

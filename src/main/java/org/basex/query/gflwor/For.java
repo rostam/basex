@@ -4,14 +4,14 @@ import java.io.*;
 
 import org.basex.io.serial.*;
 import org.basex.query.*;
-import org.basex.query.expr.Expr;
+import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.Dbl;
 import org.basex.query.item.Empty;
 import org.basex.query.item.Int;
 import org.basex.query.item.Item;
 import org.basex.query.iter.Iter;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.*;
 
 /**
@@ -26,7 +26,7 @@ public class For extends GFLWOR.Clause {
   /** Score variable. */
   final Var score;
   /** Bound expression. */
-  final Expr expr;
+  Expr expr;
 
   /**
    * Constructor.
@@ -34,8 +34,10 @@ public class For extends GFLWOR.Clause {
    * @param p position variable or {@code null}
    * @param s score variable or {@code null}
    * @param e bound expression
+   * @param ii input info
    */
-  public For(final Var v, final Var p, final Var s, final Expr e) {
+  public For(final Var v, final Var p, final Var s, final Expr e, final InputInfo ii) {
+    super(ii);
     var = v;
     pos = p;
     score = s;
@@ -94,5 +96,40 @@ public class For extends GFLWOR.Clause {
     if(pos != null) sb.append(' ').append(QueryText.AT).append(' ').append(pos);
     if(score != null) sb.append(' ').append(QueryText.SCORE).append(' ').append(score);
     return sb.append(' ').append(QueryText.IN).append(' ').append(expr).toString();
+  }
+
+  @Override
+  public boolean uses(final Use u) {
+    return u == Use.VAR || expr.uses(u);
+  }
+
+  @Override
+  public For comp(final QueryContext ctx) throws QueryException {
+    expr = expr.comp(ctx);
+    return this;
+  }
+
+  @Override
+  public boolean removable(final Var v) {
+    return expr.removable(v);
+  }
+
+  @Override
+  public Expr remove(final Var v) {
+    expr = expr.remove(v);
+    return this;
+  }
+
+  @Override
+  public boolean visitVars(final VarVisitor visitor) {
+    return expr.visitVars(visitor) && visitor.declared(var)
+        && (pos == null || visitor.declared(pos))
+        && (score == null || visitor.declared(score));
+  }
+
+  @Override
+  boolean undeclare(final VarVisitor visitor) {
+    return (score == null || visitor.undeclared(score))
+        && (pos == null || visitor.undeclared(pos)) && visitor.undeclared(var);
   }
 }
