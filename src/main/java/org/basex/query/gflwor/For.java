@@ -56,9 +56,9 @@ public class For extends GFLWOR.Clause {
         while(true) {
           final Item it = iter.next();
           if(it != null) {
-            ctx.set(var, it);
-            if(pos != null) ctx.set(pos, Int.get(p++));
-            if(score != null) ctx.set(score, Dbl.get(it.score()));
+            ctx.set(var, it, input);
+            if(pos != null) ctx.set(pos, Int.get(p++), input);
+            if(score != null) ctx.set(score, Dbl.get(it.score()), input);
             return true;
           }
 

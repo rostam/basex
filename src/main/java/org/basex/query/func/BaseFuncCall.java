@@ -34,7 +34,7 @@ public final class BaseFuncCall extends UserFuncCall {
     Value[] args = args(ctx);
     do {
       // cache arguments, evaluate function and reset variable scope
-      final Expr[] sf = addArgs(ctx, fun.args, args);
+      final Value[] sf = addArgs(ctx, ii, fun.args, args);
       ctx.tailCalls = 0;
       try {
         return fun.item(ctx, ii);
@@ -53,7 +53,7 @@ public final class BaseFuncCall extends UserFuncCall {
     Value[] args = args(ctx);
     do {
       // cache arguments, evaluate function and reset variable scope
-      final Expr[] sf = addArgs(ctx, fun.args, args);
+      final Value[] sf = addArgs(ctx, input, fun.args, args);
       ctx.tailCalls = 0;
       try {
         return ctx.value(fun);

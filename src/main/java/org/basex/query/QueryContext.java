@@ -33,10 +33,7 @@ import org.basex.query.up.Updates;
 import org.basex.query.util.*;
 import org.basex.query.util.Var.VarKind;
 import org.basex.query.util.json.JsonMapConverter;
-import org.basex.util.JarLoader;
-import org.basex.util.TokenBuilder;
-import org.basex.util.Util;
-import org.basex.util.XMLToken;
+import org.basex.util.*;
 import org.basex.util.ft.FTLexer;
 import org.basex.util.ft.FTOpt;
 import org.basex.util.hash.TokenMap;
@@ -58,7 +55,7 @@ public final class QueryContext extends Progress {
   /** Global variables. */
   public final Globals globals = new Globals();
   /** Current stack frame. */
-  private Expr[] stackFrame;
+  private Value[] stackFrame;
   /** Functions. */
   public final UserFuncs funcs = new UserFuncs();
 
@@ -422,9 +419,9 @@ public final class QueryContext extends Progress {
    * @param sz size of the new stack frame
    * @return old stack frame if present, {@code null} otherwise
    */
-  public Expr[] pushStackFrame(final int sz) {
-    final Expr[] old = stackFrame;
-    stackFrame = new Expr[sz];
+  public Value[] pushStackFrame(final int sz) {
+    final Value[] old = stackFrame;
+    stackFrame = new Value[sz];
     return old;
   }
 
@@ -432,45 +429,30 @@ public final class QueryContext extends Progress {
    * Resets the stack frame.
    * @param sf old stack frame to be put in place of the current one
    */
-  public void resetStackFrame(final Expr[] sf) {
+  public void resetStackFrame(final Value[] sf) {
     stackFrame = sf;
-  }
-
-  /**
-   * Gets the expression currently bound to the given variable.
-   * @param var variable
-   * @return bound expression
-   */
-  public Expr getExpr(final Var var) {
-    return stackFrame[var.slot];
   }
 
   /**
    * Gets the value currently bound to the given variable.
    * @param var variable
    * @return bound value
-   * @throws QueryException evaluation exception
    */
-  public Value get(final Var var) throws QueryException {
-    final Expr bound = stackFrame[var.slot];
-    final Value result;
-    if(!bound.isValue()) {
-      result = value(bound);
-      stackFrame[var.slot] = result;
-    } else {
-      result = (Value) bound;
-    }
-    return result;
+  public Value get(final Var var) {
+    if(stackFrame[var.slot] == null) throw Util.notexpected(var);
+    return stackFrame[var.slot];
   }
 
   /**
    * Binds an expression to a local variable.
-   * @param var variable
-   * @param val expression to be bound
+   * @param vr variable
+   * @param vl expression to be bound
+   * @param ii input info
    * @throws QueryException exception
    */
-  public void set(final Var var, final Expr val) throws QueryException {
-    stackFrame[var.slot] = val;
+  public void set(final Var vr, final Value vl, final InputInfo ii)
+      throws QueryException {
+    stackFrame[vr.slot] = vr.checkType(vl, this, ii);
   }
 
   /**

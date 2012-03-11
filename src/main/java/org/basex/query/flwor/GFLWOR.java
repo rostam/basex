@@ -128,7 +128,7 @@ public class GFLWOR extends ParseExpr {
       final ForLet l = fl[f];
       // do not optimize non-deterministic expressions. example:
       // let $a := file:write('file', 'content') return ...
-      final Expr bound = ctx.getExpr(l.var);
+      final Expr bound = null; // [LW] ctx.getExpr(l.var);
       if(bound != null || l.simple(true) && count(l.var) == 0 &&
           !l.expr.uses(Use.NDT)) {
         ctx.compInfo(OPTVAR, l.var);

@@ -82,7 +82,7 @@ public final class Let extends ForLet {
           } else {
             v = ctx.value(expr);
           }
-          ctx.set(var, v);
+          ctx.set(var, v, input);
           more = true;
           return Bln.TRUE;
         }

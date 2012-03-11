@@ -62,7 +62,7 @@ public class OrderBy extends GFLWOR.Clause {
         final Value[] tuple = tpls[p];
         // free the space occupied by the tuple
         tpls[p] = null;
-        for(int i = 0; i < vars.length; i++) ctx.set(vars[i], tuple[i]);
+        for(int i = 0; i < vars.length; i++) ctx.set(vars[i], tuple[i], input);
         return true;
       }
 

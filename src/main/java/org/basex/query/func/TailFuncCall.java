@@ -33,7 +33,7 @@ final class TailFuncCall extends UserFuncCall {
     checkHeight(ctx);
 
     // cache arguments, evaluate function and reset variable scope
-    final Expr[] cs = addArgs(ctx, func.args, args(ctx));
+    final Value[] cs = addArgs(ctx, ii, func.args, args(ctx));
     final Item it = func.item(ctx, ii);
     ctx.resetStackFrame(cs);
     return it;
@@ -44,7 +44,7 @@ final class TailFuncCall extends UserFuncCall {
     checkHeight(ctx);
 
     // cache arguments, evaluate function and reset variable scope
-    final Expr[] cs = addArgs(ctx, func.args, args(ctx));
+    final Value[] cs = addArgs(ctx, input, func.args, args(ctx));
     final Value v = ctx.value(func);
     ctx.resetStackFrame(cs);
     return v;

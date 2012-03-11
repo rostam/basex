@@ -38,7 +38,7 @@ public class Count extends GFLWOR.Clause {
       @Override
       public boolean next(final QueryContext ctx) throws QueryException {
         if(!sub.next(ctx)) return false;
-        ctx.set(count, Int.get(i++));
+        ctx.set(count, Int.get(i++), input);
         return true;
       }
     };

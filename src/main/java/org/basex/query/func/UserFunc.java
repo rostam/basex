@@ -118,7 +118,7 @@ public class UserFunc extends Single implements Scope {
     if(compiled) return;
     compiled = true;
 
-    final Expr[] sf = ctx.pushStackFrame(scope.stackSize());
+    final Value[] sf = ctx.pushStackFrame(scope.stackSize());
     expr = expr.comp(ctx);
     ctx.resetStackFrame(sf);
 

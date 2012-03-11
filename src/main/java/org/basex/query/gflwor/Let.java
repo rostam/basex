@@ -58,7 +58,7 @@ public class Let extends GFLWOR.Clause {
         } else {
           bind = ctx.value(expr);
         }
-        ctx.set(var, bind);
+        ctx.set(var, bind, input);
         return true;
       }
     };

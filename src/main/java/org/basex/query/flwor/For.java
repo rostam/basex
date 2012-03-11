@@ -122,9 +122,9 @@ public final class For extends ForLet {
        * @throws QueryException if the items can't be bound
        */
       private Item bind(final Item it, final long i) throws QueryException {
-        ctx.set(var, it);
-        if(pos != null) ctx.set(pos, Int.get(i));
-        if(score != null) ctx.set(score, Dbl.get(it.score()));
+        ctx.set(var, it, input);
+        if(pos != null) ctx.set(pos, Int.get(i), input);
+        if(score != null) ctx.set(score, Dbl.get(it.score()), input);
         return it;
       }
     };

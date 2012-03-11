@@ -53,7 +53,7 @@ public final class TypeCase extends Single {
    * @throws QueryException query exception
    */
   TypeCase comp(final QueryContext ctx, final Value v) throws QueryException {
-    if(var != null && v != null) ctx.set(var, v);
+    if(var != null && v != null) ctx.set(var, v, input);
     super.comp(ctx);
     type = expr.type();
     return this;
@@ -82,12 +82,11 @@ public final class TypeCase extends Single {
    * @return resulting item
    * @throws QueryException query exception
    */
-  Iter iter(final QueryContext ctx, final Value seq)
-      throws QueryException {
+  Iter iter(final QueryContext ctx, final Value seq) throws QueryException {
     if(!matches(seq)) return null;
 
     if(var == null) return ctx.iter(expr);
-    ctx.set(var, seq);
+    ctx.set(var, seq, input);
     return ctx.value(expr).iter();
   }
 

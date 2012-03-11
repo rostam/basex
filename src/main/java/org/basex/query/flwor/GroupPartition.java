@@ -135,11 +135,11 @@ final class GroupPartition {
 
     for(int i = 0; i < part.size(); ++i) {
       final GroupNode gn = part.get(i);
-      for(int j = 0; j < gv.length; ++j) ctx.set(gv[j].grp, gn.vals[j]);
+      for(int j = 0; j < gv.length; ++j) ctx.set(gv[j].grp, gn.vals[j], input);
 
       if(items != null) {
         final ItemCache[] ii = items.get(i);
-        for(int j = 0; j < ii.length; ++j) ctx.set(ngv[1][j], ii[j].value());
+        for(int j = 0; j < ii.length; ++j) ctx.set(ngv[1][j], ii[j].value(), input);
       }
       if(order != null) {
         order.add(ctx, ret, ks, vs);

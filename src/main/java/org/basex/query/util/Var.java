@@ -1,13 +1,12 @@
 package org.basex.query.util;
 
 import org.basex.query.*;
+
 import java.io.IOException;
 import org.basex.io.serial.Serializer;
 import org.basex.data.ExprInfo;
-import org.basex.query.item.QNm;
-import org.basex.query.item.SeqType;
-import org.basex.util.Token;
-import org.basex.util.TokenBuilder;
+import org.basex.query.item.*;
+import org.basex.util.*;
 
 /**
  * Variable expression.
@@ -164,5 +163,23 @@ public final class Var extends ExprInfo {
   public void setRetType(final SeqType rt) throws QueryException {
     refineType(ret);
     ret = rt;
+  }
+
+  /**
+   * Checks the type of this value and casts/promotes it when necessary.
+   * @param val value to be checked
+   * @param ctx query context
+   * @param ii input info
+   * @return checked and possibly cast value
+   * @throws QueryException if the check failed
+   */
+  public Value checkType(final Value val, final QueryContext ctx, final InputInfo ii)
+      throws QueryException {
+    if(ret == null || ret.instance(val)) return val;
+    switch(kind) {
+      case GLOBAL:     return ret.promote(val, ctx, ii);
+      case FUNC_PARAM: return ret.promote(val, ctx, ii);
+      default:         throw Err.XPTYPE.thrw(ii, val.type(), ret, val.description());
+    }
   }
 }

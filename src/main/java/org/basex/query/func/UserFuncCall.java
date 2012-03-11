@@ -104,7 +104,7 @@ public abstract class UserFuncCall extends Arr {
     func.comp(ctx);
     if(func.expr.isValue() && allAreValues() && !func.uses(Use.NDT)) {
       // evaluate arguments to catch cast exceptions
-      for(int a = 0; a < expr.length; ++a) ctx.set(func.args[a], expr[a]);
+      for(int a = 0; a < expr.length; ++a) ctx.set(func.args[a], (Value) expr[a], input);
       ctx.compInfo(OPTINLINE, func.name.string());
       return func.value(ctx);
     }
@@ -117,16 +117,17 @@ public abstract class UserFuncCall extends Arr {
   /**
    * Adds the given arguments to the variable stack.
    * @param ctx query context
+   * @param ii input info
    * @param vars formal parameters
    * @param vals values to add
    * @return old stack frame
    * @throws QueryException if the arguments can't be bound
    */
-  static Expr[] addArgs(final QueryContext ctx, final Var[] vars, final Value[] vals)
-      throws QueryException {
+  static Value[] addArgs(final QueryContext ctx, final InputInfo ii, final Var[] vars,
+      final Value[] vals) throws QueryException {
     // move variables to stack
-    final Expr[] old = ctx.pushStackFrame(vars.length);
-    for(int i = 0; i < vars.length; i++) ctx.set(vars[i], vals[i]);
+    final Value[] old = ctx.pushStackFrame(vars.length);
+    for(int i = 0; i < vars.length; i++) ctx.set(vars[i], vals[i], ii);
     return old;
   }
 

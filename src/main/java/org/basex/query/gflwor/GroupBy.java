@@ -60,9 +60,9 @@ public class GroupBy extends GFLWOR.Clause {
         groups[pos++] = null;
 
         for(int i = 0; i < by.length; i++)
-          ctx.set(by[i].var, curr.key[i] == null ? Empty.SEQ : curr.key[i]);
+          ctx.set(by[i].var, curr.key[i] == null ? Empty.SEQ : curr.key[i], input);
         for(int i = 0; i < nongroup[1].length; i++)
-          ctx.set(nongroup[1][i], curr.ngv[i].value());
+          ctx.set(nongroup[1][i], curr.ngv[i].value(), input);
         return true;
       }
 

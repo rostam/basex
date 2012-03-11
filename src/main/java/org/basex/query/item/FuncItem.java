@@ -87,12 +87,15 @@ public final class FuncItem extends FItem {
   /**
    * Binds all variables to the context.
    * @param ctx query context
+   * @param ii input info
    * @param arg argument values
    * @throws QueryException if the arguments can't be bound
    */
-  private void bindVars(final QueryContext ctx, final Value[] arg) throws QueryException {
-    for(final Entry<Var, Value> e : closure.entrySet()) ctx.set(e.getKey(), e.getValue());
-    for(int v = vars.length; --v >= 0;) ctx.set(vars[v], arg[v]);
+  private void bindVars(final QueryContext ctx, final InputInfo ii, final Value[] arg)
+      throws QueryException {
+    for(final Entry<Var, Value> e : closure.entrySet())
+      ctx.set(e.getKey(), e.getValue(), ii);
+    for(int v = vars.length; --v >= 0;) ctx.set(vars[v], arg[v], ii);
   }
 
   @Override
@@ -100,10 +103,10 @@ public final class FuncItem extends FItem {
       final Value... args) throws QueryException {
 
     // bind variables and cache context
-    final Expr[] sf = ctx.pushStackFrame(stackSize);
+    final Value[] sf = ctx.pushStackFrame(stackSize);
     final Value cv = ctx.value;
     try {
-      bindVars(ctx, args);
+      bindVars(ctx, ii, args);
       ctx.value = null;
       final Value v = ctx.value(expr);
       // optionally cast return value to target type
@@ -127,10 +130,10 @@ public final class FuncItem extends FItem {
       final Value... args) throws QueryException {
 
     // bind variables and cache context
-    final Expr[] sf = ctx.pushStackFrame(stackSize);
+    final Value[] sf = ctx.pushStackFrame(stackSize);
     final Value cv = ctx.value;
     try {
-      bindVars(ctx, args);
+      bindVars(ctx, ii, args);
       ctx.value = null;
       final Item it = expr.item(ctx, ii);
       // optionally cast return value to target type

@@ -51,7 +51,7 @@ public abstract class ForLet extends Single {
         expr.uses(Use.CNS) || ctx.grouping) return;
 
     ctx.compInfo(OPTBIND, var);
-    ctx.set(var, expr);
+    // [LW] ctx.set(var, expr, input);
   }
 
   @Override
