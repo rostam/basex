@@ -2,8 +2,7 @@ package org.basex.query.expr;
 
 import static org.basex.query.QueryText.*;
 
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Empty;
 import org.basex.query.item.Item;
 import org.basex.query.item.Int;
@@ -31,8 +30,8 @@ public final class Range extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    super.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    super.comp(ctx, scp);
 
     Expr e = this;
     if(oneIsEmpty()) {

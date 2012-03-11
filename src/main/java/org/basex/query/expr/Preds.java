@@ -41,11 +41,11 @@ public abstract class Preds extends ParseExpr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     for(final Expr p : preds) checkUp(p, ctx);
 
     for(int p = 0; p < preds.length; ++p) {
-      Expr pr = preds[p].comp(ctx).compEbv(ctx);
+      Expr pr = preds[p].comp(ctx, scp).compEbv(ctx);
       pr = Pos.get(OpV.EQ, pr, pr, input);
 
       // position() = last() -> last()

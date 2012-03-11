@@ -3,8 +3,7 @@ package org.basex.query.func;
 import static org.basex.query.QueryText.*;
 import java.io.IOException;
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Arr;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.QNm;
@@ -93,15 +92,15 @@ public abstract class UserFuncCall extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     // compile all arguments
-    super.comp(ctx);
+    super.comp(ctx, scp);
 
     // inline if result and arguments are all values.
     // currently, only functions with values as
     // return expressions are supported; otherwise, recursive functions
     // might not be correctly evaluated
-    func.comp(ctx);
+    func.comp(ctx, scp);
     if(func.expr.isValue() && allAreValues() && !func.uses(Use.NDT)) {
       // evaluate arguments to catch cast exceptions
       for(int a = 0; a < expr.length; ++a) ctx.set(func.args[a], (Value) expr[a], input);

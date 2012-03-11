@@ -98,8 +98,11 @@ public final class Var extends ExprInfo {
    * @throws QueryException if the types are incompatible
    */
   public void refineType(final SeqType t) throws QueryException {
-    // [LW] insert checks here
-    type = t;
+    if(type == null) type = t;
+    else {
+      // [LW] insert checks here
+      type = t;
+    }
   }
 
   /**

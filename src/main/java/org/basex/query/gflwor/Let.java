@@ -84,8 +84,8 @@ public class Let extends GFLWOR.Clause {
   }
 
   @Override
-  public Let comp(final QueryContext ctx) throws QueryException {
-    expr = expr.comp(ctx);
+  public Let comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    expr = expr.comp(ctx, scp);
     return this;
   }
 

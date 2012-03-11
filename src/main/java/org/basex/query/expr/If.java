@@ -4,8 +4,7 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.func.StandardFunc;
 import org.basex.query.func.Function;
 import org.basex.query.item.Bln;
@@ -34,16 +33,16 @@ public final class If extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     // check for updating expressions
-    expr[0] = checkUp(expr[0], ctx).comp(ctx).compEbv(ctx);
+    expr[0] = checkUp(expr[0], ctx).comp(ctx, scp).compEbv(ctx);
     checkUp(ctx, expr[1], expr[2]);
 
     // static condition: return branch in question
-    if(expr[0].isValue()) return optPre(eval(ctx).comp(ctx), ctx);
+    if(expr[0].isValue()) return optPre(eval(ctx).comp(ctx, scp), ctx);
 
     // compile both branches
-    for(int e = 1; e != expr.length; ++e) expr[e] = expr[e].comp(ctx);
+    for(int e = 1; e != expr.length; ++e) expr[e] = expr[e].comp(ctx, scp);
 
     // if A then B else B -> B (errors in A will be ignored)
     if(expr[1].sameAs(expr[2])) return optPre(expr[1], ctx);

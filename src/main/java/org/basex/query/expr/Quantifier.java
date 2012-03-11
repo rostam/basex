@@ -4,8 +4,7 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.gflwor.For;
 import org.basex.query.item.Bln;
 import org.basex.query.item.SeqType;
@@ -45,10 +44,10 @@ public final class Quantifier extends ParseExpr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     // compile for clauses
-    for(final For f : fl) f.comp(ctx);
-    sat = checkUp(sat, ctx).comp(ctx).compEbv(ctx);
+    for(final For f : fl) f.comp(ctx, scp);
+    sat = checkUp(sat, ctx).comp(ctx, scp).compEbv(ctx);
 
     // find empty sequences
     boolean empty = sat.isEmpty();

@@ -4,8 +4,7 @@ import static org.basex.query.QueryText.*;
 
 import java.util.Locale;
 
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Item;
 import org.basex.query.item.ANode;
 import org.basex.query.item.SeqType;
@@ -35,9 +34,9 @@ abstract class Set extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     type = SeqType.NOD_ZM;
-    super.comp(ctx);
+    super.comp(ctx, scp);
     for(final Expr e : expr) {
       if(e.iterable()) continue;
       iterable = false;

@@ -3,8 +3,7 @@ package org.basex.query.expr;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.TokenBuilder;
@@ -30,9 +29,9 @@ public abstract class Arr extends ParseExpr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     for(int e = 0; e != expr.length; ++e)
-      expr[e] = checkUp(expr[e].comp(ctx), ctx);
+      expr[e] = checkUp(expr[e].comp(ctx, scp), ctx);
     return this;
   }
 

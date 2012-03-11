@@ -37,7 +37,7 @@ public final class InlineFunc extends UserFunc {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     cmp(ctx);
     // only evaluate if the closure is empty, so we don't lose variables
     return expr.hasFreeVars() ? this : preEval(ctx);

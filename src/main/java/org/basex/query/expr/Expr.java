@@ -2,8 +2,7 @@ package org.basex.query.expr;
 
 import java.util.*;
 import org.basex.data.ExprInfo;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.flwor.GFLWOR;
 import org.basex.query.func.Function;
 import org.basex.query.item.Empty;
@@ -14,8 +13,6 @@ import org.basex.query.iter.Iter;
 import org.basex.query.path.AxisPath;
 import org.basex.query.path.MixedPath;
 import org.basex.query.util.*;
-import org.basex.query.util.IndexContext;
-import org.basex.query.util.Var;
 import org.basex.util.InputInfo;
 
 /**
@@ -41,10 +38,12 @@ public abstract class Expr extends ExprInfo {
    * Compiles and optimizes the expression, assigns data types and
    * cardinalities.
    * @param ctx query context
+   * @param scp variable scope
    * @return optimized expression
    * @throws QueryException query exception
    */
-  public abstract Expr comp(final QueryContext ctx) throws QueryException;
+  public abstract Expr comp(final QueryContext ctx, final VarScope scp)
+      throws QueryException;
 
   /**
    * Evaluates the expression and returns an iterator on the resulting items.

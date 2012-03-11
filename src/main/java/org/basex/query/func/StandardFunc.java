@@ -11,8 +11,7 @@ import org.basex.data.MetaData;
 import org.basex.io.serial.Serializer;
 import org.basex.io.serial.SerializerException;
 import org.basex.io.serial.SerializerProp;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Arr;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.ANode;
@@ -57,9 +56,10 @@ public abstract class StandardFunc extends Arr {
   }
 
   @Override
-  public final Expr comp(final QueryContext ctx) throws QueryException {
+  public final Expr comp(final QueryContext ctx, final VarScope scp)
+      throws QueryException {
     // compile all arguments
-    super.comp(ctx);
+    super.comp(ctx, scp);
     // skip context-based or non-deterministic functions, and non-values
     if(uses(Use.CTX) || uses(Use.NDT) || !allAreValues())
       return optPre(cmp(ctx), ctx);

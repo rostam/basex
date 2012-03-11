@@ -10,8 +10,7 @@ import org.basex.data.FTMatches;
 import org.basex.data.MetaData;
 import org.basex.index.ft.FTIndexIterator;
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.FTNode;
 import org.basex.query.item.Item;
@@ -86,24 +85,25 @@ public final class FTWords extends FTExpr {
    * @param d data reference
    * @param str string
    * @param ctx query context
+   * @param scp variable scope
    * @throws QueryException query exception
    */
   public FTWords(final InputInfo ii, final Data d, final Item str,
-      final QueryContext ctx) throws QueryException {
+      final QueryContext ctx, final VarScope scp) throws QueryException {
     super(ii);
     query = str;
     data = d;
-    comp(ctx);
+    comp(ctx, scp);
   }
 
   @Override
-  public FTExpr comp(final QueryContext ctx) throws QueryException {
+  public FTExpr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     // compile only once
     if(ftt == null) {
       if(occ != null) {
-        for(int o = 0; o < occ.length; ++o) occ[o] = occ[o].comp(ctx);
+        for(int o = 0; o < occ.length; ++o) occ[o] = occ[o].comp(ctx, scp);
       }
-      query = query.comp(ctx);
+      query = query.comp(ctx, scp);
       if(query.isValue()) txt = tokens(ctx);
 
       // choose fast evaluation for default settings

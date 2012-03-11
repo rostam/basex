@@ -1,8 +1,7 @@
 package org.basex.query.expr;
 
 import static org.basex.query.QueryText.*;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.AtomType;
 import org.basex.query.item.Item;
 import org.basex.query.item.IntSeq;
@@ -31,8 +30,8 @@ public final class List extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    for(int e = expr.length; --e >= 0;) expr[e] = expr[e].comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    for(int e = expr.length; --e >= 0;) expr[e] = expr[e].comp(ctx, scp);
     checkUp(ctx, expr);
 
     // compute number of results

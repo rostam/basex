@@ -4,8 +4,7 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.*;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
@@ -33,8 +32,8 @@ public final class Arith extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    super.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    super.comp(ctx, scp);
 
     final SeqType s0 = expr[0].type();
     final SeqType s1 = expr[1].type();

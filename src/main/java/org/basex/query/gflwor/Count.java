@@ -3,8 +3,7 @@ package org.basex.query.gflwor;
 import java.io.*;
 
 import org.basex.io.serial.*;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.Int;
@@ -62,7 +61,7 @@ public class Count extends GFLWOR.Clause {
   }
 
   @Override
-  public Count comp(final QueryContext ctx) throws QueryException {
+  public Count comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     return this;
   }
 

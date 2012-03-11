@@ -103,7 +103,7 @@ public class UserFunc extends Single implements Scope {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     cmp(ctx);
     return this;
   }
@@ -119,7 +119,7 @@ public class UserFunc extends Single implements Scope {
     compiled = true;
 
     final Value[] sf = ctx.pushStackFrame(scope.stackSize());
-    expr = expr.comp(ctx);
+    expr = expr.comp(ctx, scope);
     ctx.resetStackFrame(sf);
 
     // convert all function calls in tail position to proper tail calls

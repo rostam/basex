@@ -1,8 +1,7 @@
 package org.basex.query.expr;
 
 import static org.basex.query.QueryText.*;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Item;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
@@ -29,7 +28,7 @@ public final class Context extends Simple {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) {
+  public Expr comp(final QueryContext ctx, final VarScope scp) {
     if(ctx.value != null) {
       type = ctx.value.type.seqType();
       size = ctx.value.size();

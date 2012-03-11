@@ -4,12 +4,10 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.*;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.*;
-import org.basex.query.util.Var;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
 import org.basex.util.TokenBuilder;
@@ -41,20 +39,22 @@ public final class TypeCase extends Single {
   }
 
   @Override
-  public TypeCase comp(final QueryContext ctx) throws QueryException {
-    return comp(ctx, null);
+  public TypeCase comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    return comp(ctx, scp, (Value) null);
   }
 
   /**
    * Compiles the expression.
    * @param ctx query context
+   * @param scp variable scope
    * @param v value to be bound
    * @return resulting item
    * @throws QueryException query exception
    */
-  TypeCase comp(final QueryContext ctx, final Value v) throws QueryException {
+  TypeCase comp(final QueryContext ctx, final VarScope scp, final Value v)
+      throws QueryException {
     if(var != null && v != null) ctx.set(var, v, input);
-    super.comp(ctx);
+    super.comp(ctx, scp);
     type = expr.type();
     return this;
   }

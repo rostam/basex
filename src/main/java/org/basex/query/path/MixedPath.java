@@ -2,8 +2,7 @@ package org.basex.query.path;
 
 import static org.basex.query.util.Err.*;
 import org.basex.data.Data;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.Empty;
 import org.basex.query.item.Item;
@@ -35,13 +34,14 @@ public final class MixedPath extends Path {
   }
 
   @Override
-  protected Expr compPath(final QueryContext ctx) throws QueryException {
+  protected Expr compPath(final QueryContext ctx, final VarScope scp)
+      throws QueryException {
     for(final Expr s : steps) checkUp(s, ctx);
     final AxisStep v = voidStep(steps);
     if(v != null) COMPSELF.thrw(input, v);
 
     for(int s = 0; s != steps.length; ++s) {
-      steps[s] = steps[s].comp(ctx);
+      steps[s] = steps[s].comp(ctx, scp);
       if(steps[s].isEmpty()) return Empty.SEQ;
     }
     optSteps(ctx);
@@ -51,7 +51,7 @@ public final class MixedPath extends Path {
     if(data != null && ctx.value.type == NodeType.DOC) {
       final Expr e = children(ctx, data);
       // return optimized expression
-      if(e != this) return e.comp(ctx);
+      if(e != this) return e.comp(ctx, scp);
     }
 
     size = size(ctx);

@@ -3,8 +3,7 @@ package org.basex.query.ft;
 import static org.basex.query.QueryText.*;
 import org.basex.data.FTMatch;
 import org.basex.data.FTMatches;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.FTNode;
 import org.basex.query.iter.FTIter;
 import org.basex.query.util.*;
@@ -32,8 +31,8 @@ public final class FTAnd extends FTExpr {
   }
 
   @Override
-  public FTExpr comp(final QueryContext ctx) throws QueryException {
-    super.comp(ctx);
+  public FTExpr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    super.comp(ctx, scp);
     boolean not = true;
     for(final FTExpr e : expr) not &= e instanceof FTNot;
     if(not) {

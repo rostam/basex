@@ -5,8 +5,7 @@ import static org.basex.util.Token.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.Dbl;
 import org.basex.query.item.Item;
@@ -55,8 +54,8 @@ public final class For extends ForLet {
   }
 
   @Override
-  public For comp(final QueryContext ctx) throws QueryException {
-    expr = checkUp(expr, ctx).comp(ctx);
+  public For comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    expr = checkUp(expr, ctx).comp(ctx, scp);
     type = expr.type();
     size = expr.size();
     if(ctx.grouping) {

@@ -5,8 +5,7 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.AtomType;
 import org.basex.query.item.Item;
 import org.basex.query.item.SeqType;
@@ -33,9 +32,9 @@ public final class Cast extends Single {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     checkUp(expr, ctx);
-    super.comp(ctx);
+    super.comp(ctx, scp);
 
     Expr e = this;
     final SeqType t = expr.type();

@@ -58,8 +58,8 @@ public class Where extends GFLWOR.Clause {
   }
 
   @Override
-  public Where comp(final QueryContext ctx) throws QueryException {
-    pred = pred.comp(ctx);
+  public Where comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    pred = pred.comp(ctx, scp);
     return this;
   }
 

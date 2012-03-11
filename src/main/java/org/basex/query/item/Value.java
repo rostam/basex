@@ -1,8 +1,7 @@
 package org.basex.query.item;
 
 import org.basex.data.Data;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.iter.ItemCache;
 import org.basex.query.iter.ValueIter;
@@ -28,7 +27,7 @@ public abstract class Value extends Expr {
   }
 
   @Override
-  public final Value comp(final QueryContext ctx) {
+  public final Value comp(final QueryContext ctx, final VarScope scp) {
     return this;
   }
 

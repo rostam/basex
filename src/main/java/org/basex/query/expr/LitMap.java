@@ -1,8 +1,6 @@
 package org.basex.query.expr;
 
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
-import org.basex.query.QueryText;
+import org.basex.query.*;
 import org.basex.query.item.Item;
 import org.basex.query.item.SeqType;
 import org.basex.query.item.map.Map;
@@ -37,8 +35,8 @@ public final class LitMap extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    super.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    super.comp(ctx, scp);
     return allAreValues() ? preEval(ctx) : this;
   }
 

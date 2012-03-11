@@ -1,8 +1,7 @@
 package org.basex.query.expr;
 
 import static org.basex.query.QueryText.*;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Item;
 import org.basex.query.item.ANode;
 import org.basex.query.iter.Iter;
@@ -28,8 +27,8 @@ public final class Except extends Set {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    super.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    super.comp(ctx, scp);
     if(expr[0].isEmpty()) return optPre(null, ctx);
 
     for(int e = 1; e < expr.length; ++e) {

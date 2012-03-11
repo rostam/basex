@@ -6,8 +6,7 @@ import static org.basex.query.util.Err.*;
 import java.io.IOException;
 import org.basex.data.MemData;
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Arr;
 import org.basex.query.expr.Expr;
 import org.basex.query.gflwor.*;
@@ -46,12 +45,12 @@ public final class Transform extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     final boolean u = ctx.updating();
     ctx.updating(true);
 
-    for(final Let c : copies) c.expr = checkUp(c.expr, ctx).comp(ctx);
-    for(int e = 0; e != expr.length; ++e) expr[e] = expr[e].comp(ctx);
+    for(final Let c : copies) c.expr = checkUp(c.expr, ctx).comp(ctx, scp);
+    for(int e = 0; e != expr.length; ++e) expr[e] = expr[e].comp(ctx, scp);
 
     if(!expr[0].uses(Use.UPD) && !expr[0].isVacuous()) UPEXPECTT.thrw(input);
     checkUp(expr[1], ctx);

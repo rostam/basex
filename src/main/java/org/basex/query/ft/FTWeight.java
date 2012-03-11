@@ -4,9 +4,7 @@ import static org.basex.query.util.Err.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
-import org.basex.query.QueryText;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.FTNode;
 import org.basex.query.iter.FTIter;
@@ -35,9 +33,9 @@ public final class FTWeight extends FTExpr {
   }
 
   @Override
-  public FTExpr comp(final QueryContext ctx) throws QueryException {
-    weight = checkUp(weight, ctx).comp(ctx);
-    return super.comp(ctx);
+  public FTExpr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    weight = checkUp(weight, ctx).comp(ctx, scp);
+    return super.comp(ctx, scp);
   }
 
   // called by sequential variant

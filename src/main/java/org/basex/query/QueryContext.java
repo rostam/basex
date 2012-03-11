@@ -54,6 +54,11 @@ public final class QueryContext extends Progress {
   public StaticContext sc = new StaticContext();
   /** Global variables. */
   public final Globals globals = new Globals();
+  /**
+   * Variable scope of the main module.
+   * [LW] What about imported modules?
+   */
+  private VarScope scope;
   /** Current stack frame. */
   private Value[] stackFrame;
   /** Functions. */
@@ -164,7 +169,9 @@ public final class QueryContext extends Progress {
    * @throws QueryException query exception
    */
   public void parse(final String qu) throws QueryException {
-    root = new QueryParser(qu, this).parse(sc.baseIO(), null);
+    final QueryParser qp = new QueryParser(qu, this);
+    root = qp.parse(sc.baseIO(), null);
+    scope = qp.scope;
   }
 
   /**
@@ -217,7 +224,7 @@ public final class QueryContext extends Progress {
       // variables will be compiled if called for the first time
       funcs.comp(this);
       // compile the expression
-      if(root != null) root = root.comp(this);
+      if(root != null) root = root.comp(this, scope);
     } catch(final StackOverflowError ex) {
       Util.debug(ex);
       XPSTACK.thrw(null);

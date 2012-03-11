@@ -4,8 +4,7 @@ import static org.basex.query.QueryText.*;
 import static org.basex.query.util.Err.*;
 import static org.basex.util.Token.*;
 
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.ANode;
 import org.basex.query.item.FAttr;
 import org.basex.query.item.FElem;
@@ -43,9 +42,9 @@ public final class CElem extends CName {
   }
 
   @Override
-  public CElem comp(final QueryContext ctx) throws QueryException {
+  public CElem comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     final int s = prepare(ctx);
-    super.comp(ctx);
+    super.comp(ctx, scp);
     ctx.sc.ns.size(s);
     return this;
   }

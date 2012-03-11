@@ -4,8 +4,7 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Bln;
 import org.basex.query.item.Item;
 import org.basex.query.item.ANode;
@@ -88,8 +87,8 @@ public final class CmpN extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    super.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    super.comp(ctx, scp);
     return optPre(oneIsEmpty() ? null : allAreValues() ?
         item(ctx, input) : this, ctx);
   }

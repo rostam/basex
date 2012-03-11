@@ -113,7 +113,8 @@ public final class Functions extends TokenSet {
     // compile the function if it hasn't been done statically
     if(dyn && f.fun instanceof UserFuncCall) {
       final UserFunc usf = ((UserFuncCall) f.fun).func();
-      if(usf != null && usf.declared) usf.comp(ctx);
+      // scope is ignored anyway
+      if(usf != null && usf.declared) usf.comp(ctx, null);
     }
 
     return new FuncItem(name, vars, f.fun, f.type, false, null, vars.length);

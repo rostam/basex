@@ -5,8 +5,7 @@ import static org.basex.query.util.Err.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.func.Function;
 import org.basex.query.item.AtomType;
 import org.basex.query.item.Bln;
@@ -159,8 +158,8 @@ public final class CmpV extends Cmp {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    super.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    super.comp(ctx, scp);
 
     // swap expressions; add text() to location paths to simplify optimizations
     if(swap()) {

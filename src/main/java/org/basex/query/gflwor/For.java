@@ -124,8 +124,8 @@ public class For extends GFLWOR.Clause {
   }
 
   @Override
-  public For comp(final QueryContext ctx) throws QueryException {
-    expr = expr.comp(ctx);
+  public For comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    expr = expr.comp(ctx, scp);
     return this;
   }
 

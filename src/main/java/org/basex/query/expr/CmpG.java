@@ -8,8 +8,7 @@ import java.io.IOException;
 import org.basex.index.IndexToken.IndexType;
 import org.basex.index.ValuesToken;
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.CmpV.OpV;
 import org.basex.query.func.Function;
 import org.basex.query.item.AtomType;
@@ -135,8 +134,8 @@ public final class CmpG extends Cmp {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    super.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    super.comp(ctx, scp);
 
     // swap expressions; add text() to location paths to simplify optimizations
     if(swap()) {
@@ -280,12 +279,14 @@ public final class CmpG extends Cmp {
    * Creates a union of the existing and the specified expressions.
    * @param g general comparison
    * @param ctx query context
+   * @param scp variable scope
    * @return true if union was successful
    * @throws QueryException query exception
    */
-  boolean union(final CmpG g, final QueryContext ctx) throws QueryException {
+  boolean union(final CmpG g, final QueryContext ctx, final VarScope scp)
+      throws QueryException {
     if(op != g.op || !expr[0].sameAs(g.expr[0])) return false;
-    expr[1] = new List(input, expr[1], g.expr[1]).comp(ctx);
+    expr[1] = new List(input, expr[1], g.expr[1]).comp(ctx, scp);
     atomic = atomic && expr[1].type().zeroOrOne();
     return true;
   }

@@ -189,7 +189,7 @@ public final class FNFt extends StandardFunc {
 
     final FTOpt tmp = ctx.ftOpt();
     ctx.ftOpt(new FTOpt().copy(data.meta));
-    final FTWords words = new FTWords(fun.input, ic.data, Str.get(str), ctx);
+    final FTWords words = new FTWords(fun.input, ic.data, Str.get(str), ctx, null);
     ctx.ftOpt(tmp);
     return new FTIndexAccess(fun.input, words, ic).iter(ctx);
   }

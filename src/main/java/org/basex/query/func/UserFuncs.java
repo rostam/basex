@@ -169,8 +169,8 @@ public final class UserFuncs extends ExprInfo {
    */
   public void comp(final QueryContext ctx) throws QueryException {
     for(int i = 0; i < funcs.length; i++) {
-      // only compile those functions that are used
-      if(calls[i].length != 0) funcs[i].comp(ctx);
+      // only compile those functions that are used, scope is ignored anyway
+      if(calls[i].length != 0) funcs[i].comp(ctx, null);
     }
   }
 

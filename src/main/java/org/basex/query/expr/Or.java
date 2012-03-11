@@ -1,8 +1,7 @@
 package org.basex.query.expr;
 
 import static org.basex.query.QueryText.*;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Bln;
 import org.basex.query.item.Item;
 import org.basex.query.util.IndexContext;
@@ -27,9 +26,9 @@ public final class Or extends Logical {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     // remove atomic values
-    final Expr c = super.comp(ctx);
+    final Expr c = super.comp(ctx, scp);
     if(c != this) return c;
 
     // merge predicates if possible
@@ -41,7 +40,7 @@ public final class Or extends Logical {
         // merge general comparisons
         final CmpG g = (CmpG) e;
         if(cmpg == null) cmpg = g;
-        else if(cmpg.union(g, ctx)) tmp = g;
+        else if(cmpg.union(g, ctx, scp)) tmp = g;
       }
       // no optimization found; add original expression
       if(tmp == null) ex = Array.add(ex, e);

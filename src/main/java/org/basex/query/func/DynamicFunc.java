@@ -3,8 +3,7 @@ package org.basex.query.func;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Arr;
 import org.basex.query.expr.Expr;
 import org.basex.query.item.FItem;
@@ -39,15 +38,14 @@ public final class DynamicFunc extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    super.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    super.comp(ctx, scp);
     final int ar = expr.length - 1;
     final Expr f = expr[ar];
     final Type t = f.type().type;
     if(t instanceof FuncType) {
       final FuncType ft = (FuncType) t;
-      if(ft.args != null && ft.args.length != ar)
-        throw INVARITY.thrw(input, f, ar);
+      if(ft.args != null && ft.args.length != ar) throw INVARITY.thrw(input, f, ar);
       if(ft.ret != null) type = ft.ret;
     }
 

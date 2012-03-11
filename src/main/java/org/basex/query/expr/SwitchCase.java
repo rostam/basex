@@ -2,8 +2,7 @@ package org.basex.query.expr;
 
 import static org.basex.query.QueryText.*;
 
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.util.InputInfo;
 
 /**
@@ -23,10 +22,10 @@ public class SwitchCase extends Arr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     final int el = expr.length;
-    expr[0] = expr[0].comp(ctx);
-    for(int e = 1; e < el; ++e) expr[e] = checkUp(expr[e], ctx).comp(ctx);
+    expr[0] = expr[0].comp(ctx, scp);
+    for(int e = 1; e < el; ++e) expr[e] = checkUp(expr[e], ctx).comp(ctx, scp);
     return this;
   }
 

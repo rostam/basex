@@ -5,8 +5,7 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Item;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
@@ -38,10 +37,10 @@ public final class Switch extends ParseExpr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     // operands may not be updating
-    cond = checkUp(cond, ctx).comp(ctx);
-    for(final SwitchCase sc : cases) sc.comp(ctx);
+    cond = checkUp(cond, ctx).comp(ctx, scp);
+    for(final SwitchCase sc : cases) sc.comp(ctx, scp);
 
     // check if none or all return expressions are updating
     final Expr[] tmp = new Expr[cases.length];

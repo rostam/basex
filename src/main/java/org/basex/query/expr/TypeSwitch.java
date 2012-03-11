@@ -4,8 +4,7 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.*;
@@ -38,8 +37,8 @@ public final class TypeSwitch extends ParseExpr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    ts = checkUp(ts, ctx).comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    ts = checkUp(ts, ctx).comp(ctx, scp);
     final Expr[] tmp = new Expr[cases.length];
     for(int i = 0; i < cases.length; ++i) tmp[i] = cases[i].expr;
     checkUp(ctx, tmp);
@@ -48,11 +47,11 @@ public final class TypeSwitch extends ParseExpr {
     if(ts.isValue()) {
       final Value val = ts.value(ctx);
       for(final TypeCase c : cases)
-        if(c.matches(val)) return optPre(c.comp(ctx, (Value) ts).expr, ctx);
+        if(c.matches(val)) return optPre(c.comp(ctx, scp, (Value) ts).expr, ctx);
     }
 
     // compile branches
-    for(final TypeCase c : cases) c.comp(ctx);
+    for(final TypeCase c : cases) c.comp(ctx, scp);
 
     // return result if all branches are equal (e.g., empty)
     boolean eq = true;

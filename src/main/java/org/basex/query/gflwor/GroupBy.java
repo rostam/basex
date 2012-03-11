@@ -152,8 +152,8 @@ public class GroupBy extends GFLWOR.Clause {
   }
 
   @Override
-  public GroupBy comp(final QueryContext ctx) throws QueryException {
-    for(int i = 0; i < by.length; i++) by[i].comp(ctx);
+  public GroupBy comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    for(int i = 0; i < by.length; i++) by[i].comp(ctx, scp);
     return this;
   }
 

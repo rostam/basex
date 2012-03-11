@@ -4,8 +4,7 @@ import static org.basex.query.QueryText.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.iter.Iter;
 import org.basex.util.InputInfo;
 
@@ -31,9 +30,9 @@ public final class Extension extends Single {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     // ignore pragma
-    return optPre(expr.comp(ctx), ctx);
+    return optPre(expr.comp(ctx, scp), ctx);
   }
 
   @Override

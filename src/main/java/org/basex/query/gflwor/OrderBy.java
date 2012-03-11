@@ -9,8 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.basex.io.serial.*;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.Item;
@@ -226,8 +225,8 @@ public class OrderBy extends GFLWOR.Clause {
   }
 
   @Override
-  public OrderBy comp(final QueryContext ctx) throws QueryException {
-    for(final Key k : keys) k.comp(ctx);
+  public OrderBy comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    for(final Key k : keys) k.comp(ctx, scp);
     return this;
   }
 

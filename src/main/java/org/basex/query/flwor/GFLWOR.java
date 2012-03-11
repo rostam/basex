@@ -70,7 +70,7 @@ public class GFLWOR extends ParseExpr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     compHoist(ctx);
     compWhere(ctx);
 
@@ -80,9 +80,9 @@ public class GFLWOR extends ParseExpr {
     // optimize for/let clauses
     for(int f = 0; f < fl.length; ++f) {
       final ForLet flt = fl[f];
-      flt.comp(ctx);
+      flt.comp(ctx, scp);
       // bind variable if it contains a value or occurs only once
-      if(flt.expr.isValue() || inlineable(flt.var, f)) flt.bind(ctx);
+      if(flt.expr.isValue() || inlineable(flt.var, f)) flt.bind(ctx, scp);
 
       /* ...or if all inner clauses return only one item. This rewriting would
        * disallow repeated evaluations of the same expression, but it prevents
@@ -96,7 +96,7 @@ public class GFLWOR extends ParseExpr {
     // optimize where clause
     boolean empty = false;
     if(where != null) {
-      where = checkUp(where, ctx).comp(ctx).compEbv(ctx);
+      where = checkUp(where, ctx).comp(ctx, scp).compEbv(ctx);
       if(where.isValue()) {
         // test is always false: no results
         empty = !where.ebv(ctx, input).bool(input);
@@ -108,8 +108,8 @@ public class GFLWOR extends ParseExpr {
       }
     }
 
-    if(order != null) order.comp(ctx);
-    ret = ret.comp(ctx);
+    if(order != null) order.comp(ctx, scp);
+    ret = ret.comp(ctx, scp);
     ctx.grouping = grp;
 
     // remove FLWOR expression if WHERE clause always returns false

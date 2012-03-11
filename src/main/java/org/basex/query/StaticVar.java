@@ -53,8 +53,9 @@ public final class StaticVar extends ParseExpr {
   }
 
   @Override
-  public StaticVar comp(final QueryContext ctx) throws QueryException {
-    if(expr != null) bind(checkUp(expr, ctx).comp(ctx), ctx);
+  public StaticVar comp(final QueryContext ctx, final VarScope scp)
+      throws QueryException {
+    if(expr != null) bind(checkUp(expr, ctx).comp(ctx, scp), ctx);
     return this;
   }
 

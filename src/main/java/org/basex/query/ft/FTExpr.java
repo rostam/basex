@@ -3,8 +3,7 @@ package org.basex.query.ft;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.expr.ParseExpr;
 import org.basex.query.item.FTNode;
@@ -36,8 +35,8 @@ public abstract class FTExpr extends ParseExpr {
   }
 
   @Override
-  public FTExpr comp(final QueryContext ctx) throws QueryException {
-    for(int e = 0; e != expr.length; ++e) expr[e] = expr[e].comp(ctx);
+  public FTExpr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    for(int e = 0; e != expr.length; ++e) expr[e] = expr[e].comp(ctx, scp);
     return this;
   }
 

@@ -1,8 +1,7 @@
 package org.basex.query.flwor;
 
 import static org.basex.query.QueryText.*;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.expr.Single;
 import org.basex.query.util.Var;
@@ -32,9 +31,10 @@ public abstract class ForLet extends Single {
   /**
    * If possible, binds the variable at compile time.
    * @param ctx query context
+   * @param scp variable scope
    * @throws QueryException query exception
    */
-  final void bind(final QueryContext ctx) throws QueryException {
+  final void bind(final QueryContext ctx, final VarScope scp) throws QueryException {
     if(!simple(true)) return;
 
     /* don't bind variable if expression...
@@ -55,7 +55,8 @@ public abstract class ForLet extends Single {
   }
 
   @Override
-  public abstract ForLet comp(final QueryContext ctx) throws QueryException;
+  public abstract ForLet comp(final QueryContext ctx, final VarScope scp)
+      throws QueryException;
 
   /**
    * Checks if the clause contains a simple variable declaration, using

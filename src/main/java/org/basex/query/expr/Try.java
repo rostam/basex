@@ -3,8 +3,7 @@ package org.basex.query.expr;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.*;
@@ -34,7 +33,7 @@ public final class Try extends Single {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     // check if none or all try/catch expressions are updating
     final Expr[] tmp = new Expr[ctch.length + 1];
     tmp[0] = expr;
@@ -43,7 +42,7 @@ public final class Try extends Single {
 
     // compile expression
     try {
-      super.comp(ctx);
+      super.comp(ctx, scp);
       // return value, which will never throw an error
       if(expr.isValue()) return expr;
     } catch(final QueryException ex) {
@@ -52,7 +51,7 @@ public final class Try extends Single {
     }
 
     // compile catch expressions
-    for(final Catch c : ctch) c.comp(ctx);
+    for(final Catch c : ctch) c.comp(ctx, scp);
 
     // evaluate result type
     type = expr.type();

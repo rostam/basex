@@ -1,8 +1,7 @@
 package org.basex.query.flwor;
 
 import static org.basex.query.QueryText.*;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.expr.VarRef;
 import org.basex.query.item.Item;
@@ -29,8 +28,8 @@ public final class FLWR extends GFLWOR {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    final Expr ex = super.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    final Expr ex = super.comp(ctx, scp);
     if(ex != this) return ex;
 
     // simplify basic GFLWOR expression (for $i in A return $i -> A)

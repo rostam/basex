@@ -40,8 +40,8 @@ public final class Order extends ParseExpr {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    for(final OrderBy o : ob) o.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    for(final OrderBy o : ob) o.comp(ctx, scp);
     return this;
   }
 

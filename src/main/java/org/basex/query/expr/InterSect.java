@@ -1,7 +1,6 @@
 package org.basex.query.expr;
 
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Item;
 import org.basex.query.item.ANode;
 import org.basex.query.iter.Iter;
@@ -26,8 +25,8 @@ public final class InterSect extends Set {
   }
 
   @Override
-  public Expr comp(final QueryContext ctx) throws QueryException {
-    super.comp(ctx);
+  public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    super.comp(ctx, scp);
     return oneIsEmpty() ? optPre(null, ctx) : this;
   }
 

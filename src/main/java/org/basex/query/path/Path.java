@@ -56,16 +56,17 @@ public abstract class Path extends ParseExpr {
   }
 
   @Override
-  public final Expr comp(final QueryContext ctx) throws QueryException {
+  public final Expr comp(final QueryContext ctx, final VarScope scp)
+      throws QueryException {
     if(root != null) {
-      root = checkUp(root, ctx).comp(ctx);
+      root = checkUp(root, ctx).comp(ctx, scp);
       if(root instanceof Context) root = null;
     }
 
     final Value v = ctx.value;
     try {
       ctx.value = root(ctx);
-      return compPath(ctx);
+      return compPath(ctx, scp);
     } finally {
       ctx.value = v;
     }
@@ -74,10 +75,11 @@ public abstract class Path extends ParseExpr {
   /**
    * Compiles the location path.
    * @param ctx query context
+   * @param scp variable scope
    * @return optimized expression
    * @throws QueryException query exception
    */
-  protected abstract Expr compPath(final QueryContext ctx)
+  protected abstract Expr compPath(final QueryContext ctx, final VarScope scp)
     throws QueryException;
 
   /**

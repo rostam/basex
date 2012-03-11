@@ -3,8 +3,7 @@ package org.basex.query.expr;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Item;
 import org.basex.query.item.SeqType;
 import org.basex.query.item.SeqType.Occ;
@@ -38,16 +37,17 @@ public class Filter extends Preds {
   }
 
   @Override
-  public final Expr comp(final QueryContext ctx) throws QueryException {
-    root = checkUp(root, ctx).comp(ctx);
+  public final Expr comp(final QueryContext ctx, final VarScope scp)
+      throws QueryException {
+    root = checkUp(root, ctx).comp(ctx, scp);
     // return empty root
     if(root.isEmpty()) return optPre(null, ctx);
     // convert filters without numeric predicates to axis paths
     if(root instanceof AxisPath && !super.uses(Use.POS))
-      return ((AxisPath) root).copy().addPreds(preds).comp(ctx);
+      return ((AxisPath) root).copy().addPreds(preds).comp(ctx, scp);
 
     // optimize filter expressions
-    final Expr e = super.comp(ctx);
+    final Expr e = super.comp(ctx, scp);
     if(e != this) return e;
 
     // no predicates.. return root; otherwise, do some advanced compilations

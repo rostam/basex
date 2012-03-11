@@ -3,8 +3,7 @@ package org.basex.query.ft;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.FTNode;
 import org.basex.query.iter.FTIter;
 import org.basex.query.util.*;
@@ -34,12 +33,12 @@ public final class FTOptions extends FTExpr {
   }
 
   @Override
-  public FTExpr comp(final QueryContext ctx) throws QueryException {
+  public FTExpr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     final FTOpt tmp = ctx.ftOpt();
     ctx.ftOpt(opt.copy(tmp));
     if(opt.sw != null && ctx.value != null && ctx.value.data() != null)
       opt.sw.comp(ctx.value.data());
-    expr[0] = expr[0].comp(ctx);
+    expr[0] = expr[0].comp(ctx, scp);
     ctx.ftOpt(tmp);
     return expr[0];
   }

@@ -5,9 +5,7 @@ import java.io.IOException;
 import org.basex.data.FTMatch;
 import org.basex.data.FTStringMatch;
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
-import org.basex.query.QueryText;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.util.*;
 import org.basex.util.InputInfo;
@@ -39,9 +37,9 @@ public final class FTWindow extends FTFilter {
   }
 
   @Override
-  public FTExpr comp(final QueryContext ctx) throws QueryException {
-    win = checkUp(win, ctx).comp(ctx);
-    return super.comp(ctx);
+  public FTExpr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    win = checkUp(win, ctx).comp(ctx, scp);
+    return super.comp(ctx, scp);
   }
 
   @Override
