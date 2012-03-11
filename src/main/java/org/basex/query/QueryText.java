@@ -20,6 +20,8 @@ public interface QueryText {
   /** Parser token. */
   String ALL = "all";
   /** Parser token. */
+  String ALLOWING = "allowing";
+  /** Parser token. */
   String AND = "and";
   /** Parser token. */
   String ANY = "any";

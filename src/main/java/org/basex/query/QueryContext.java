@@ -439,8 +439,9 @@ public final class QueryContext extends Progress {
    * @return bound value
    */
   public Value get(final Var var) {
-    if(stackFrame[var.slot] == null) throw Util.notexpected(var);
-    return stackFrame[var.slot];
+    final Value val = stackFrame[var.slot];
+    if(val == null) throw Util.notexpected(var);
+    return val;
   }
 
   /**

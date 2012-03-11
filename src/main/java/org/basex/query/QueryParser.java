@@ -19,12 +19,10 @@ import org.basex.query.expr.CmpN.OpN;
 import org.basex.query.expr.CmpV.OpV;
 import org.basex.query.expr.Context;
 import org.basex.query.expr.List;
-// import org.basex.query.flwor.*;
 import org.basex.query.ft.*;
 import org.basex.query.ft.FTWords.FTMode;
 import org.basex.query.func.*;
 import org.basex.query.gflwor.*;
-import org.basex.query.gflwor.GFLWOR.Clause;
 import org.basex.query.item.*;
 import org.basex.query.item.SeqType.Occ;
 import org.basex.query.item.Type;
@@ -1177,6 +1175,9 @@ public class QueryParser extends InputParser {
         final SeqType type = score ? SeqType.DBL : optAsType();
         final Var var = new Var(ctx, name, type);
 
+        final boolean emp = fr && wsConsume(ALLOWING);
+        if(emp) wsCheck(EMPTYORD);
+
         final Var ps = fr && wsConsumeWs(AT) ?
             new Var(ctx, varName(), SeqType.ITR) : null;
         final Var sc = fr && wsConsumeWs(SCORE) ?
@@ -1197,7 +1198,8 @@ public class QueryParser extends InputParser {
         }
 
         if(cls == null) cls = new ArrayList<GFLWOR.Clause>();
-        cls.add(fr ? new For(var, ps, sc, e, input()) : new Let(var, e, score, input()));
+        cls.add(fr ? new For(var, ps, sc, e, emp, input()) :
+          new Let(var, e, score, input()));
 
         score = false;
         comma = true;
@@ -1242,8 +1244,8 @@ public class QueryParser extends InputParser {
    * @return new group array
    * @throws QueryException query exception
    */
-  private GroupBy.Spec[] groupSpec(final ArrayList<Clause> cl, final GroupBy.Spec[] group)
-      throws QueryException {
+  private GroupBy.Spec[] groupSpec(final ArrayList<GFLWOR.Clause> cl,
+      final GroupBy.Spec[] group) throws QueryException {
 
     final InputInfo ii = input();
     final QNm name = varName();
@@ -1296,7 +1298,7 @@ public class QueryParser extends InputParser {
       wsCheck(IN);
       final Expr e = check(single(), NOSOME);
       scope.add(var);
-      fl = Array.add(fl, new For(var, null, null, e, input()));
+      fl = Array.add(fl, new For(var, null, null, e, false, input()));
     } while(wsConsume(COMMA));
 
     wsCheck(SATISFIES);
