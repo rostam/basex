@@ -248,6 +248,21 @@ public class OrderBy extends GFLWOR.Clause {
     return visitor.visitAll(keys);
   }
 
+  @Override
+  boolean undeclare(final VarVisitor visitor) {
+    return true;
+  }
+
+  @Override
+  public Var[] vars() {
+    return new Var[0];
+  }
+
+  @Override
+  public boolean declares(final Var v) {
+    return false;
+  }
+
   /**
    * Sort key.
    * @author Leo Woerteler
@@ -286,10 +301,5 @@ public class OrderBy extends GFLWOR.Clause {
       if(least) sb.append(' ').append(EMPTYORD).append(' ').append(LEAST);
       return sb.toString();
     }
-  }
-
-  @Override
-  boolean undeclare(final VarVisitor visitor) {
-    return true;
   }
 }

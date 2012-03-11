@@ -137,7 +137,7 @@ public abstract class Value extends Expr {
   public abstract boolean homogenous();
 
   @Override
-  public boolean visitVars(final VarVisitor visitor) {
+  public final boolean visitVars(final VarVisitor visitor) {
     return true;
   }
 }

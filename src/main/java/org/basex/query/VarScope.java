@@ -3,6 +3,8 @@ package org.basex.query;
 import static org.basex.util.Token.*;
 
 import java.util.*;
+
+import org.basex.query.expr.*;
 import org.basex.query.func.*;
 import org.basex.query.item.*;
 import org.basex.query.util.*;
@@ -22,7 +24,7 @@ public final class VarScope {
   private final ArrayList<Var> vars = new ArrayList<Var>();
 
   /** This scope's closure. */
-  private final Map<Var, Var> closure = new HashMap<Var, Var>();
+  private final Map<Var, VarRef> closure = new HashMap<Var, VarRef>();
 
   /** This scope's parent scope, used for looking up non-local variables. */
   private final VarScope parent;
@@ -73,15 +75,15 @@ public final class VarScope {
       final Var local = new Var(qp.ctx, name, null);
       local.refineType(nonLocal.type());
       add(local);
-      closure.put(local, nonLocal);
+      closure.put(local, new VarRef(ii, nonLocal));
       return local;
     }
 
     // global variable
-    Var global = qp.ctx.globals.get(name).var;
+    StaticVar global = qp.ctx.globals.get(name);
     if(global == null) global = Variable.get(name, qp.ctx);
     if(global == null && err != null) throw qp.error(err, '$' + string(name.string()));
-    return global;
+    return global.var;
   }
 
   /**
@@ -152,7 +154,7 @@ public final class VarScope {
    * Get the closure of this scope.
    * @return mapping from non-local to local variables
    */
-  public Map<Var, Var> closure() {
+  public Map<Var, VarRef> closure() {
     return closure;
   }
 
@@ -169,7 +171,6 @@ public final class VarScope {
    * @return maximum number of variables on the stack at the same time.
    */
   public int stackSize() {
-    // TODO Auto-generated method stub
-    return -1;
+    return vars.size();
   }
 }

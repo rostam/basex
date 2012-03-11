@@ -1,5 +1,6 @@
 package org.basex.query.util;
 
+import org.basex.query.*;
 import org.basex.query.expr.*;
 
 /**
@@ -28,6 +29,15 @@ public abstract class VarVisitor {
   public boolean used(final VarRef var) {
     return true;
   };
+
+  /**
+   * Notifies the visitor of a sub-scope.
+   * @param sub scope
+   * @return if more variables should be visited
+   */
+  public boolean subScope(final Scope sub) {
+    return true;
+  }
 
   /**
    * Notifies the visitor of a variable going out of scope.

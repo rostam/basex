@@ -80,7 +80,9 @@ public class GFLWOR extends ParseExpr {
 
   @Override
   public Expr comp(final QueryContext ctx) throws QueryException {
-    // TODO Auto-generated method stub
+    for(final Clause cl : clauses) cl.comp(ctx);
+    ret.comp(ctx);
+    // [LW] optimizations
     return this;
   }
 
@@ -173,5 +175,18 @@ public class GFLWOR extends ParseExpr {
      * @return continue
      */
     abstract boolean undeclare(final VarVisitor visitor);
+
+    /**
+     * All declared variables of this clause.
+     * @return declared variables
+     */
+    public abstract Var[] vars();
+
+    /**
+     * checks if the given variable is declared by this clause.
+     * @param v variable
+     * @return {code true} if the variable was declared here, {@code false} otherwise
+     */
+    public abstract boolean declares(Var v);
   }
 }

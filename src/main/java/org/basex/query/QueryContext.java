@@ -55,8 +55,6 @@ public final class QueryContext extends Progress {
 
   /** Static context of an expression. */
   public StaticContext sc = new StaticContext();
-  /** Variables. */
-  // [LW] public final VarContext vars = new VarContext();
   /** Global variables. */
   public final Globals globals = new Globals();
   /** Current stack frame. */

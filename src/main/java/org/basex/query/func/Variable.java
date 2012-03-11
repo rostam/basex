@@ -55,17 +55,16 @@ public enum Variable {
 
   /**
    * Tries to find the variable with the given name.
-   * @param name name of the variable
+   * @param n name of the variable
    * @param ctx query context
    * @return variable if found, {@code null} otherwise
    * @throws QueryException exception
    */
-  public static Var get(final QNm name, final QueryContext ctx) throws QueryException {
+  public static StaticVar get(final QNm n, final QueryContext ctx) throws QueryException {
     for(final Variable v : values())
-      if(v.qname.eq(name)) {
+      if(v.qname.eq(n)) {
         final Var var = new Var(ctx, v.qname, v.value.type(), VarKind.GLOBAL);
-        ctx.globals.set(ctx, null, var, null, v.value, true);
-        return var;
+        return ctx.globals.set(ctx, null, var, null, v.value, true);
       }
     return null;
   }

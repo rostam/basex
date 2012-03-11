@@ -132,4 +132,15 @@ public class For extends GFLWOR.Clause {
     return (score == null || visitor.undeclared(score))
         && (pos == null || visitor.undeclared(pos)) && visitor.undeclared(var);
   }
+
+  @Override
+  public Var[] vars() {
+    return pos == null ? score == null ? new Var[] { var } : new Var[] { var, score } :
+      score == null ? new Var[] { var, pos } : new Var[] { var, pos, score };
+  }
+
+  @Override
+  public boolean declares(final Var v) {
+    return var.is(v) || pos != null && pos.is(v) || score != null && score.is(v);
+  }
 }

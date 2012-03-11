@@ -22,9 +22,9 @@ import org.basex.util.ft.Scoring;
  */
 public class Let extends GFLWOR.Clause {
   /** Variable. */
-  final Var var;
+  public final Var var;
   /** Bound expression. */
-  Expr expr;
+  public Expr expr;
   /** Score flag. */
   final boolean score;
 
@@ -108,5 +108,15 @@ public class Let extends GFLWOR.Clause {
   @Override
   boolean undeclare(final VarVisitor visitor) {
     return visitor.undeclared(var);
+  }
+
+  @Override
+  public Var[] vars() {
+    return new Var[] { var };
+  }
+
+  @Override
+  public boolean declares(final Var v) {
+    return var.is(v);
   }
 }

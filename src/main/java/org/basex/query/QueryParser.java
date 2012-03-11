@@ -19,10 +19,12 @@ import org.basex.query.expr.CmpN.OpN;
 import org.basex.query.expr.CmpV.OpV;
 import org.basex.query.expr.Context;
 import org.basex.query.expr.List;
-import org.basex.query.flwor.*;
+// import org.basex.query.flwor.*;
 import org.basex.query.ft.*;
 import org.basex.query.ft.FTWords.FTMode;
 import org.basex.query.func.*;
+import org.basex.query.gflwor.*;
+import org.basex.query.gflwor.GFLWOR.Clause;
 import org.basex.query.item.*;
 import org.basex.query.item.SeqType.Occ;
 import org.basex.query.item.Type;
@@ -1071,39 +1073,36 @@ public class QueryParser extends InputParser {
    */
   private Expr flwor() throws QueryException {
 
-    // XQuery30: tumbling window, sliding window, count, allowing empty
+    // [LW] XQuery30: tumbling window, sliding window, count, allowing empty
     //  (still to be parsed and implemented)
 
     final int s = scope.open();
-    final ForLet[] fl = forLet();
-    if(fl == null) return null;
+    final ArrayList<GFLWOR.Clause> clauses = forLet(null);
+    if(clauses == null) return null;
 
-    Expr where = null;
+    final TokenObjMap<Var> curr = new TokenObjMap<Var>();
+    for(final GFLWOR.Clause fl : clauses)
+      for(final Var v : fl.vars()) curr.add(v.name.eqname(), v);
+
     if(wsConsumeWs(WHERE)) {
       ap = qp;
-      where = check(single(), NOWHERE);
+      clauses.add(new Where(check(single(), NOWHERE), input()));
       alter = NOWHERE;
     }
 
-    Group group = null;
     if(ctx.xquery3 && wsConsumeWs(GROUP)) {
       wsCheck(BY);
       ap = qp;
-      Group.Spec[] grp = null;
-      do grp = groupSpec(fl, grp); while(wsConsume(COMMA));
+      GroupBy.Spec[] grp = null;
+      do grp = groupSpec(clauses, grp); while(wsConsume(COMMA));
 
       // find all non-grouping variables that aren't shadowed
       final ArrayList<Var> ng = new ArrayList<Var>();
-      final TokenSet set = new TokenSet();
-      for(final Group.Spec spec : grp) set.add(spec.grp.name.eqname());
-      for(int i = fl.length; --i >= 0;) {
-        for(final Var v : fl[i].vars()) {
-          final byte[] eqn = v.name.eqname();
-          if(set.id(eqn) == 0) {
-            ng.add(v);
-            set.add(eqn);
-          }
-        }
+      for(final GroupBy.Spec spec : grp) curr.add(spec.var.name.eqname(), spec.var);
+      for(int i = 0; i < curr.size(); i++) {
+        final Var v = curr.value(i);
+        for(final GroupBy.Spec spec : grp) if(spec.var.is(v)) break;
+        ng.add(v);
       }
 
       // add new copies for all non-grouping variables
@@ -1116,38 +1115,39 @@ public class QueryParser extends InputParser {
         final Var nv = v.withType(ctx, null);
         if(v.type().one()) nv.refineType(SeqType.get(v.type().type, Occ.ONE_MORE));
         ngrp[i] = nv;
+        curr.add(nv.name.eqname(), nv);
         scope.add(nv);
       }
 
-      group = new Group(grp[0].input, grp,
-          new Var[][]{ ng.toArray(new Var[ng.size()]), ngrp });
+      clauses.add(new GroupBy(grp, new Var[][]{ ng.toArray(new Var[ng.size()]), ngrp },
+          grp[0].input));
       alter = GRPBY;
     }
 
-    Order order = null;
     final boolean stable = wsConsumeWs(STABLE);
     if(stable) wsCheck(ORDER);
-
     if(stable || wsConsumeWs(ORDER)) {
       wsCheck(BY);
       ap = qp;
-      OrderBy[] ob = null;
+      OrderBy.Key[] ob = null;
       do ob = orderSpec(ob); while(wsConsume(COMMA));
       // don't sort if all order-by clauses are empty
       if(ob != null) {
-        ob = Array.add(ob, new OrderByStable(input()));
-        order = new Order(ob[0].input, ob);
+        final Var[] vs = new Var[curr.size()];
+        for(int i = 0; i < vs.length; i++) vs[i] = curr.value(i);
+        clauses.add(new OrderBy(vs, ob, stable, ob[0].input));
       }
       alter = ORDERBY;
     }
 
     if(!wsConsumeWs(RETURN)) {
       if(alter != null) error();
-      error(where == null ? FLWORWHERE : order == null ? FLWORORD : FLWORRET);
+      // [LW] where == null ? FLWORWHERE : order == null ? FLWORORD :
+      error(FLWORRET);
     }
     final Expr ret = check(single(), NORETURN);
     scope.close(s);
-    return GFLWOR.get(fl, where, order, group, ret, input());
+    return new GFLWOR(clauses.get(0).input, clauses, ret);
   }
 
   /**
@@ -1155,18 +1155,20 @@ public class QueryParser extends InputParser {
    * Parses the "PositionalVar" rule.
    * Parses the "LetClause" rule.
    * Parses the "FTScoreVar" rule.
+   * @param clauses FLWOR clauses
    * @return query expression
    * @throws QueryException query exception
    */
-  private ForLet[] forLet() throws QueryException {
-    ForLet[] fl = null;
-    boolean comma = false;
+  private ArrayList<GFLWOR.Clause> forLet(final ArrayList<GFLWOR.Clause> clauses)
+      throws QueryException {
 
+    ArrayList<GFLWOR.Clause> cls = clauses;
+    boolean comma = false;
     while(true) {
       final boolean fr = wsConsumeWs(FOR, DOLLAR, NOFOR);
       boolean score = !fr && wsConsumeWs(LET, SCORE, NOLET);
       if(score) wsCheck(SCORE);
-      else if(!fr && !wsConsumeWs(LET, DOLLAR, NOLET)) return fl;
+      else if(!fr && !wsConsumeWs(LET, DOLLAR, NOLET)) return cls;
 
       do {
         if(comma && !fr) score = wsConsumeWs(SCORE);
@@ -1194,9 +1196,8 @@ public class QueryParser extends InputParser {
           scope.add(sc);
         }
 
-        fl = fl == null ? new ForLet[1] : Arrays.copyOf(fl, fl.length + 1);
-        fl[fl.length - 1] = fr ? new For(input(), e, var, ps, sc) : new Let(
-            input(), e, var, score);
+        if(cls == null) cls = new ArrayList<GFLWOR.Clause>();
+        cls.add(fr ? new For(var, ps, sc, e, input()) : new Let(var, e, score, input()));
 
         score = false;
         comma = true;
@@ -1215,7 +1216,7 @@ public class QueryParser extends InputParser {
    * @return new order array
    * @throws QueryException query exception
    */
-  private OrderBy[] orderSpec(final OrderBy[] order) throws QueryException {
+  private OrderBy.Key[] orderSpec(final OrderBy.Key[] order) throws QueryException {
     final Expr e = check(single(), ORDERBY);
 
     boolean desc = false;
@@ -1230,18 +1231,18 @@ public class QueryParser extends InputParser {
       if(!eq(URLCOLL, coll)) error(INVCOLL, coll);
     }
     if(e.isEmpty()) return order;
-    final OrderBy ord = new OrderByExpr(input(), e, desc, least);
-    return order == null ? new OrderBy[] { ord } : Array.add(order, ord);
+    final OrderBy.Key ord = new OrderBy.Key(input(), e, desc, least);
+    return order == null ? new OrderBy.Key[] { ord } : Array.add(order, ord);
   }
 
   /**
    * Parses the "GroupingSpec" rule.
-   * @param fl for/let clauses
+   * @param cl preceding clauses
    * @param group grouping specification
    * @return new group array
    * @throws QueryException query exception
    */
-  private Group.Spec[] groupSpec(final ForLet[] fl, final Group.Spec[] group)
+  private GroupBy.Spec[] groupSpec(final ArrayList<Clause> cl, final GroupBy.Spec[] group)
       throws QueryException {
 
     final InputInfo ii = input();
@@ -1257,7 +1258,7 @@ public class QueryParser extends InputParser {
       final Var v = checkVar(var.name, GVARNOTDEFINED);
       // the grouping variable has to be declared by the same FLWOR expression
       boolean dec = false;
-      for(final ForLet f : fl) {
+      for(final GFLWOR.Clause f : cl) {
         if(f.declares(v)) {
           dec = true;
           break;
@@ -1275,8 +1276,8 @@ public class QueryParser extends InputParser {
     // add the new grouping variable
     scope.add(var);
 
-    final Group.Spec grp = new Group.Spec(ii, var, by);
-    return group == null ? new Group.Spec[] { grp } : Array.add(group, grp);
+    final GroupBy.Spec grp = new GroupBy.Spec(ii, var, by);
+    return group == null ? new GroupBy.Spec[] { grp } : Array.add(group, grp);
   }
 
   /**
@@ -1295,7 +1296,7 @@ public class QueryParser extends InputParser {
       wsCheck(IN);
       final Expr e = check(single(), NOSOME);
       scope.add(var);
-      fl = Array.add(fl, new For(input(), e, var));
+      fl = Array.add(fl, new For(var, null, null, e, input()));
     } while(wsConsume(COMMA));
 
     wsCheck(SATISFIES);
@@ -1939,8 +1940,9 @@ public class QueryParser extends InputParser {
    * Fills gaps from place-holders with variable references.
    * @param args argument array
    * @return new scope if the expression was partially applied
+   * @throws QueryException exception
    */
-  private VarScope partial(final Expr[] args) {
+  private VarScope partial(final Expr[] args) throws QueryException {
     VarScope scp = null;
     final InputInfo ii = input();
     for(int i = 0; i < args.length; i++) {
@@ -1961,16 +1963,26 @@ public class QueryParser extends InputParser {
   /**
    * Fixes all variable references for the new scope.
    * @param e expression
+   * @throws QueryException exception
    */
-  private void fixScope(final Expr e) {
-    e.visitVars(new VarVisitor() {
-      @Override
-      public boolean used(final VarRef ref) {
-        final Var v = ref.var, replace = scope.closure().get(v);
-        if(v != null) ref.var = replace;
-        return true;
-      }
-    });
+  private void fixScope(final Expr e) throws QueryException {
+    try {
+      e.visitVars(new VarVisitor() {
+        @Override
+        public boolean used(final VarRef ref) {
+          final Var v = ref.var;
+          if(v.global()) return true;
+          try {
+            ref.var = scope.resolve(v.name, QueryParser.this, ref.input, VARUNDEF);
+            return true;
+          } catch(QueryException ex) {
+            throw new QueryError(ex);
+          }
+        }
+      });
+    } catch(final QueryError qe) {
+      throw qe.wrapped();
+    }
   }
 
   /**
@@ -3427,7 +3439,7 @@ public class QueryParser extends InputParser {
       wsCheck(ASSIGN);
       final Expr e = check(single(), INCOMPLETE);
       scope.add(v);
-      fl = Array.add(fl, new Let(input(), e, v));
+      fl = Array.add(fl, new Let(v, e, false, input()));
     } while(wsConsumeWs(COMMA));
     wsCheck(MODIFY);
 

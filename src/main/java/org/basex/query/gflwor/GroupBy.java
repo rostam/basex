@@ -184,6 +184,21 @@ public class GroupBy extends GFLWOR.Clause {
     return true;
   }
 
+  @Override
+  public Var[] vars() {
+    final Var[] res = new Var[by.length + nongroup[1].length];
+    for(int i = 0; i < by.length; i++) res[i] = by[i].var;
+    System.arraycopy(nongroup[1], 0, res, by.length, nongroup[1].length);
+    return res;
+  }
+
+  @Override
+  public boolean declares(final Var v) {
+    for(final Spec s : by) if(s.var.is(v)) return true;
+    for(final Var ng : nongroup[1]) if(ng.is(v)) return true;
+    return false;
+  }
+
   /**
    * Grouping spec.
    *
@@ -191,7 +206,7 @@ public class GroupBy extends GFLWOR.Clause {
    */
   public static class Spec extends Single {
     /** Grouping variable. */
-    final Var var;
+    public final Var var;
 
     /**
      * Constructor.

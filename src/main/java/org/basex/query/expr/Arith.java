@@ -6,8 +6,7 @@ import java.io.IOException;
 import org.basex.io.serial.Serializer;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
-import org.basex.query.item.Item;
-import org.basex.query.item.SeqType;
+import org.basex.query.item.*;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
 
@@ -59,6 +58,12 @@ public final class Arith extends Arr {
     final Item b = expr[1].item(ctx, input);
     if(b == null) return null;
     return calc.ev(input, a, b);
+  }
+
+  @Override
+  public Value value(final QueryContext ctx) throws QueryException {
+    final Item it = item(ctx, input);
+    return it == null ? Empty.SEQ : it;
   }
 
   @Override

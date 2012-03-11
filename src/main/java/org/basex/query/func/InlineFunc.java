@@ -38,7 +38,7 @@ public final class InlineFunc extends UserFunc {
 
   @Override
   public Expr comp(final QueryContext ctx) throws QueryException {
-    comp(ctx, false);
+    cmp(ctx);
     // only evaluate if the closure is empty, so we don't lose variables
     return expr.hasFreeVars() ? this : preEval(ctx);
   }
@@ -50,8 +50,8 @@ public final class InlineFunc extends UserFunc {
 
     // collect closure
     final Map<Var, Value> clos = new HashMap<Var, Value>();
-    for(final Entry<Var, Var> e : scope.closure().entrySet())
-      clos.put(e.getKey(), ctx.get(e.getValue()));
+    for(final Entry<Var, VarRef> e : scope.closure().entrySet())
+      clos.put(e.getKey(), e.getValue().value(ctx));
 
     return new FuncItem(args, expr, ft, c, clos, scope.stackSize());
   }
@@ -106,5 +106,21 @@ public final class InlineFunc extends UserFunc {
   @Override
   boolean tco() {
     return false;
+  }
+
+  @Override
+  public boolean visit(final VarVisitor visitor) {
+    final Map<Var, VarRef> clos = scope.closure();
+    if(clos.isEmpty()) return visitor.withVars(args, expr);
+
+    final Var[] cls = new Var[clos.size()];
+    int i = cls.length;
+    for(final Entry<Var, VarRef> v : clos.entrySet()) {
+      if(!(visitor.used(v.getValue())) && visitor.declared(v.getKey())) return false;
+      cls[--i] = v.getKey();
+    }
+    if(!visitor.withVars(args, expr)) return false;
+    for(final Var v : cls) if(!visitor.undeclared(v)) return false;
+    return true;
   }
 }

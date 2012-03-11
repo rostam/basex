@@ -2,13 +2,14 @@ package org.basex.query.func;
 
 import static org.basex.query.QueryText.*;
 import java.io.IOException;
+import java.util.*;
+import java.util.Map.*;
 
 import org.basex.io.serial.Serializer;
 import org.basex.query.*;
-import org.basex.query.expr.Expr;
+import org.basex.query.expr.*;
 import org.basex.query.item.*;
-import org.basex.query.util.TypedFunc;
-import org.basex.query.util.Var;
+import org.basex.query.util.*;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
 
@@ -75,7 +76,7 @@ public final class PartFunc extends UserFunc {
 
   @Override
   public Expr comp(final QueryContext ctx) throws QueryException {
-    comp(ctx, false);
+    cmp(ctx);
     // defer creation of function item because of closure
     return new InlineFunc(input, ret, args, expr, ann, scope).comp(ctx);
   }
@@ -91,5 +92,21 @@ public final class PartFunc extends UserFunc {
   @Override
   boolean tco() {
     return false;
+  }
+
+  @Override
+  public boolean visit(final VarVisitor visitor) {
+    final Map<Var, VarRef> clos = scope.closure();
+    if(clos.isEmpty()) return visitor.withVars(args, expr);
+
+    final Var[] cls = new Var[clos.size()];
+    int i = cls.length;
+    for(final Entry<Var, VarRef> v : clos.entrySet()) {
+      if(!(visitor.used(v.getValue())) && visitor.declared(v.getKey())) return false;
+      cls[--i] = v.getKey();
+    }
+    if(!visitor.withVars(args, expr)) return false;
+    for(final Var v : cls) if(!visitor.undeclared(v)) return false;
+    return true;
   }
 }

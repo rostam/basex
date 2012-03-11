@@ -6,8 +6,7 @@ import java.io.IOException;
 import org.basex.io.serial.Serializer;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
-import org.basex.query.flwor.For;
-import org.basex.query.flwor.ForLet;
+import org.basex.query.gflwor.For;
 import org.basex.query.item.Bln;
 import org.basex.query.item.SeqType;
 import org.basex.query.iter.Iter;
@@ -97,13 +96,13 @@ public final class Quantifier extends ParseExpr {
 
   @Override
   public boolean removable(final Var v) {
-    for(final ForLet f : fl) if(!f.removable(v)) return false;
+    for(final For f : fl) if(!f.removable(v)) return false;
     return sat.removable(v);
   }
 
   @Override
   public Expr remove(final Var v) {
-    for(final ForLet f : fl) f.remove(v);
+    for(final For f : fl) f.remove(v);
     sat = sat.remove(v);
     return this;
   }

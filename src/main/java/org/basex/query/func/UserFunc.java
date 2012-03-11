@@ -26,7 +26,7 @@ import org.basex.util.TokenBuilder;
  * @author BaseX Team 2005-12, BSD License
  * @author Christian Gruen
  */
-public class UserFunc extends Single {
+public class UserFunc extends Single implements Scope {
   /** Function name. */
   public final QNm name;
   /** Arguments. */
@@ -104,18 +104,16 @@ public class UserFunc extends Single {
 
   @Override
   public Expr comp(final QueryContext ctx) throws QueryException {
-    comp(ctx, true);
+    cmp(ctx);
     return this;
   }
 
   /**
    * Compiles the expression.
    * @param ctx query context
-   * @param cache cache variables
    * @throws QueryException query exception
    */
-  void comp(final QueryContext ctx, final boolean cache)
-      throws QueryException {
+  void cmp(final QueryContext ctx) throws QueryException {
 
     if(compiled) return;
     compiled = true;
@@ -209,7 +207,12 @@ public class UserFunc extends Single {
   }
 
   @Override
-  public boolean visitVars(final VarVisitor visitor) {
-    return true;
+  public final boolean visitVars(final VarVisitor visitor) {
+    return visitor.subScope(this);
+  }
+
+  @Override
+  public boolean visit(final VarVisitor visitor) {
+    return visitor.withVars(args, expr);
   }
 }
