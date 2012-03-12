@@ -79,7 +79,7 @@ public class GroupBy extends GFLWOR.Clause {
           final Item[] key = new Item[by.length];
           int hash = 1;
           for(int i = 0; i < by.length; i++) {
-            final Value ki = ctx.get(by[i].var);
+            final Value ki = by[i].value(ctx);
             if(ki.size() > 1) XGRP.thrw(input);
             key[i] = ki.item(ctx, input);
             hash = 31 * hash + (key[i] == null ? 0 : key[i].hash(input));
@@ -112,6 +112,9 @@ public class GroupBy extends GFLWOR.Clause {
           for(int j = 0; j < nongroup[0].length; j++)
             grp.ngv[j].add(ctx.get(nongroup[0][j]));
         }
+
+        // we're finished, copy the array so the list can be garbage-collected
+        groups = grps.toArray(new Group[grps.size()]);
       }
     };
   }

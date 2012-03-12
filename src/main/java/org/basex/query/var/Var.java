@@ -134,9 +134,9 @@ public final class Var extends ExprInfo {
     final TokenBuilder tb = new TokenBuilder();
     if(name != null) {
       tb.add(QueryText.DOLLAR).add(name.string());
-      if(type != null) tb.add(' ' + QueryText.AS);
+      if(ret != null) tb.add(' ' + QueryText.AS);
     }
-    if(type != null) tb.add(" " + type);
+    if(ret != null) tb.add(" " + ret);
     return tb.toString();
   }
 

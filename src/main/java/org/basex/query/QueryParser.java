@@ -1111,9 +1111,10 @@ public class QueryParser extends InputParser {
       // find all non-grouping variables that aren't shadowed
       final ArrayList<Var> ng = new ArrayList<Var>();
       for(final GroupBy.Spec spec : grp) curr.add(spec.var.name.eqname(), spec.var);
-      for(int i = 0; i < curr.size(); i++) {
-        final Var v = curr.value(i);
-        for(final GroupBy.Spec spec : grp) if(spec.var.is(v)) break;
+      vars: for(int i = 0; i < curr.size(); i++) {
+        // weird quirk of TokenObjMap
+        final Var v = curr.value(i + 1);
+        for(final GroupBy.Spec spec : grp) if(spec.var.is(v)) break vars;
         ng.add(v);
       }
 
@@ -1145,7 +1146,7 @@ public class QueryParser extends InputParser {
       // don't sort if all order-by clauses are empty
       if(ob != null) {
         final Var[] vs = new Var[curr.size()];
-        for(int i = 0; i < vs.length; i++) vs[i] = curr.value(i);
+        for(int i = 0; i < vs.length; i++) vs[i] = curr.value(i + 1);
         clauses.add(new OrderBy(vs, ob, stable, ob[0].input));
       }
       alter = ORDERBY;
@@ -1185,7 +1186,7 @@ public class QueryParser extends InputParser {
         if(comma && !fr) score = wsConsumeWs(SCORE);
 
         final QNm nm = varName();
-        final Var var = scope.newLocal(ctx, nm, score ? SeqType.DBL : optAsType(), false);
+        final SeqType tp = score ? SeqType.DBL : optAsType();
 
         final boolean emp = fr && wsConsume(ALLOWING);
         if(emp) wsCheck(EMPTYORD);
@@ -1197,6 +1198,9 @@ public class QueryParser extends InputParser {
 
         wsCheck(fr ? IN : ASSIGN);
         final Expr e = check(single(), NOVARDECL);
+
+        // declare late because otherwise it would shadow the wrong variables
+        final Var var = scope.newLocal(ctx, nm, tp, false);
 
         if(ps != null) {
           if(nm.eq(ps.name)) error(DUPLVAR, var);
@@ -1259,14 +1263,13 @@ public class QueryParser extends InputParser {
     final InputInfo ii = input();
     final QNm name = varName();
     final SeqType type = optAsType();
-    final Var var = getLocal(name, type, false);
 
     final Expr by;
     if(type != null || wsConsume(ASSIGN)) {
       if(type != null) wsCheck(ASSIGN);
       by = check(single(), NOVARDECL);
     } else {
-      final Var v = checkVar(var.name, GVARNOTDEFINED);
+      final Var v = checkVar(name, GVARNOTDEFINED);
       // the grouping variable has to be declared by the same FLWOR expression
       boolean dec = false;
       for(final GFLWOR.Clause f : cl) {
@@ -1284,7 +1287,7 @@ public class QueryParser extends InputParser {
       if(!eq(URLCOLL, coll)) throw error(INVCOLL, coll);
     }
 
-    final GroupBy.Spec grp = new GroupBy.Spec(ii, var, by);
+    final GroupBy.Spec grp = new GroupBy.Spec(ii, getLocal(name, type, false), by);
     return group == null ? new GroupBy.Spec[] { grp } : Array.add(group, grp);
   }
 
