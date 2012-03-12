@@ -119,9 +119,12 @@ public class UserFunc extends Single implements Scope {
     if(compiled) return;
     compiled = true;
 
-    final Value[] sf = ctx.pushStackFrame(scope.stackSize());
-    expr = expr.comp(ctx, scope);
-    ctx.resetStackFrame(sf);
+    final Value[] sf = scope.enter(ctx);
+    try {
+      expr = expr.comp(ctx, scope);
+    } finally {
+      scope.exit(ctx, sf);
+    }
 
     // convert all function calls in tail position to proper tail calls
     if(tco()) expr = expr.markTailCalls();

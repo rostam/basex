@@ -117,15 +117,16 @@ public abstract class UserFuncCall extends Arr {
    * Adds the given arguments to the variable stack.
    * @param ctx query context
    * @param ii input info
+   * @param scp variable scope
    * @param vars formal parameters
    * @param vals values to add
    * @return old stack frame
    * @throws QueryException if the arguments can't be bound
    */
-  static Value[] addArgs(final QueryContext ctx, final InputInfo ii, final Var[] vars,
-      final Value[] vals) throws QueryException {
+  static Value[] addArgs(final QueryContext ctx, final InputInfo ii, final VarScope scp,
+      final Var[] vars, final Value[] vals) throws QueryException {
     // move variables to stack
-    final Value[] old = ctx.pushStackFrame(vars.length);
+    final Value[] old = scp.enter(ctx);
     for(int i = 0; i < vars.length; i++) ctx.set(vars[i], vals[i], ii);
     return old;
   }

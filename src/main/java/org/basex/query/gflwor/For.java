@@ -56,25 +56,25 @@ public class For extends GFLWOR.Clause {
   Eval eval(final Eval sub) {
     return new Eval() {
       /** Expression iterator. */
-      private Iter iter = Empty.ITER;
+      private Iter iter;
       /** Current position. */
       private long p;
       @Override
       public boolean next(final QueryContext ctx) throws QueryException {
         while(true) {
-          final Item it = iter.next();
+          final Item it = iter == null ? null : iter.next();
           if(it != null) {
             // there's another item to serve
             ctx.set(var, it, input);
             if(pos != null) ctx.set(pos, Int.get(++p), input);
             if(score != null) ctx.set(score, Dbl.get(it.score()), input);
             return true;
-          } else if(empty && p == 0) {
+          } else if(empty && iter != null && p == 0) {
             // expression yields no items, bind the empty sequence instead
             ctx.set(var, Empty.SEQ, input);
-            if(pos != null) ctx.set(pos, Int.get(p++), input);
+            if(pos != null) ctx.set(pos, Int.get(p), input);
             if(score != null) ctx.set(score, Dbl.get(0), input);
-            iter = Empty.ITER;
+            iter = null;
             return true;
           } else if(!sub.next(ctx)) {
             // no more iterations from above, we're done here

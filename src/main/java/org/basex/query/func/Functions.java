@@ -118,7 +118,7 @@ public final class Functions extends TokenSet {
       if(usf != null && usf.declared) usf.comp(ctx, null);
     }
 
-    return new FuncItem(name, vars, f.fun, f.type, false, null, vars.length);
+    return new FuncItem(name, vars, f.fun, f.type, false, null, sc);
   }
 
   /**

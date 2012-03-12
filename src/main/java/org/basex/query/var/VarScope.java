@@ -22,7 +22,7 @@ public final class VarScope {
   /** stack of currently accessible variables. */
   private final VarStack current = new VarStack();
   /** Local variables in this scope. */
-  private final ArrayList<Var> vars = new ArrayList<Var>();
+  private final HashSet<Var> vars = new HashSet<Var>();
 
   /** This scope's closure. */
   private final Map<Var, VarRef> closure = new HashMap<Var, VarRef>();
@@ -49,7 +49,8 @@ public final class VarScope {
    * @return the variable (for convenience)
    */
   Var add(final Var var) {
-    vars.add(var);
+    var.slot = vars.size();
+    if(!vars.add(var)) throw Util.notexpected(var);
     current.push(var);
     return var;
   }
@@ -147,14 +148,6 @@ public final class VarScope {
   }
 
   /**
-   * All local variables declared in this scope.
-   * @return variable array
-   */
-  public Var[] stackVars() {
-    return vars.toArray(new Var[vars.size()]);
-  }
-
-  /**
    * Get the closure of this scope.
    * @return mapping from non-local to local variables
    */
@@ -171,10 +164,44 @@ public final class VarScope {
   }
 
   /**
-   * Size of the stack needed for this scope.
-   * @return maximum number of variables on the stack at the same time.
+   * Enters this scope.
+   * @param ctx query context
+   * @return old stack frame
    */
-  public int stackSize() {
-    return vars.size();
+  public Value[] enter(final QueryContext ctx) {
+    final Value[] old = ctx.stackFrame;
+    ctx.stackFrame = new Value[vars.size()];
+    return old;
+  }
+
+  /**
+   * Exits this scope.
+   * @param ctx query context
+   * @param old stack frame of the enclosing scope, or {@code null}
+   */
+  public void exit(final QueryContext ctx, final Value[] old) {
+    ctx.stackFrame = old;
+  }
+
+  /**
+   * Deletes all unused variables from this scope and assigns stack slots.
+   * This method should be run after compiling the scope.
+   * @param expr the scope
+   */
+  public void cleanUp(final Scope expr) {
+    final BitSet declared = new BitSet();
+    final int[] counter = new int[1];
+    expr.visit(new VarVisitor() {
+      @Override
+      public boolean declared(final Var var) {
+        declared.set(var.id);
+        var.slot = counter[0]++;
+        return true;
+      }
+    });
+
+    // purge all unused variables
+    final Iterator<Var> iter = vars.iterator();
+    while(iter.hasNext()) if(!declared.get(iter.next().id)) iter.remove();
   }
 }

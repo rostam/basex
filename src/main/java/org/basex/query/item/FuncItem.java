@@ -39,7 +39,7 @@ public final class FuncItem extends FItem {
   /** The closure of this function item. */
   private final Map<Var, Value> closure;
   /** Size of the stack frame needed for this function. */
-  private final int stackSize;
+  private final VarScope scope;
 
   /**
    * Constructor.
@@ -49,17 +49,17 @@ public final class FuncItem extends FItem {
    * @param t function type
    * @param cst cast flag
    * @param cls closure
-   * @param ssz stack size
+   * @param scp variable scope
    */
   public FuncItem(final QNm n, final Var[] arg, final Expr body, final FuncType t,
-      final boolean cst, final Map<Var, Value> cls, final int ssz) {
+      final boolean cst, final Map<Var, Value> cls, final VarScope scp) {
     super(t);
     name = n;
     vars = arg;
     expr = body;
     cast = cst && t.ret != null ? t.ret : null;
     closure = cls != null ? cls : Collections.<Var, Value>emptyMap();
-    stackSize = ssz;
+    scope = scp;
   }
 
   /**
@@ -69,11 +69,11 @@ public final class FuncItem extends FItem {
    * @param t function type
    * @param cst cast flag
    * @param clos closure
-   * @param ssz stack size
+   * @param scp variable scope
    */
   public FuncItem(final Var[] arg, final Expr body, final FuncType t, final boolean cst,
-      final Map<Var, Value> clos, final int ssz) {
-    this(null, arg, body, t, cst, clos, ssz);
+      final Map<Var, Value> clos, final VarScope scp) {
+    this(null, arg, body, t, cst, clos, scp);
   }
 
   @Override
@@ -105,7 +105,7 @@ public final class FuncItem extends FItem {
       final Value... args) throws QueryException {
 
     // bind variables and cache context
-    final Value[] sf = ctx.pushStackFrame(stackSize);
+    final Value[] sf = scope.enter(ctx);
     final Value cv = ctx.value;
     try {
       bindVars(ctx, ii, args);
@@ -115,7 +115,7 @@ public final class FuncItem extends FItem {
       return cast != null ? cast.promote(v, ctx, ii) : v;
     } finally {
       ctx.value = cv;
-      ctx.resetStackFrame(sf);
+      scope.exit(ctx, sf);
     }
   }
 
@@ -132,7 +132,7 @@ public final class FuncItem extends FItem {
       final Value... args) throws QueryException {
 
     // bind variables and cache context
-    final Value[] sf = ctx.pushStackFrame(stackSize);
+    final Value[] sf = scope.enter(ctx);
     final Value cv = ctx.value;
     try {
       bindVars(ctx, ii, args);
@@ -142,7 +142,7 @@ public final class FuncItem extends FItem {
       return cast != null ? cast.cast(it, expr, false, ctx, ii) : it;
     } finally {
       ctx.value = cv;
-      ctx.resetStackFrame(sf);
+      scope.exit(ctx, sf);
     }
   }
 
@@ -179,7 +179,7 @@ public final class FuncItem extends FItem {
       refs[i] = new VarRef(ii, vars[i]);
     }
     return new FuncItem(fun.name, vars, new DynamicFunc(ii, fun, refs), t,
-        fun.cast != null, null, vars.length);
+        fun.cast != null, null, sc);
   }
 
   @Override

@@ -180,7 +180,7 @@ public class QueryParser extends InputParser {
    * @return resulting expression
    * @throws QueryException query exception
    */
-  public final Expr parse(final IO input, final byte[] uri) throws QueryException {
+  public final MainModule parse(final IO input, final byte[] uri) throws QueryException {
     file = input;
     if(!more()) error(QUERYEMPTY);
 
@@ -197,7 +197,7 @@ public class QueryParser extends InputParser {
       p += hs ? Character.charCount(cp) : 1;
     }
 
-    final Expr expr = parse(uri);
+    final MainModule expr = parse(uri);
     if(more()) {
       if(alter != null) error();
       final String rest = rest();
@@ -227,24 +227,25 @@ public class QueryParser extends InputParser {
    * @return resulting expression
    * @throws QueryException query exception
    */
-  public final Expr parse(final byte[] u) throws QueryException {
+  public final MainModule parse(final byte[] u) throws QueryException {
     try {
-      Expr expr = null;
+      MainModule mod = null;
       versionDecl();
       if(u == null) {
         final int p = qp;
         if(wsConsumeWs(MODULE, NSPACE, null)) error(MAINMOD);
         qp = p;
 
-        expr = mainModule();
-        if(expr == null) {
+        final Expr e = mainModule();
+        if(e == null) {
           if(alter != null) error();
           else error(EXPREMPTY);
         }
+        mod = new MainModule(e, scope);
       } else {
         moduleDecl(u);
       }
-      return expr;
+      return mod;
     } catch(final QueryException ex) {
       mark();
       ex.pos(this);

@@ -54,13 +54,8 @@ public final class QueryContext extends Progress {
   public StaticContext sc = new StaticContext();
   /** Global variables. */
   public final Globals globals = new Globals();
-  /**
-   * Variable scope of the main module.
-   * [LW] What about imported modules?
-   */
-  private VarScope rootScope;
   /** Current stack frame. */
-  private Value[] stackFrame;
+  public Value[] stackFrame;
   /** Functions. */
   public final UserFuncs funcs = new UserFuncs();
 
@@ -81,7 +76,7 @@ public final class QueryContext extends Progress {
   public final HashMap<String, Object> globalOpt = new HashMap<String, Object>();
 
   /** Root expression of the query. */
-  public Expr root;
+  public MainModule root;
   /** Current context value. */
   public Value value;
   /** Current context position. */
@@ -171,7 +166,6 @@ public final class QueryContext extends Progress {
   public void parse(final String qu) throws QueryException {
     final QueryParser qp = new QueryParser(qu, this);
     root = qp.parse(sc.baseIO(), null);
-    rootScope = qp.scope;
   }
 
   /**
@@ -224,9 +218,7 @@ public final class QueryContext extends Progress {
       // variables will be compiled if called for the first time
       funcs.comp(this);
       // compile the expression
-      if(root != null) {
-        root = root.comp(this, rootScope);
-      }
+      if(root != null) root.comp(this);
     } catch(final StackOverflowError ex) {
       Util.debug(ex);
       XPSTACK.thrw(null);
@@ -244,7 +236,7 @@ public final class QueryContext extends Progress {
   public Iter iter() throws QueryException {
     try {
       // evaluate lazily if no updates are possible
-      return updating ? value().iter() : iter(root);
+      return updating ? value().iter() : root.iter(this);
     } catch(final StackOverflowError ex) {
       Util.debug(ex);
       throw XPSTACK.thrw(null);
@@ -258,7 +250,7 @@ public final class QueryContext extends Progress {
    */
   public Value value() throws QueryException {
     try {
-      final Value v = value(root);
+      final Value v = root.value(this);
       if(updating) {
         updates.apply();
         if(context.data() != null) context.update();
@@ -421,25 +413,6 @@ public final class QueryContext extends Progress {
    */
   public Data data() {
     return value != null ? value.data() : null;
-  }
-
-  /**
-   * Puts a new stack frame in place and returns the old one.
-   * @param sz size of the new stack frame
-   * @return old stack frame if present, {@code null} otherwise
-   */
-  public Value[] pushStackFrame(final int sz) {
-    final Value[] old = stackFrame;
-    stackFrame = new Value[sz];
-    return old;
-  }
-
-  /**
-   * Resets the stack frame.
-   * @param sf old stack frame to be put in place of the current one
-   */
-  public void resetStackFrame(final Value[] sf) {
-    stackFrame = sf;
   }
 
   /**

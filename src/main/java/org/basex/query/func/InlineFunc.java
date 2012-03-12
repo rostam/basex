@@ -54,7 +54,7 @@ public final class InlineFunc extends UserFunc {
     for(final Entry<Var, VarRef> e : scope.closure().entrySet())
       clos.put(e.getKey(), e.getValue().value(ctx));
 
-    return new FuncItem(args, expr, ft, c, clos, scope.stackSize());
+    return new FuncItem(args, expr, ft, c, clos, scope);
   }
 
   @Override

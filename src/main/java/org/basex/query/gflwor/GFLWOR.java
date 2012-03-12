@@ -41,19 +41,21 @@ public class GFLWOR extends ParseExpr {
   public Iter iter(final QueryContext ctx) throws QueryException {
     Eval e = start();
     for(final Clause cls : clauses) e = cls.eval(e);
-    if(!e.next(ctx)) return Empty.ITER;
     final Eval ev = e;
+
     return new Iter() {
       /** Return iterator. */
-      Iter sub = ret.iter(ctx);
+      private Iter sub = Empty.ITER;
+      /** If the iterator has been emptied. */
+      private boolean drained;
       @Override
       public Item next() throws QueryException {
-        if(sub == null) return null;
+        if(drained) return null;
         while(true) {
           final Item it = sub.next();
           if(it != null) return it;
           if(!ev.next(ctx)) {
-            sub = null;
+            drained = true;
             return null;
           }
           sub = ret.iter(ctx);
