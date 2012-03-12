@@ -4,11 +4,11 @@ import static org.basex.util.Token.*;
 
 import java.util.*;
 
+import org.basex.query.Var.*;
 import org.basex.query.expr.*;
 import org.basex.query.func.*;
 import org.basex.query.item.*;
 import org.basex.query.util.*;
-import org.basex.query.util.Var.VarKind;
 import org.basex.util.*;
 
 /**
@@ -136,10 +136,12 @@ public final class VarScope {
    * @param ctx query context
    * @param name variable name
    * @param typ type of the variable
+   * @param param function parameter flag
    * @return the variable
    */
-  public Var newLocal(final QueryContext ctx, final QNm name, final SeqType typ) {
-    return add(new Var(ctx, name, typ, VarKind.LOCAL));
+  public Var newLocal(final QueryContext ctx, final QNm name, final SeqType typ,
+      final boolean param) {
+    return add(new Var(ctx, name, typ, param ? VarKind.FUNC_PARAM : VarKind.LOCAL));
   }
 
   /**

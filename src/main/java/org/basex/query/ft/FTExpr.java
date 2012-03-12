@@ -10,7 +10,6 @@ import org.basex.query.item.FTNode;
 import org.basex.query.item.SeqType;
 import org.basex.query.iter.FTIter;
 import org.basex.query.util.IndexContext;
-import org.basex.query.util.Var;
 import org.basex.util.InputInfo;
 
 /**

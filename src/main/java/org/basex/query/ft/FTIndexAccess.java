@@ -5,8 +5,7 @@ import static org.basex.util.Token.*;
 import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.expr.Simple;
 import org.basex.query.func.Function;

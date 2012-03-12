@@ -6,8 +6,9 @@ import org.basex.io.serial.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.Map.Entry;
-import org.basex.query.item.QNm;
+
+import org.basex.query.Var.VarKind;
+import org.basex.query.item.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.util.*;
 import org.basex.util.InputInfo;
@@ -21,7 +22,7 @@ import org.basex.util.InputInfo;
  */
 public final class Globals extends ExprInfo {
   /** The global variables. */
-  private final HashMap<Var, StaticVar> globals = new HashMap<Var, StaticVar>();
+  private final HashMap<QNm, StaticVar> globals = new HashMap<QNm, StaticVar>();
 
   /**
    * Looks for a variable with the given name in the globally defined variables.
@@ -29,42 +30,41 @@ public final class Globals extends ExprInfo {
    * @return declaration if found, {@null} otherwise
    */
   public StaticVar get(final QNm name) {
-    for(final Entry<Var, StaticVar> e : globals.entrySet())
-      if(e.getKey().name.eq(name)) return e.getValue();
-    return null;
+    return globals.get(name);
   }
 
   /**
    * Sets the given global variable.
    * @param ctx query context
    * @param ii input info
-   * @param v variable
+   * @param nm variable name
+   * @param t type
    * @param a annotations
    * @param e expression, possibly {@code null}
-   * @param decl declaration flag
+   * @param d declaration flag
    * @return static variable
    * @throws QueryException query exception
    */
-  public StaticVar set(final QueryContext ctx, final InputInfo ii, final Var v,
-      final Ann a, final Expr e, final boolean decl) throws QueryException {
-    final StaticVar var = globals.get(v);
+  public StaticVar set(final QueryContext ctx, final InputInfo ii, final QNm nm,
+      final SeqType t, final Ann a, final Expr e, final boolean d) throws QueryException {
+    final StaticVar var = globals.get(nm);
     if(var != null) {
-      if(decl && var.declared) throw VARDEFINE.thrw(ii, v);
-      var.declared = decl;
+      if(d && var.declared) throw VARDEFINE.thrw(ii, var);
+      var.declared = d;
       if(a != null) {
         for(int i = a.size(); --i >= 0;)
           var.ann.add(a.names[i], a.values[i]);
       }
-      var.var.refineType(v.type());
+      var.var.refineType(t);
       if(e != null) var.bind(e, ctx);
 
       return var;
     }
 
     // new variable
-    final StaticVar nvar = new StaticVar(ii, v, a, e);
-    nvar.declared = decl;
-    globals.put(v, nvar);
+    final StaticVar nvar = new StaticVar(ii, new Var(ctx, nm, t, VarKind.GLOBAL), a, e);
+    nvar.declared = d;
+    globals.put(nm, nvar);
     return nvar;
   }
 

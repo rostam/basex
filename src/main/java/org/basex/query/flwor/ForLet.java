@@ -4,7 +4,6 @@ import static org.basex.query.QueryText.*;
 import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.expr.Single;
-import org.basex.query.util.Var;
 import org.basex.util.InputInfo;
 
 /**
@@ -34,6 +33,7 @@ public abstract class ForLet extends Single {
    * @param scp variable scope
    * @throws QueryException query exception
    */
+  @SuppressWarnings("unused")
   final void bind(final QueryContext ctx, final VarScope scp) throws QueryException {
     if(!simple(true)) return;
 

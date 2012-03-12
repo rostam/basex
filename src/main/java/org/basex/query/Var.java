@@ -1,11 +1,10 @@
-package org.basex.query.util;
-
-import org.basex.query.*;
+package org.basex.query;
 
 import java.io.IOException;
 import org.basex.io.serial.Serializer;
 import org.basex.data.ExprInfo;
 import org.basex.query.item.*;
+import org.basex.query.util.*;
 import org.basex.util.*;
 
 /**
@@ -54,7 +53,7 @@ public final class Var extends ExprInfo {
    * @param typ expected type, {@code null} for no check
    * @param k kind of variable
    */
-  public Var(final QueryContext ctx, final QNm n, final SeqType typ, final VarKind k) {
+  Var(final QueryContext ctx, final QNm n, final SeqType typ, final VarKind k) {
     name = n;
     ret = typ;
     type = typ != null ? typ : SeqType.ITEM_ZM;
@@ -69,18 +68,8 @@ public final class Var extends ExprInfo {
    * @param n variable name, {@code null} for unnamed variable
    * @param typ expected type, {@code null} for no check
    */
-  public Var(final QueryContext ctx, final QNm n, final SeqType typ) {
+  Var(final QueryContext ctx, final QNm n, final SeqType typ) {
     this(ctx, n, typ, VarKind.LOCAL);
-  }
-
-  /**
-   * Creates a copy of this variable with the given type and casting behavior.
-   * @param ctx query context for new variable ID
-   * @param t type to be assigned
-   * @return copy of the variable
-   */
-  public Var withType(final QueryContext ctx, final SeqType t) {
-    return new Var(ctx, name, t, kind);
   }
 
   /**
@@ -98,6 +87,7 @@ public final class Var extends ExprInfo {
    * @throws QueryException if the types are incompatible
    */
   public void refineType(final SeqType t) throws QueryException {
+    if(t == null) return;
     if(type == null) type = t;
     else {
       // [LW] insert checks here

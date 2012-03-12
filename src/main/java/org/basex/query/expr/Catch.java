@@ -3,8 +3,7 @@ package org.basex.query.expr;
 import static org.basex.query.QueryText.*;
 import static org.basex.util.Token.*;
 
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.item.Empty;
 import org.basex.query.item.Int;
 import org.basex.query.item.QNm;
@@ -42,11 +41,14 @@ public final class Catch extends Single {
    * @param ii input info
    * @param c supported error codes
    * @param ctx query context
+   * @param scp variable scope
    */
-  public Catch(final InputInfo ii, final QNm[] c, final QueryContext ctx) {
+  public Catch(final InputInfo ii, final QNm[] c, final QueryContext ctx,
+      final VarScope scp) {
     super(ii, null);
     codes = c;
-    for(int i = 0; i < QNM.length; i++) vars[i] = new Var(ctx, QNM[i], TYPES[i]);
+    for(int i = 0; i < QNM.length; i++)
+      vars[i] = scp.newLocal(ctx, QNM[i], TYPES[i], false);
   }
 
   /**

@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.basex.core.Text;
 import org.basex.data.ExprInfo;
 import org.basex.io.serial.Serializer;
+import org.basex.query.*;
 import org.basex.query.item.QNm;
 import org.basex.util.Array;
 

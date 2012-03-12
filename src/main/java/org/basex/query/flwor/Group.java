@@ -2,8 +2,7 @@ package org.basex.query.flwor;
 
 import static org.basex.query.QueryText.*;
 import java.io.IOException;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
+import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.func.*;
 import org.basex.query.item.*;

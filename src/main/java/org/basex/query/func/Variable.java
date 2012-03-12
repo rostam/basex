@@ -9,7 +9,6 @@ import org.basex.query.item.QNm;
 import org.basex.query.item.Str;
 import org.basex.query.item.Value;
 import org.basex.query.util.*;
-import org.basex.query.util.Var.VarKind;
 import org.basex.util.TokenBuilder;
 
 /**
@@ -62,10 +61,8 @@ public enum Variable {
    */
   public static StaticVar get(final QNm n, final QueryContext ctx) throws QueryException {
     for(final Variable v : values())
-      if(v.qname.eq(n)) {
-        final Var var = new Var(ctx, v.qname, v.value.type(), VarKind.GLOBAL);
-        return ctx.globals.set(ctx, null, var, null, v.value, true);
-      }
+      if(v.qname.eq(n))
+        return ctx.globals.set(ctx, null, v.qname, v.value.type(), null, v.value, true);
     return null;
   }
 }

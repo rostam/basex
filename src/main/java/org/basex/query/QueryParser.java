@@ -13,6 +13,7 @@ import java.util.*;
 import org.basex.core.*;
 import org.basex.io.*;
 import org.basex.io.serial.*;
+import org.basex.query.Var.*;
 import org.basex.query.expr.*;
 import org.basex.query.expr.CmpG.OpG;
 import org.basex.query.expr.CmpN.OpN;
@@ -30,7 +31,6 @@ import org.basex.query.iter.*;
 import org.basex.query.path.*;
 import org.basex.query.up.expr.*;
 import org.basex.query.util.*;
-import org.basex.query.util.Var.VarKind;
 import org.basex.query.util.format.*;
 import org.basex.query.util.pkg.*;
 import org.basex.query.util.pkg.Package.Component;
@@ -896,8 +896,9 @@ public class QueryParser extends InputParser {
    * @throws QueryException query exception
    */
   private void varDecl(final Ann ann) throws QueryException {
-    final Var v = typedVar(VarKind.GLOBAL);
-    if(module != null && !eq(v.name.uri(), module.uri())) error(MODNS, v);
+    final QNm vn = varName();
+    final SeqType tp = optAsType();
+    if(module != null && !eq(vn.uri(), module.uri())) error(MODNS, vn);
 
     final Expr bind;
     if(wsConsumeWs(EXTERNAL)) {
@@ -908,17 +909,29 @@ public class QueryParser extends InputParser {
     }
 
     // bind variable if not done yet
-    ctx.globals.set(ctx, input(), v, ann, bind, true);
+    // [LW] create no variable?
+    ctx.globals.set(ctx, input(), vn, tp, ann, bind, true);
   }
 
   /**
-   * Parses a variable declaration with optional type.
-   * @param kind kind of variable
+   * Parses a local variable declaration with optional type.
+   * @param param if the variable is a function parameter
    * @return parsed variable
    * @throws QueryException query exception
    */
-  private Var typedVar(final VarKind kind) throws QueryException {
-    return new Var(ctx, varName(), optAsType(), kind);
+  private Var typedLocal(final boolean param) throws QueryException {
+    return getLocal(varName(), optAsType(), param);
+  }
+
+  /**
+   * Creates a new local variable in the current scope.
+   * @param name variable name
+   * @param tp variable type
+   * @param prm if the variable is a function parameter
+   * @return parsed variable
+   */
+  private Var getLocal(final QNm name, final SeqType tp, final boolean prm) {
+    return scope.newLocal(ctx, name, tp, prm);
   }
 
   /**
@@ -994,8 +1007,7 @@ public class QueryParser extends InputParser {
         if(args.length == 0) break;
         check('$');
       }
-      final Var var = typedVar(VarKind.FUNC_PARAM);
-      scope.add(var);
+      final Var var = typedLocal(true);
       for(final Var v : args)
         if(v.name.eq(var.name)) error(FUNCDUPL, var);
 
@@ -1110,11 +1122,10 @@ public class QueryParser extends InputParser {
 
         // if one groups variables such as $x as xs:integer, then the resulting
         // sequence isn't compatible with the type and can't be assigned
-        final Var nv = v.withType(ctx, null);
+        final Var nv = getLocal(v.name, null, false);
         if(v.type().one()) nv.refineType(SeqType.get(v.type().type, Occ.ONE_MORE));
         ngrp[i] = nv;
         curr.add(nv.name.eqname(), nv);
-        scope.add(nv);
       }
 
       clauses.add(new GroupBy(grp, new Var[][]{ ng.toArray(new Var[ng.size()]), ngrp },
@@ -1171,30 +1182,26 @@ public class QueryParser extends InputParser {
       do {
         if(comma && !fr) score = wsConsumeWs(SCORE);
 
-        final QNm name = varName();
-        final SeqType type = score ? SeqType.DBL : optAsType();
-        final Var var = new Var(ctx, name, type);
+        final QNm nm = varName();
+        final Var var = scope.newLocal(ctx, nm, score ? SeqType.DBL : optAsType(), false);
 
         final boolean emp = fr && wsConsume(ALLOWING);
         if(emp) wsCheck(EMPTYORD);
 
         final Var ps = fr && wsConsumeWs(AT) ?
-            new Var(ctx, varName(), SeqType.ITR) : null;
+            scope.newLocal(ctx, varName(), SeqType.ITR, false) : null;
         final Var sc = fr && wsConsumeWs(SCORE) ?
-            new Var(ctx, varName(), SeqType.DBL) : null;
+            scope.newLocal(ctx, varName(), SeqType.DBL, false) : null;
 
         wsCheck(fr ? IN : ASSIGN);
         final Expr e = check(single(), NOVARDECL);
-        scope.add(var);
 
         if(ps != null) {
-          if(name.eq(ps.name)) error(DUPLVAR, var);
-          scope.add(ps);
+          if(nm.eq(ps.name)) error(DUPLVAR, var);
         }
         if(sc != null) {
-          if(name.eq(sc.name)) error(DUPLVAR, var);
+          if(nm.eq(sc.name)) error(DUPLVAR, var);
           if(ps != null && ps.name.eq(sc.name)) error(DUPLVAR, ps);
-          scope.add(sc);
         }
 
         if(cls == null) cls = new ArrayList<GFLWOR.Clause>();
@@ -1250,7 +1257,7 @@ public class QueryParser extends InputParser {
     final InputInfo ii = input();
     final QNm name = varName();
     final SeqType type = optAsType();
-    final Var var = new Var(ctx, name, type);
+    final Var var = getLocal(name, type, false);
 
     final Expr by;
     if(type != null || wsConsume(ASSIGN)) {
@@ -1275,9 +1282,6 @@ public class QueryParser extends InputParser {
       if(!eq(URLCOLL, coll)) throw error(INVCOLL, coll);
     }
 
-    // add the new grouping variable
-    scope.add(var);
-
     final GroupBy.Spec grp = new GroupBy.Spec(ii, var, by);
     return group == null ? new GroupBy.Spec[] { grp } : Array.add(group, grp);
   }
@@ -1294,10 +1298,9 @@ public class QueryParser extends InputParser {
     final int s = scope.open();
     For[] fl = { };
     do {
-      final Var var = typedVar(VarKind.LOCAL);
+      final Var var = typedLocal(false);
       wsCheck(IN);
       final Expr e = check(single(), NOSOME);
-      scope.add(var);
       fl = Array.add(fl, new For(var, null, null, e, false, input()));
     } while(wsConsume(COMMA));
 
@@ -1359,8 +1362,7 @@ public class QueryParser extends InputParser {
       skipWS();
       Var var = null;
       if(curr('$')) {
-        var = new Var(ctx, varName(), null);
-        scope.add(var);
+        var = getLocal(varName(), null, false);
         if(cs) wsCheck(AS);
       }
       if(cs) {
@@ -2955,9 +2957,9 @@ public class QueryParser extends InputParser {
         codes = Array.add(codes, test.name);
       } while(wsConsumeWs(PIPE));
 
-      final Catch c = new Catch(input(), codes, ctx);
       final int s = scope.open();
-      for(final Var v : c.vars()) scope.add(v);
+      // the constructor of Catch creates new variables!
+      final Catch c = new Catch(input(), codes, ctx, scope);
       c.expr = enclosed(NOENCLEXPR);
       scope.close(s);
 
@@ -3437,10 +3439,9 @@ public class QueryParser extends InputParser {
 
     Let[] fl = { };
     do {
-      final Var v = new Var(ctx, varName(), null);
+      final Var v = scope.newLocal(ctx, varName(), null, false);
       wsCheck(ASSIGN);
       final Expr e = check(single(), INCOMPLETE);
-      scope.add(v);
       fl = Array.add(fl, new Let(v, e, false, input()));
     } while(wsConsumeWs(COMMA));
     wsCheck(MODIFY);

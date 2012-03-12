@@ -69,6 +69,7 @@ public class GFLWOR extends ParseExpr {
       new GFLWOR(fl, whr, ord, grp, ret, ii);
   }
 
+  @SuppressWarnings("null")
   @Override
   public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     compHoist(ctx);
@@ -326,6 +327,7 @@ public class GFLWOR extends ParseExpr {
    * @param pos position of the declaring for/let clause
    * @return {@code true} if the variable can be inlined, false otherwise
    */
+  @SuppressWarnings("unused")
   final boolean inlineable(final Var var, final int pos) {
     // [LW] implement
     return false;

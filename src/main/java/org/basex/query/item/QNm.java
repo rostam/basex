@@ -214,7 +214,7 @@ public final class QNm extends Item {
   }
 
   @Override
-  public int hash(final InputInfo ii) throws QueryException {
+  public int hash(final InputInfo ii) {
     return Token.hash(local());
   }
 
@@ -226,5 +226,17 @@ public final class QNm extends Item {
   @Override
   public String toString() {
     return Util.info("\"%\"", name);
+  }
+
+  // the following methods are necessary so that {@link QNm} can be used in HashMaps
+
+  @Override
+  public boolean equals(final Object obj) {
+    return obj instanceof QNm && eq((QNm) obj);
+  }
+
+  @Override
+  public int hashCode() {
+    return hash(null);
   }
 }

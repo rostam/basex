@@ -31,7 +31,6 @@ import org.basex.query.iter.ItemCache;
 import org.basex.query.iter.Iter;
 import org.basex.query.up.Updates;
 import org.basex.query.util.*;
-import org.basex.query.util.Var.VarKind;
 import org.basex.query.util.json.JsonMapConverter;
 import org.basex.util.*;
 import org.basex.util.ft.FTLexer;
@@ -58,7 +57,7 @@ public final class QueryContext extends Progress {
    * Variable scope of the main module.
    * [LW] What about imported modules?
    */
-  private VarScope scope;
+  private VarScope rootScope;
   /** Current stack frame. */
   private Value[] stackFrame;
   /** Functions. */
@@ -171,7 +170,7 @@ public final class QueryContext extends Progress {
   public void parse(final String qu) throws QueryException {
     final QueryParser qp = new QueryParser(qu, this);
     root = qp.parse(sc.baseIO(), null);
-    scope = qp.scope;
+    rootScope = qp.scope;
   }
 
   /**
@@ -224,7 +223,9 @@ public final class QueryContext extends Progress {
       // variables will be compiled if called for the first time
       funcs.comp(this);
       // compile the expression
-      if(root != null) root = root.comp(this, scope);
+      if(root != null) {
+        root = root.comp(this, rootScope);
+      }
     } catch(final StackOverflowError ex) {
       Util.debug(ex);
       XPSTACK.thrw(null);
@@ -366,14 +367,14 @@ public final class QueryContext extends Progress {
       nm = m.group(6);
     }
     final byte[] ln = token(nm);
+    // [CG][LW] better throw an exception here, silent failure is the worst one
     if(nm.isEmpty() || !XMLToken.isNCName(ln)) return;
 
     // bind variable
     final QNm qnm = uri.length == 0 ? new QNm(ln, this) : new QNm(ln, uri);
     final StaticVar gl = globals.get(qnm);
-    final Var var = gl != null ? gl.var : new Var(this, qnm, null, VarKind.GLOBAL);
-    globals.set(this, null, var, null,
-        gl.type != null ? gl.type.type.cast(ex.item(this, null), this, null) : ex, false);
+    globals.set(this, null, qnm, null, null, gl != null && gl.type != null ?
+        gl.type.type.cast(ex.item(this, null), this, null) : ex, false);
   }
 
   /**
