@@ -19,6 +19,7 @@ import org.basex.query.iter.ValueIter;
 import org.basex.query.up.ContextModifier;
 import org.basex.query.up.TransformModifier;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 
 /**

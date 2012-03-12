@@ -15,6 +15,7 @@ import org.basex.query.expr.*;
 import org.basex.query.item.*;
 import org.basex.query.path.Test.Mode;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.*;
 
 /**

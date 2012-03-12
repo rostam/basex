@@ -12,6 +12,7 @@ import org.basex.query.item.Item;
 import org.basex.query.item.SeqType;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 
 /**

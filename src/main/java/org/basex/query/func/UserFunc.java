@@ -15,6 +15,7 @@ import org.basex.query.item.SeqType;
 import org.basex.query.item.Value;
 import org.basex.query.iter.*;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.Atts;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;

@@ -9,6 +9,7 @@ import org.basex.query.item.*;
 import org.basex.data.*;
 import org.basex.io.serial.*;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 import org.basex.util.TokenBuilder;
 

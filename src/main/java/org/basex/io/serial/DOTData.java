@@ -2,7 +2,6 @@ package org.basex.io.serial;
 
 import static org.basex.core.Text.*;
 import org.basex.data.ExprInfo;
-import org.basex.query.*;
 import org.basex.query.expr.And;
 import org.basex.query.expr.Arith;
 import org.basex.query.expr.CFrag;
@@ -44,6 +43,7 @@ import org.basex.query.func.UserFuncs;
 import org.basex.query.path.AxisStep;
 import org.basex.query.path.Path;
 import org.basex.query.util.VarStack;
+import org.basex.query.var.*;
 import org.basex.util.Util;
 
 /**

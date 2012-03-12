@@ -8,12 +8,13 @@ import java.util.*;
 
 import org.basex.core.*;
 import org.basex.query.*;
-import org.basex.query.Var.*;
 import org.basex.query.expr.*;
 import org.basex.query.expr.Expr.Use;
 import org.basex.query.item.*;
 import org.basex.query.item.SeqType.*;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
+import org.basex.query.var.Var.*;
 import org.basex.util.InputInfo;
 import org.basex.util.Levenshtein;
 import org.basex.util.TokenBuilder;

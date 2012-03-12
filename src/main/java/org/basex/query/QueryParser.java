@@ -13,7 +13,6 @@ import java.util.*;
 import org.basex.core.*;
 import org.basex.io.*;
 import org.basex.io.serial.*;
-import org.basex.query.Var.*;
 import org.basex.query.expr.*;
 import org.basex.query.expr.CmpG.OpG;
 import org.basex.query.expr.CmpN.OpN;
@@ -36,6 +35,8 @@ import org.basex.query.util.pkg.*;
 import org.basex.query.util.pkg.Package.Component;
 import org.basex.query.util.pkg.Package.Dependency;
 import org.basex.query.util.pkg.Package;
+import org.basex.query.var.*;
+import org.basex.query.var.Var.*;
 import org.basex.util.*;
 import org.basex.util.Array;
 import org.basex.util.ft.*;
@@ -1977,7 +1978,7 @@ public class QueryParser extends InputParser {
           final Var v = ref.var;
           if(v.global()) return true;
           try {
-            ref.var = scope.resolve(v.name, QueryParser.this, ref.input, VARUNDEF);
+            ref.var = scope.resolve(v.name, QueryParser.this, ctx, ref.input, VARUNDEF);
             return true;
           } catch(QueryException ex) {
             throw new QueryError(ex);
@@ -3677,7 +3678,7 @@ public class QueryParser extends InputParser {
    * @throws QueryException if the variable isn't defined
    */
   private Var checkVar(final QNm name, final Err err) throws QueryException {
-    return scope.resolve(name, this, input(), err);
+    return scope.resolve(name, this, ctx, input(), err);
   }
 
   /**

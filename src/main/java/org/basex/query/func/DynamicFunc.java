@@ -14,6 +14,7 @@ import org.basex.query.item.Value;
 import org.basex.query.item.map.Map;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 
 import static org.basex.query.util.Err.*;
 import org.basex.util.Array;

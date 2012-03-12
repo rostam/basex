@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.basex.io.serial.Serializer;
 import org.basex.query.*;
 import org.basex.query.iter.Iter;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 
 /**

@@ -12,6 +12,7 @@ import org.basex.query.expr.CmpV.OpV;
 import org.basex.query.func.*;
 import org.basex.query.item.*;
 import org.basex.query.path.*;
+import org.basex.query.var.*;
 import org.basex.util.*;
 
 /**

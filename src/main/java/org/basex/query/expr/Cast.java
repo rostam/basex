@@ -10,6 +10,7 @@ import org.basex.query.item.AtomType;
 import org.basex.query.item.Item;
 import org.basex.query.item.SeqType;
 import org.basex.query.item.SeqType.Occ;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
 

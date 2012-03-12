@@ -9,6 +9,7 @@ import org.basex.query.path.Axis;
 import org.basex.query.path.AxisStep;
 import org.basex.query.path.Path;
 import org.basex.query.path.Test;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 
 /**

@@ -14,6 +14,7 @@ import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.*;
 import org.basex.query.iter.*;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.*;
 import org.basex.util.hash.*;
 import org.basex.util.list.*;

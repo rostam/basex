@@ -9,6 +9,7 @@ import org.basex.query.item.QNm;
 import org.basex.query.item.Str;
 import org.basex.query.item.Value;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.TokenBuilder;
 
 /**

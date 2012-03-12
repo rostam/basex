@@ -1,8 +1,9 @@
-package org.basex.query;
+package org.basex.query.var;
 
 import java.io.IOException;
 import org.basex.io.serial.Serializer;
 import org.basex.data.ExprInfo;
+import org.basex.query.*;
 import org.basex.query.item.*;
 import org.basex.query.util.*;
 import org.basex.util.*;
@@ -86,6 +87,7 @@ public final class Var extends ExprInfo {
    * @param t type of the bound expression
    * @throws QueryException if the types are incompatible
    */
+  @SuppressWarnings("unused")
   public void refineType(final SeqType t) throws QueryException {
     if(t == null) return;
     if(type == null) type = t;

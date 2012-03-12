@@ -12,6 +12,7 @@ import org.basex.query.iter.Iter;
 import org.basex.query.iter.ItemCache;
 import org.basex.query.path.AxisPath;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.Array;
 import org.basex.util.InputInfo;
 

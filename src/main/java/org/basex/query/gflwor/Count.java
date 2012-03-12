@@ -8,6 +8,7 @@ import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.Int;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.*;
 
 

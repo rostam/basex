@@ -5,8 +5,8 @@ import java.util.Arrays;
 import org.basex.core.Text;
 import org.basex.data.ExprInfo;
 import org.basex.io.serial.Serializer;
-import org.basex.query.*;
 import org.basex.query.item.QNm;
+import org.basex.query.var.*;
 import org.basex.util.Array;
 
 /**
@@ -37,20 +37,10 @@ public final class VarStack extends ExprInfo {
   }
 
   /**
-   * Adds or replaces the specified variable.
-   * @param v variable
-   */
-  public void update(final Var v) {
-    final int i = indexOf(v);
-    if(i == -1) add(v);
-    else vars[i] = v;
-  }
-
-  /**
    * Adds the specified variable.
    * @param v variable
    */
-  public void add(final Var v) {
+  public void push(final Var v) {
     if(size == vars.length) vars = Arrays.copyOf(vars, Array.newSize(size));
     vars[size++] = v;
   }

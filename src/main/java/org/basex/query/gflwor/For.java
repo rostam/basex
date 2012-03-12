@@ -14,6 +14,7 @@ import org.basex.query.item.Int;
 import org.basex.query.item.Item;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.*;
 
 /**

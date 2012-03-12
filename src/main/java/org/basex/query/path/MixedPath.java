@@ -13,6 +13,7 @@ import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
 import org.basex.query.iter.NodeCache;
 import org.basex.query.iter.ItemCache;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 
 /**

@@ -9,6 +9,7 @@ import org.basex.io.serial.Serializer;
 import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 import org.basex.util.ft.FTLexer;
 import org.basex.util.ft.FTUnit;

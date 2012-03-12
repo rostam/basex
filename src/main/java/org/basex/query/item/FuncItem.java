@@ -9,12 +9,13 @@ import org.basex.query.*;
 
 import static org.basex.query.QueryText.*;
 
-import org.basex.query.Var.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.expr.VarRef;
 import org.basex.query.func.DynamicFunc;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
+import org.basex.query.var.Var.*;
 import org.basex.util.InputInfo;
 import static org.basex.util.Token.*;
 import org.basex.util.Util;

@@ -4,6 +4,7 @@ import static org.basex.query.QueryText.*;
 import org.basex.query.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.expr.Single;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 
 /**

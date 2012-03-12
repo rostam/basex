@@ -3,6 +3,7 @@ package org.basex.query.flwor;
 import org.basex.query.*;
 import org.basex.query.expr.ParseExpr;
 import org.basex.query.item.Item;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 
 /**

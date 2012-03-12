@@ -9,6 +9,7 @@ import org.basex.query.expr.Expr;
 import org.basex.query.item.FTNode;
 import org.basex.query.iter.FTIter;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 
 /**

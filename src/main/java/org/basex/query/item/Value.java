@@ -6,6 +6,7 @@ import org.basex.query.expr.Expr;
 import org.basex.query.iter.ItemCache;
 import org.basex.query.iter.ValueIter;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 
 /**

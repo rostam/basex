@@ -11,6 +11,7 @@ import org.basex.query.item.FElem;
 import org.basex.query.item.NodeType;
 import org.basex.query.item.QNm;
 import org.basex.query.iter.AxisIter;
+import org.basex.query.var.*;
 import org.basex.util.Atts;
 import org.basex.util.InputInfo;
 

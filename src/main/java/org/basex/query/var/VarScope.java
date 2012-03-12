@@ -1,14 +1,15 @@
-package org.basex.query;
+package org.basex.query.var;
 
 import static org.basex.util.Token.*;
 
 import java.util.*;
 
-import org.basex.query.Var.*;
+import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.func.*;
 import org.basex.query.item.*;
 import org.basex.query.util.*;
+import org.basex.query.var.Var.*;
 import org.basex.util.*;
 
 /**
@@ -49,7 +50,7 @@ public final class VarScope {
    */
   Var add(final Var var) {
     vars.add(var);
-    current.add(var);
+    current.push(var);
     return var;
   }
 
@@ -57,22 +58,23 @@ public final class VarScope {
    * Resolves a variable and adds it to all enclosing scopes.
    * @param name variable name
    * @param qp parser
+   * @param ctx query context
    * @param ii input info
    * @param err error to be thrown if the variable doesn't exist
    * @return variable reference
    * @throws QueryException if the variable can't be found
    */
-  Var resolve(final QNm name, final QueryParser qp, final InputInfo ii, final Err err)
-      throws QueryException {
+  public Var resolve(final QNm name, final QueryParser qp, final QueryContext ctx,
+      final InputInfo ii, final Err err) throws QueryException {
     final Var v = current.get(name);
     if(v != null) return v;
 
     if(parent != null) {
-      final Var nonLocal = parent.resolve(name, qp, ii, err);
+      final Var nonLocal = parent.resolve(name, qp, ctx, ii, err);
       if(nonLocal.kind == VarKind.GLOBAL) return nonLocal;
 
       // a variable in the closure
-      final Var local = new Var(qp.ctx, name, null);
+      final Var local = new Var(ctx, name, null);
       local.refineType(nonLocal.type());
       add(local);
       closure.put(local, new VarRef(ii, nonLocal));
@@ -80,8 +82,8 @@ public final class VarScope {
     }
 
     // global variable
-    StaticVar global = qp.ctx.globals.get(name);
-    if(global == null) global = Variable.get(name, qp.ctx);
+    StaticVar global = ctx.globals.get(name);
+    if(global == null) global = Variable.get(name, ctx);
     if(global == null && err != null) throw qp.error(err, '$' + string(name.string()));
     return global.var;
   }
@@ -108,7 +110,7 @@ public final class VarScope {
    * Get a sub-scope of this scope.
    * @return sub-scope
    */
-  VarScope child() {
+  public VarScope child() {
     return new VarScope(this);
   }
 
@@ -116,7 +118,7 @@ public final class VarScope {
    * Parent scope of this scope.
    * @return parent
    */
-  VarScope parent() {
+  public VarScope parent() {
     return parent;
   }
 

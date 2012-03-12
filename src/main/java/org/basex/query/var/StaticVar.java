@@ -1,9 +1,10 @@
-package org.basex.query;
+package org.basex.query.var;
 
 import static org.basex.query.QueryText.*;
 import static org.basex.query.util.Err.*;
 import java.io.*;
 import org.basex.io.serial.*;
+import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.item.*;
 import org.basex.query.util.*;

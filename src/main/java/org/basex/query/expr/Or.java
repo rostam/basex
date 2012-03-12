@@ -5,6 +5,7 @@ import org.basex.query.*;
 import org.basex.query.item.Bln;
 import org.basex.query.item.Item;
 import org.basex.query.util.IndexContext;
+import org.basex.query.var.*;
 import org.basex.util.Array;
 import org.basex.util.InputInfo;
 import org.basex.util.ft.Scoring;

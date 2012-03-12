@@ -15,6 +15,7 @@ import org.basex.query.item.Str;
 import org.basex.query.iter.FTIter;
 import org.basex.query.iter.NodeIter;
 import org.basex.query.util.*;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 
 /**

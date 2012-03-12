@@ -23,6 +23,7 @@ import org.basex.query.item.Str;
 import org.basex.query.item.Type;
 import org.basex.query.item.map.Map;
 import org.basex.query.iter.AxisIter;
+import org.basex.query.var.*;
 import org.basex.util.InputInfo;
 import org.basex.util.TokenBuilder;
 import org.basex.util.hash.TokenObjMap;

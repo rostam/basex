@@ -2,6 +2,7 @@ package org.basex.query.util;
 
 import org.basex.query.*;
 import org.basex.query.expr.*;
+import org.basex.query.var.*;
 
 /**
  * A visitor for variables declared and used in an {@link Expr}. All methods return a

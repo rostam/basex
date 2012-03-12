@@ -8,6 +8,7 @@ import org.basex.query.item.ANode;
 import org.basex.query.iter.Iter;
 import org.basex.query.iter.NodeCache;
 import org.basex.query.iter.NodeIter;
+import org.basex.query.var.*;
 import org.basex.util.Array;
 import org.basex.util.InputInfo;
 

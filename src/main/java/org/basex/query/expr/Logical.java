@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.basex.query.*;
 import org.basex.query.item.*;
+import org.basex.query.var.*;
 import org.basex.util.*;
 
 /**

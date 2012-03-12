@@ -1,4 +1,4 @@
-package org.basex.query;
+package org.basex.query.var;
 
 import static org.basex.query.util.Err.*;
 import org.basex.data.ExprInfo;
@@ -7,10 +7,11 @@ import org.basex.io.serial.*;
 import java.io.*;
 import java.util.*;
 
-import org.basex.query.Var.VarKind;
+import org.basex.query.*;
 import org.basex.query.item.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.util.*;
+import org.basex.query.var.Var.*;
 import org.basex.util.InputInfo;
 
 

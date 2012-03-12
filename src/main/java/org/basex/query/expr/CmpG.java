@@ -22,6 +22,7 @@ import org.basex.query.iter.Iter;
 import org.basex.query.path.AxisPath;
 import org.basex.query.path.AxisStep;
 import org.basex.query.util.IndexContext;
+import org.basex.query.var.*;
 import org.basex.util.Array;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
