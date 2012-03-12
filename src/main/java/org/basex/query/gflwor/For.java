@@ -19,6 +19,8 @@ import org.basex.util.*;
 
 /**
  * FLWOR {@code for} clause, iterating over a sequence.
+ *
+ * @author BaseX Team 2005-12, BSD License
  * @author Leo Woerteler
  */
 public class For extends GFLWOR.Clause {

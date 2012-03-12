@@ -15,6 +15,8 @@ import org.basex.util.*;
 
 /**
  * General FLWOR expression.
+ *
+ * @author BaseX Team 2005-12, BSD License
  * @author Leo Woerteler
  */
 public class GFLWOR extends ParseExpr {
@@ -135,6 +137,7 @@ public class GFLWOR extends ParseExpr {
   /**
    * Evaluator for FLWOR clauses.
    *
+   * @author BaseX Team 2005-12, BSD License
    * @author Leo Woerteler
    */
   interface Eval {
@@ -151,6 +154,8 @@ public class GFLWOR extends ParseExpr {
 
   /**
    * A FLWOR clause.
+   *
+   * @author BaseX Team 2005-12, BSD License
    * @author Leo Woerteler
    */
   public abstract static class Clause extends ParseExpr {

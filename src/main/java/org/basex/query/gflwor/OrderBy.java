@@ -21,6 +21,8 @@ import org.basex.util.*;
 
 /**
  * FLWOR {@code order by}-expression.
+ *
+ * @author BaseX Team 2005-12, BSD License
  * @author Leo Woerteler
  */
 public class OrderBy extends GFLWOR.Clause {
@@ -265,6 +267,8 @@ public class OrderBy extends GFLWOR.Clause {
 
   /**
    * Sort key.
+   *
+   * @author BaseX Team 2005-12, BSD License
    * @author Leo Woerteler
    */
   public static class Key extends Single {

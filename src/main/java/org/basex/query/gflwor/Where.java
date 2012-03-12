@@ -14,6 +14,7 @@ import org.basex.util.InputInfo;
 /**
  * GFLWOR {@code where} clause, filtering tuples not satisfying the predicate.
  *
+ * @author BaseX Team 2005-12, BSD License
  * @author Leo Woerteler
  */
 public class Where extends GFLWOR.Clause {

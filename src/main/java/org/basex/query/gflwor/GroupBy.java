@@ -23,6 +23,7 @@ import org.basex.util.list.*;
 /**
  * The GFLWOR {@code group by} expression.
  *
+ * @author BaseX Team 2005-12, BSD License
  * @author Leo Woerteler
  */
 public class GroupBy extends GFLWOR.Clause {
@@ -206,9 +207,10 @@ public class GroupBy extends GFLWOR.Clause {
   /**
    * Grouping spec.
    *
+   * @author BaseX Team 2005-12, BSD License
    * @author Leo Woerteler
    */
-  public static class Spec extends Single {
+  public static final class Spec extends Single {
     /** Grouping variable. */
     public final Var var;
 
@@ -258,9 +260,10 @@ public class GroupBy extends GFLWOR.Clause {
   /**
    * A group of tuples of post-grouping variables.
    *
+   * @author BaseX Team 2005-12, BSD License
    * @author Leo Woerteler
    */
-  private final class Group {
+  private static final class Group {
     /** Grouping key, may contain {@code null} values. */
     final Item[] key;
     /** Non-grouping variables. */

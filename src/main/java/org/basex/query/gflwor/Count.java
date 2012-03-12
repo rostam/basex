@@ -14,6 +14,8 @@ import org.basex.util.*;
 
 /**
  * GFLWOR {@code count} clause.
+ *
+ * @author BaseX Team 2005-12, BSD License
  * @author Leo Woerteler
  */
 public class Count extends GFLWOR.Clause {

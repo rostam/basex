@@ -16,9 +16,10 @@ import org.basex.query.var.*;
 import org.basex.util.*;
 import org.basex.util.ft.Scoring;
 
-
 /**
  * FLWOR {@code let} clause, binding an expression to a variable.
+ *
+ * @author BaseX Team 2005-12, BSD License
  * @author Leo Woerteler
  */
 public class Let extends GFLWOR.Clause {
