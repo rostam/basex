@@ -159,12 +159,16 @@ public class GFLWOR extends ParseExpr {
    * @author Leo Woerteler
    */
   public abstract static class Clause extends ParseExpr {
+    /** All variables declared in this clause. */
+    private Var[] vars;
     /**
      * Constructor.
      * @param ii input info
+     * @param vs declared variables
      */
-    protected Clause(final InputInfo ii) {
+    protected Clause(final InputInfo ii, final Var... vs) {
       super(ii);
+      vars = vs;
     }
 
     /**
@@ -183,19 +187,27 @@ public class GFLWOR extends ParseExpr {
      * @param visitor variable visitor
      * @return continue
      */
-    abstract boolean undeclare(final VarVisitor visitor);
+    final boolean undeclare(final VarVisitor visitor) {
+      for(int i = vars.length; --i >= 0;) if(!visitor.undeclared(vars[i])) return false;
+      return true;
+    }
 
     /**
      * All declared variables of this clause.
      * @return declared variables
      */
-    public abstract Var[] vars();
+    public final Var[] vars() {
+      return vars;
+    }
 
     /**
-     * checks if the given variable is declared by this clause.
+     * Checks if the given variable is declared by this clause.
      * @param v variable
      * @return {code true} if the variable was declared here, {@code false} otherwise
      */
-    public abstract boolean declares(Var v);
+    public final boolean declares(final Var v) {
+      for(final Var decl : vars) if(v.is(decl)) return true;
+      return false;
+    }
   }
 }

@@ -39,9 +39,22 @@ public class GroupBy extends GFLWOR.Clause {
    * @param ii input info
    */
   public GroupBy(final Spec[] specs, final Var[][] ngrp, final InputInfo ii) {
-    super(ii);
+    super(ii, vars(specs, ngrp));
     by = specs;
     nongroup = ngrp;
+  }
+
+  /**
+   * Gathers all declared variables.
+   * @param specs grouping specs
+   * @param ngrp non-grouping variables
+   * @return declared variables
+   */
+  private static Var[] vars(final Spec[] specs, final Var[][] ngrp) {
+    final Var[] res = new Var[specs.length + ngrp[1].length];
+    for(int i = 0; i < specs.length; i++) res[i] = specs[i].var;
+    System.arraycopy(ngrp[1], 0, res, specs.length, ngrp[1].length);
+    return res;
   }
 
   @Override
@@ -179,29 +192,6 @@ public class GroupBy extends GFLWOR.Clause {
     if(!visitor.visitAll(by)) return false;
     for(final Var ng : nongroup[1]) if(!visitor.declared(ng)) return false;
     return true;
-  }
-
-  @Override
-  boolean undeclare(final VarVisitor visitor) {
-    for(int i = nongroup[1].length; --i >= 0;)
-      if(!visitor.undeclared(nongroup[1][i])) return false;
-    for(int i = by.length; --i >= 0;) if(!visitor.undeclared(by[i].var)) return false;
-    return true;
-  }
-
-  @Override
-  public Var[] vars() {
-    final Var[] res = new Var[by.length + nongroup[1].length];
-    for(int i = 0; i < by.length; i++) res[i] = by[i].var;
-    System.arraycopy(nongroup[1], 0, res, by.length, nongroup[1].length);
-    return res;
-  }
-
-  @Override
-  public boolean declares(final Var v) {
-    for(final Spec s : by) if(s.var.is(v)) return true;
-    for(final Var ng : nongroup[1]) if(ng.is(v)) return true;
-    return false;
   }
 
   /**

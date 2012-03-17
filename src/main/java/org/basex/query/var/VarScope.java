@@ -48,7 +48,7 @@ public final class VarScope {
    * @param var variable to be added
    * @return the variable (for convenience)
    */
-  Var add(final Var var) {
+  private Var add(final Var var) {
     var.slot = vars.size();
     if(!vars.add(var)) throw Util.notexpected(var);
     current.push(var);
@@ -83,7 +83,7 @@ public final class VarScope {
     }
 
     // global variable
-    StaticVar global = ctx.globals.get(name);
+    GlobalVar global = ctx.globals.get(name);
     if(global == null) global = Variable.get(name, ctx);
     if(global == null && err != null) throw qp.error(err, '$' + string(name.string()));
     return global.var;

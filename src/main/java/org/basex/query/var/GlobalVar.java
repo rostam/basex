@@ -16,7 +16,7 @@ import org.basex.util.*;
  * @author BaseX Team 2005-12, BSD License
  * @author Leo Woerteler
  */
-public final class StaticVar extends ParseExpr {
+public final class GlobalVar extends ParseExpr {
   /** Declared variable. */
   public final Var var;
   /** Annotations. */
@@ -37,7 +37,7 @@ public final class StaticVar extends ParseExpr {
    * @param a annotations
    * @param e expression to be bound
    */
-  StaticVar(final InputInfo ii, final Var v, final Ann a, final Expr e) {
+  GlobalVar(final InputInfo ii, final Var v, final Ann a, final Expr e) {
     super(ii);
     var = v;
     ann = a;
@@ -54,7 +54,7 @@ public final class StaticVar extends ParseExpr {
   }
 
   @Override
-  public StaticVar comp(final QueryContext ctx, final VarScope scp)
+  public GlobalVar comp(final QueryContext ctx, final VarScope scp)
       throws QueryException {
     if(expr != null) bind(checkUp(expr, ctx).comp(ctx, scp), ctx);
     return this;
@@ -83,7 +83,7 @@ public final class StaticVar extends ParseExpr {
    * @return self reference
    * @throws QueryException query exception
    */
-  public StaticVar bind(final Expr e, final QueryContext ctx) throws QueryException {
+  public GlobalVar bind(final Expr e, final QueryContext ctx) throws QueryException {
     expr = e;
     return e.isValue() ? bind((Value) e, ctx) : this;
   }
@@ -103,7 +103,7 @@ public final class StaticVar extends ParseExpr {
    * @return self reference
    * @throws QueryException query exception
    */
-  public StaticVar bind(final Value v, final QueryContext ctx) throws QueryException {
+  public GlobalVar bind(final Value v, final QueryContext ctx) throws QueryException {
     expr = v;
     value = cast(v, ctx);
     return this;
@@ -135,8 +135,8 @@ public final class StaticVar extends ParseExpr {
 
   @Override
   public boolean sameAs(final Expr cmp) {
-    if(!(cmp instanceof StaticVar)) return false;
-    final StaticVar v = (StaticVar) cmp;
+    if(!(cmp instanceof GlobalVar)) return false;
+    final GlobalVar v = (GlobalVar) cmp;
     return var.equals(v.var) && type().eq(v.type());
   }
 

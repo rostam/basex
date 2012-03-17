@@ -23,6 +23,8 @@ import org.basex.query.ft.*;
 import org.basex.query.ft.FTWords.FTMode;
 import org.basex.query.func.*;
 import org.basex.query.gflwor.*;
+import org.basex.query.gflwor.GFLWOR.Clause;
+import org.basex.query.gflwor.Window.Condition;
 import org.basex.query.item.*;
 import org.basex.query.item.SeqType.Occ;
 import org.basex.query.item.Type;
@@ -916,23 +918,13 @@ public class QueryParser extends InputParser {
   }
 
   /**
-   * Parses a local variable declaration with optional type.
-   * @param param if the variable is a function parameter
-   * @return parsed variable
-   * @throws QueryException query exception
-   */
-  private Var typedLocal(final boolean param) throws QueryException {
-    return getLocal(varName(), optAsType(), param);
-  }
-
-  /**
-   * Creates a new local variable in the current scope.
+   * Creates and registers a new local variable in the current scope.
    * @param name variable name
    * @param tp variable type
    * @param prm if the variable is a function parameter
-   * @return parsed variable
+   * @return registered variable
    */
-  private Var getLocal(final QNm name, final SeqType tp, final boolean prm) {
+  private Var addLocal(final QNm name, final SeqType tp, final boolean prm) {
     return scope.newLocal(ctx, name, tp, prm);
   }
 
@@ -1009,7 +1001,7 @@ public class QueryParser extends InputParser {
         if(args.length == 0) break;
         check('$');
       }
-      final Var var = typedLocal(true);
+      final Var var = addLocal(varName(), optAsType(), true);
       for(final Var v : args)
         if(v.name.eq(var.name)) error(FUNCDUPL, var);
 
@@ -1085,141 +1077,213 @@ public class QueryParser extends InputParser {
    */
   private Expr flwor() throws QueryException {
 
-    // [LW] XQuery30: tumbling window, sliding window, count, allowing empty
-    //  (still to be parsed and implemented)
-
     final int s = scope.open();
-    final ArrayList<GFLWOR.Clause> clauses = forLet(null);
+    ArrayList<Clause> clauses = initialClause(null);
     if(clauses == null) return null;
 
-    final TokenObjMap<Var> curr = new TokenObjMap<Var>();
-    for(final GFLWOR.Clause fl : clauses)
+    TokenObjMap<Var> curr = new TokenObjMap<Var>();
+    for(final Clause fl : clauses)
       for(final Var v : fl.vars()) curr.add(v.name.eqname(), v);
 
-    if(wsConsumeWs(WHERE)) {
-      ap = qp;
-      clauses.add(new Where(check(single(), NOWHERE), input()));
-      alter = NOWHERE;
-    }
+    int size;
+    do {
+      do {
+        size = clauses.size();
+        initialClause(clauses);
+        for(int i = size; i < clauses.size(); i++)
+          for(final Var v : clauses.get(i).vars()) curr.add(v.name.eqname(), v);
+      } while(size < clauses.size());
 
-    if(ctx.xquery3 && wsConsumeWs(GROUP)) {
-      wsCheck(BY);
-      ap = qp;
-      GroupBy.Spec[] grp = null;
-      do grp = groupSpec(clauses, grp); while(wsConsume(COMMA));
-
-      // find all non-grouping variables that aren't shadowed
-      final ArrayList<Var> ng = new ArrayList<Var>();
-      for(final GroupBy.Spec spec : grp) curr.add(spec.var.name.eqname(), spec.var);
-      vars: for(int i = 0; i < curr.size(); i++) {
-        // weird quirk of TokenObjMap
-        final Var v = curr.value(i + 1);
-        for(final GroupBy.Spec spec : grp) if(spec.var.is(v)) break vars;
-        ng.add(v);
+      if(wsConsumeWs(WHERE)) {
+        ap = qp;
+        clauses.add(new Where(check(single(), NOWHERE), input()));
+        alter = NOWHERE;
       }
 
-      // add new copies for all non-grouping variables
-      final Var[] ngrp = new Var[ng.size()];
-      for(int i = ng.size(); --i >= 0;) {
-        final Var v = ng.get(i);
+      if(ctx.xquery3 && wsConsumeWs(GROUP)) {
+        wsCheck(BY);
+        ap = qp;
+        GroupBy.Spec[] grp = null;
+        do grp = groupSpec(clauses, grp); while(wsConsume(COMMA));
 
-        // if one groups variables such as $x as xs:integer, then the resulting
-        // sequence isn't compatible with the type and can't be assigned
-        final Var nv = getLocal(v.name, null, false);
-        if(v.type().one()) nv.refineType(SeqType.get(v.type().type, Occ.ONE_MORE));
-        ngrp[i] = nv;
-        curr.add(nv.name.eqname(), nv);
+        // find all non-grouping variables that aren't shadowed
+        final ArrayList<Var> ng = new ArrayList<Var>();
+        for(final GroupBy.Spec spec : grp) curr.add(spec.var.name.eqname(), spec.var);
+        vars: for(int i = 0; i < curr.size(); i++) {
+          // weird quirk of TokenObjMap
+          final Var v = curr.value(i + 1);
+          for(final GroupBy.Spec spec : grp) if(spec.var.is(v)) continue vars;
+          ng.add(v);
+        }
+
+        // add new copies for all non-grouping variables
+        final Var[] ngrp = new Var[ng.size()];
+        for(int i = ng.size(); --i >= 0;) {
+          final Var v = ng.get(i);
+
+          // if one groups variables such as $x as xs:integer, then the resulting
+          // sequence isn't compatible with the type and can't be assigned
+          final Var nv = addLocal(v.name, null, false);
+          if(v.type().one()) nv.refineType(SeqType.get(v.type().type, Occ.ONE_MORE));
+          ngrp[i] = nv;
+          curr.add(nv.name.eqname(), nv);
+        }
+
+        clauses.add(new GroupBy(grp, new Var[][]{ ng.toArray(new Var[ng.size()]), ngrp },
+            grp[0].input));
+        alter = GRPBY;
       }
 
-      clauses.add(new GroupBy(grp, new Var[][]{ ng.toArray(new Var[ng.size()]), ngrp },
-          grp[0].input));
-      alter = GRPBY;
-    }
+      final boolean stable = wsConsumeWs(STABLE);
+      if(stable) wsCheck(ORDER);
+      if(stable || wsConsumeWs(ORDER)) {
+        wsCheck(BY);
+        ap = qp;
+        OrderBy.Key[] ob = null;
+        do ob = orderSpec(ob); while(wsConsume(COMMA));
 
-    final boolean stable = wsConsumeWs(STABLE);
-    if(stable) wsCheck(ORDER);
-    if(stable || wsConsumeWs(ORDER)) {
-      wsCheck(BY);
-      ap = qp;
-      OrderBy.Key[] ob = null;
-      do ob = orderSpec(ob); while(wsConsume(COMMA));
-      // don't sort if all order-by clauses are empty
-      if(ob != null) {
         final Var[] vs = new Var[curr.size()];
         for(int i = 0; i < vs.length; i++) vs[i] = curr.value(i + 1);
         clauses.add(new OrderBy(vs, ob, stable, ob[0].input));
+        alter = ORDERBY;
       }
-      alter = ORDERBY;
-    }
+
+      if(ctx.xquery3 && wsConsumeWs(COUNT, DOLLAR, NOCOUNT))
+        clauses.add(new Count(addLocal(varName(), SeqType.ITR, false), input()));
+    } while(ctx.xquery3 && size < clauses.size());
 
     if(!wsConsumeWs(RETURN)) {
       if(alter != null) error();
       // [LW] where == null ? FLWORWHERE : order == null ? FLWORORD :
       error(FLWORRET);
     }
+
     final Expr ret = check(single(), NORETURN);
     scope.close(s);
     return new GFLWOR(clauses.get(0).input, clauses, ret);
   }
 
   /**
-   * Parses the "ForClause" rule.
-   * Parses the "PositionalVar" rule.
-   * Parses the "LetClause" rule.
-   * Parses the "FTScoreVar" rule.
+   * Parses the "InitialClause" rule.
    * @param clauses FLWOR clauses
    * @return query expression
    * @throws QueryException query exception
    */
-  private ArrayList<GFLWOR.Clause> forLet(final ArrayList<GFLWOR.Clause> clauses)
+  private ArrayList<Clause> initialClause(final ArrayList<Clause> clauses)
       throws QueryException {
-
-    ArrayList<GFLWOR.Clause> cls = clauses;
-    boolean comma = false;
-    while(true) {
-      final boolean fr = wsConsumeWs(FOR, DOLLAR, NOFOR);
-      boolean score = !fr && wsConsumeWs(LET, SCORE, NOLET);
-      if(score) wsCheck(SCORE);
-      else if(!fr && !wsConsumeWs(LET, DOLLAR, NOLET)) return cls;
-
-      do {
-        if(comma && !fr) score = wsConsumeWs(SCORE);
-
-        final QNm nm = varName();
-        final SeqType tp = score ? SeqType.DBL : optAsType();
-
-        final boolean emp = fr && wsConsume(ALLOWING);
-        if(emp) wsCheck(EMPTYORD);
-
-        final Var ps = fr && wsConsumeWs(AT) ?
-            scope.newLocal(ctx, varName(), SeqType.ITR, false) : null;
-        final Var sc = fr && wsConsumeWs(SCORE) ?
-            scope.newLocal(ctx, varName(), SeqType.DBL, false) : null;
-
-        wsCheck(fr ? IN : ASSIGN);
-        final Expr e = check(single(), NOVARDECL);
-
-        // declare late because otherwise it would shadow the wrong variables
-        final Var var = scope.newLocal(ctx, nm, tp, false);
-
-        if(ps != null) {
-          if(nm.eq(ps.name)) error(DUPLVAR, var);
-        }
-        if(sc != null) {
-          if(nm.eq(sc.name)) error(DUPLVAR, var);
-          if(ps != null && ps.name.eq(sc.name)) error(DUPLVAR, ps);
-        }
-
-        if(cls == null) cls = new ArrayList<GFLWOR.Clause>();
-        cls.add(fr ? new For(var, ps, sc, e, emp, input()) :
-          new Let(var, e, score, input()));
-
-        score = false;
-        comma = true;
-      } while(wsConsume(COMMA));
-
-      comma = false;
+    ArrayList<Clause> cls = clauses;
+    // ForClause / LetClause
+    final boolean let = wsConsumeWs(LET, SCORE, NOLET) || wsConsumeWs(LET, DOLLAR, NOLET);
+    if(let || wsConsumeWs(FOR, DOLLAR, NOFOR)) {
+      if(cls == null) cls = new ArrayList<Clause>();
+      if(let) letClause(cls);
+      else    forClause(cls);
+    } else if(ctx.xquery3) {
+      // WindowClause
+      final boolean slide = wsConsumeWs(FOR, SLIDING, NOWINDOW);
+      if(slide || wsConsumeWs(FOR, TUMBLING, NOWINDOW)) {
+        if(cls == null) cls = new ArrayList<Clause>();
+        cls.add(windowClause(slide));
+      }
     }
+    return cls;
+  }
+
+  /**
+   * Parses the "ForClause" rule.
+   * Parses the "PositionalVar" rule.
+   * @param cls list of clauses
+   * @throws QueryException parse exception
+   */
+  private void forClause(final ArrayList<Clause> cls) throws QueryException {
+    do {
+      final QNm nm = varName();
+      final SeqType tp = optAsType();
+
+      final boolean emp = ctx.xquery3 && wsConsume(ALLOWING);
+      if(emp) wsCheck(EMPTYORD);
+
+      final Var ps = wsConsumeWs(AT) ? addLocal(varName(), SeqType.ITR, false) : null;
+      final Var sc = wsConsumeWs(SCORE) ? addLocal(varName(), SeqType.DBL, false) : null;
+
+      wsCheck(IN);
+      final Expr e = check(single(), NOVARDECL);
+
+      // declare late because otherwise it would shadow the wrong variables
+      final Var var = addLocal(nm, tp, false);
+      if(ps != null && nm.eq(ps.name)) error(DUPLVAR, var);
+      if(sc != null) {
+        if(nm.eq(sc.name)) error(DUPLVAR, var);
+        if(ps != null && ps.name.eq(sc.name)) error(DUPLVAR, ps);
+      }
+
+      cls.add(new For(var, ps, sc, e, emp, input()));
+    } while(wsConsume(COMMA));
+  }
+
+  /**
+   * Parses the "LetClause" rule.
+   * Parses the "FTScoreVar" rule.
+   * @param cls list of clauses
+   * @throws QueryException parse exception
+   */
+  private void letClause(final ArrayList<Clause> cls) throws QueryException {
+    do {
+      final boolean score = wsConsumeWs(SCORE);
+      final QNm nm = varName();
+      final SeqType tp = score ? SeqType.DBL : optAsType();
+      wsCheck(ASSIGN);
+      final Expr e = check(single(), NOVARDECL);
+      cls.add(new Let(addLocal(nm, tp, false), e, score, input()));
+    } while(wsConsume(COMMA));
+  }
+
+  /**
+   * Parses the "TumblingWindowClause" rule.
+   * Parses the "SlidingWindowClause" rule.
+   * @param slide sliding window flag
+   * @return the window clause
+   * @throws QueryException parse exception
+   */
+  private Window windowClause(final boolean slide) throws QueryException {
+    wsCheck(slide ? SLIDING : TUMBLING);
+    wsCheck(WINDOW);
+
+    final QNm nm = varName();
+    final SeqType tp = optAsType();
+
+    wsCheck(IN);
+    final Expr e = check(single(), NOVARDECL);
+
+    // WindowStartCondition
+    wsCheck(START);
+    final Condition start = windowCond(true);
+
+    // WindowEndCondition
+    Condition end = null;
+    final boolean only = wsConsume(ONLY), check = slide || only;
+    if(check || wsConsume(END)) {
+      if(check) wsCheck(END);
+      end = windowCond(false);
+    }
+    return new Window(input(), slide, addLocal(nm, tp, false), e, start, only, end);
+  }
+
+  /**
+   * Parses the "WindowVars" rule.
+   * @param start start condition flag
+   * @return an array containing the current, positional, previous and next variable name
+   * @throws QueryException parse exception
+   */
+  private Condition windowCond(final boolean start) throws QueryException {
+    skipWS();
+    final InputInfo ii = input();
+    final Var var = curr('$')             ? addLocal(varName(), null, false) : null,
+              pos = wsConsumeWs(AT)       ? addLocal(varName(), null, false) : null,
+              prv = wsConsumeWs(PREVIOUS) ? addLocal(varName(), null, false) : null,
+              nxt = wsConsumeWs(NEXT)     ? addLocal(varName(), null, false) : null;
+    wsCheck(WHEN);
+    return new Condition(start, var, pos, prv, nxt, check(single(), NOEXPR), ii);
   }
 
   /**
@@ -1245,7 +1309,7 @@ public class QueryParser extends InputParser {
       final byte[] coll = stringLiteral();
       if(!eq(URLCOLL, coll)) error(INVCOLL, coll);
     }
-    if(e.isEmpty()) return order;
+    // [LW] if(e.isEmpty()) return order;
     final OrderBy.Key ord = new OrderBy.Key(input(), e, desc, least);
     return order == null ? new OrderBy.Key[] { ord } : Array.add(order, ord);
   }
@@ -1257,7 +1321,7 @@ public class QueryParser extends InputParser {
    * @return new group array
    * @throws QueryException query exception
    */
-  private GroupBy.Spec[] groupSpec(final ArrayList<GFLWOR.Clause> cl,
+  private GroupBy.Spec[] groupSpec(final ArrayList<Clause> cl,
       final GroupBy.Spec[] group) throws QueryException {
 
     final InputInfo ii = input();
@@ -1272,7 +1336,7 @@ public class QueryParser extends InputParser {
       final Var v = checkVar(name, GVARNOTDEFINED);
       // the grouping variable has to be declared by the same FLWOR expression
       boolean dec = false;
-      for(final GFLWOR.Clause f : cl) {
+      for(final Clause f : cl) {
         if(f.declares(v)) {
           dec = true;
           break;
@@ -1287,7 +1351,7 @@ public class QueryParser extends InputParser {
       if(!eq(URLCOLL, coll)) throw error(INVCOLL, coll);
     }
 
-    final GroupBy.Spec grp = new GroupBy.Spec(ii, getLocal(name, type, false), by);
+    final GroupBy.Spec grp = new GroupBy.Spec(ii, addLocal(name, type, false), by);
     return group == null ? new GroupBy.Spec[] { grp } : Array.add(group, grp);
   }
 
@@ -1303,10 +1367,11 @@ public class QueryParser extends InputParser {
     final int s = scope.open();
     For[] fl = { };
     do {
-      final Var var = typedLocal(false);
+      final QNm nm = varName();
+      final SeqType tp = optAsType();
       wsCheck(IN);
       final Expr e = check(single(), NOSOME);
-      fl = Array.add(fl, new For(var, null, null, e, false, input()));
+      fl = Array.add(fl, new For(addLocal(nm, tp, false), null, null, e, false, input()));
     } while(wsConsume(COMMA));
 
     wsCheck(SATISFIES);
@@ -1367,7 +1432,7 @@ public class QueryParser extends InputParser {
       skipWS();
       Var var = null;
       if(curr('$')) {
-        var = getLocal(varName(), null, false);
+        var = addLocal(varName(), null, false);
         if(cs) wsCheck(AS);
       }
       if(cs) {
@@ -3444,7 +3509,7 @@ public class QueryParser extends InputParser {
 
     Let[] fl = { };
     do {
-      final Var v = scope.newLocal(ctx, varName(), null, false);
+      final Var v = addLocal(varName(), null, false);
       wsCheck(ASSIGN);
       final Expr e = check(single(), INCOMPLETE);
       fl = Array.add(fl, new Let(v, e, false, input()));

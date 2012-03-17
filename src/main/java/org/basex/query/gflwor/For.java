@@ -46,7 +46,7 @@ public class For extends GFLWOR.Clause {
    */
   public For(final Var v, final Var p, final Var s, final Expr e, final boolean emp,
       final InputInfo ii) {
-    super(ii);
+    super(ii, vars(v, p, s));
     var = v;
     pos = p;
     score = s;
@@ -150,20 +150,15 @@ public class For extends GFLWOR.Clause {
         && (score == null || visitor.declared(score));
   }
 
-  @Override
-  boolean undeclare(final VarVisitor visitor) {
-    return (score == null || visitor.undeclared(score))
-        && (pos == null || visitor.undeclared(pos)) && visitor.undeclared(var);
-  }
-
-  @Override
-  public Var[] vars() {
-    return pos == null ? score == null ? new Var[] { var } : new Var[] { var, score } :
-      score == null ? new Var[] { var, pos } : new Var[] { var, pos, score };
-  }
-
-  @Override
-  public boolean declares(final Var v) {
-    return var.is(v) || pos != null && pos.is(v) || score != null && score.is(v);
+  /**
+   * Gathers all non-{@code null} variables.
+   * @param v var
+   * @param p pos
+   * @param s scope
+   * @return non-{@code null} variables
+   */
+  private static Var[] vars(final Var v, final Var p, final Var s) {
+    return p == null ? s == null ? new Var[] { v } : new Var[] { v, s } :
+      s == null ? new Var[] { v, p } : new Var[] { v, p, s };
   }
 }

@@ -477,6 +477,10 @@ public enum Err {
   /** XPST0003: Parsing exception. */
   NOLET(XPST, 3, "Incomplete 'let' expression."),
   /** XPST0003: Parsing exception. */
+  NOWINDOW(XPST, 3, "Incomplete 'window' expression."),
+  /** XPST0003: Parsing exception. */
+  NOCOUNT(XPST, 3, "Incomplete 'count' expression."),
+  /** XPST0003: Parsing exception. */
   NOCLOSING(XPST, 3, "Expecting closing tag </%>."),
   /** XPST0003: Parsing exception. */
   COMCLOSE(XPST, 3, "Unclosed XQuery comment (: ..."),
@@ -550,6 +554,9 @@ public enum Err {
   NOURI(XPST, 81, "No namespace declared for %."),
   /** XPST0081: Parsing exception. */
   NSMISS(XPST, 81, "QName % has no namespace."),
+
+  /** XQST0103: Parsing exception. */
+  WINDOWUNIQ(XPST, 103, "Duplicate variable name in window clause: %"),
 
   /** XPTY0004: Typing exception. */
   XPSEQ(XPTY, 4, "Single item expected, % found."),

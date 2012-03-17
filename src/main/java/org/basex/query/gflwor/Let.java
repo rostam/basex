@@ -38,7 +38,7 @@ public class Let extends GFLWOR.Clause {
    * @param ii input info
    */
   public Let(final Var v, final Expr e, final boolean scr, final InputInfo ii) {
-    super(ii);
+    super(ii, v);
     var = v;
     expr = e;
     score = scr;
@@ -105,20 +105,5 @@ public class Let extends GFLWOR.Clause {
   @Override
   public boolean visitVars(final VarVisitor visitor) {
     return expr.visitVars(visitor) && visitor.declared(var);
-  }
-
-  @Override
-  boolean undeclare(final VarVisitor visitor) {
-    return visitor.undeclared(var);
-  }
-
-  @Override
-  public Var[] vars() {
-    return new Var[] { var };
-  }
-
-  @Override
-  public boolean declares(final Var v) {
-    return var.is(v);
   }
 }

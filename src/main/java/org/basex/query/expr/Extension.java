@@ -32,6 +32,7 @@ public final class Extension extends Single {
 
   @Override
   public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    
     // ignore pragma
     return optPre(expr.comp(ctx, scp), ctx);
   }

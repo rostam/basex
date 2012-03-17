@@ -365,7 +365,7 @@ public final class QueryContext extends Progress {
 
     // bind variable
     final QNm qnm = uri.length == 0 ? new QNm(ln, this) : new QNm(ln, uri);
-    final StaticVar gl = globals.get(qnm);
+    final GlobalVar gl = globals.get(qnm);
     globals.set(this, null, qnm, null, null, gl != null && gl.type != null ?
         gl.type.type.cast(ex.item(this, null), this, null) : ex, false);
   }

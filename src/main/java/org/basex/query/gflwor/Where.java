@@ -80,19 +80,4 @@ public class Where extends GFLWOR.Clause {
   public boolean visitVars(final VarVisitor visitor) {
     return pred.visitVars(visitor);
   }
-
-  @Override
-  boolean undeclare(final VarVisitor visitor) {
-    return true;
-  }
-
-  @Override
-  public Var[] vars() {
-    return new Var[0];
-  }
-
-  @Override
-  public boolean declares(final Var v) {
-    return false;
-  }
 }

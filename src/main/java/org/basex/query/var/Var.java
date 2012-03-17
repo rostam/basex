@@ -174,7 +174,7 @@ public final class Var extends ExprInfo {
     switch(kind) {
       case GLOBAL:     return ret.promote(val, ctx, ii);
       case FUNC_PARAM: return ret.promote(val, ctx, ii);
-      default:         throw Err.XPTYPE.thrw(ii, val.type(), ret, val.description());
+      default:         throw Err.XPTYPE.thrw(ii, val.description(), ret, val.type());
     }
   }
 }

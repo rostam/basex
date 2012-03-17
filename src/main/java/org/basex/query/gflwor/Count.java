@@ -28,7 +28,7 @@ public class Count extends GFLWOR.Clause {
    * @param ii input info
    */
   public Count(final Var v, final InputInfo ii) {
-    super(ii);
+    super(ii, v);
     count = v;
   }
 
@@ -81,20 +81,5 @@ public class Count extends GFLWOR.Clause {
   @Override
   public boolean visitVars(final VarVisitor visitor) {
     return visitor.declared(count);
-  }
-
-  @Override
-  boolean undeclare(final VarVisitor visitor) {
-    return visitor.undeclared(count);
-  }
-
-  @Override
-  public Var[] vars() {
-    return new Var[] { count };
-  }
-
-  @Override
-  public boolean declares(final Var v) {
-    return count.is(v);
   }
 }

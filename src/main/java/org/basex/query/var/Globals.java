@@ -23,14 +23,14 @@ import org.basex.util.InputInfo;
  */
 public final class Globals extends ExprInfo {
   /** The global variables. */
-  private final HashMap<QNm, StaticVar> globals = new HashMap<QNm, StaticVar>();
+  private final HashMap<QNm, GlobalVar> globals = new HashMap<QNm, GlobalVar>();
 
   /**
    * Looks for a variable with the given name in the globally defined variables.
    * @param name variable name
    * @return declaration if found, {@null} otherwise
    */
-  public StaticVar get(final QNm name) {
+  public GlobalVar get(final QNm name) {
     return globals.get(name);
   }
 
@@ -46,9 +46,9 @@ public final class Globals extends ExprInfo {
    * @return static variable
    * @throws QueryException query exception
    */
-  public StaticVar set(final QueryContext ctx, final InputInfo ii, final QNm nm,
+  public GlobalVar set(final QueryContext ctx, final InputInfo ii, final QNm nm,
       final SeqType t, final Ann a, final Expr e, final boolean d) throws QueryException {
-    final StaticVar var = globals.get(nm);
+    final GlobalVar var = globals.get(nm);
     if(var != null) {
       if(d && var.declared) throw VARDEFINE.thrw(ii, var);
       var.declared = d;
@@ -63,7 +63,7 @@ public final class Globals extends ExprInfo {
     }
 
     // new variable
-    final StaticVar nvar = new StaticVar(ii, new Var(ctx, nm, t, VarKind.GLOBAL), a, e);
+    final GlobalVar nvar = new GlobalVar(ii, new Var(ctx, nm, t, VarKind.GLOBAL), a, e);
     nvar.declared = d;
     globals.put(nm, nvar);
     return nvar;
@@ -74,7 +74,7 @@ public final class Globals extends ExprInfo {
    * @throws QueryException query exception
    */
   public void checkUp() throws QueryException {
-    for(final StaticVar var : globals.values()) var.checkUp();
+    for(final GlobalVar var : globals.values()) var.checkUp();
   }
 
   /**
@@ -88,14 +88,14 @@ public final class Globals extends ExprInfo {
   @Override
   public void plan(final Serializer ser) throws IOException {
     ser.openElement(this);
-    for(final StaticVar v : globals.values()) v.plan(ser);
+    for(final GlobalVar v : globals.values()) v.plan(ser);
     ser.closeElement();
   }
 
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    for(final StaticVar v : globals.values()) sb.append(v);
+    for(final GlobalVar v : globals.values()) sb.append(v);
     return sb.toString();
   }
 }

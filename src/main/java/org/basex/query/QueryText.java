@@ -65,6 +65,8 @@ public interface QueryText {
   String COPY = "copy";
   /** Parser token. */
   String COPY_NAMESPACES = "copy-namespaces";
+  /** Query Plan. */
+  String COUNT = "count";
   /** Parser token. */
   String DECIMAL_FORMAT = "decimal-format";
   /** Parser token. */
@@ -176,6 +178,8 @@ public interface QueryText {
   /** Parser token. */
   String NSPACE = "namespace";
   /** Parser token. */
+  String NEXT = "next";
+  /** Parser token. */
   String NO_INHERIT = "no-inherit";
   /** Parser token. */
   String NO_PRESERVE = "no-preserve";
@@ -191,6 +195,8 @@ public interface QueryText {
   String OCCURS = "occurs";
   /** Parser token. */
   String OF = "of";
+  /** Parser token. */
+  String ONLY = "only";
   /** Parser token. */
   String OPTION = "option";
   /** Parser token. */
@@ -213,6 +219,8 @@ public interface QueryText {
   String PRIVATE = "private";
   /** Parser token. */
   String PI = "processing-instruction";
+  /** Parser token. */
+  String PREVIOUS = "previous";
   /** Public token. */
   String PUBLIC = "public";
   /** Parser token. */
@@ -246,6 +254,8 @@ public interface QueryText {
   /** Parser token. */
   String SKIP = "skip";
   /** Parser token. */
+  String SLIDING = "sliding";
+  /** Parser token. */
   String SOME = "some";
   /** Parser token. */
   String STABLE = "stable";
@@ -276,6 +286,8 @@ public interface QueryText {
   /** Parser token. */
   String TRY = "try";
   /** Parser token. */
+  String TUMBLING = "tumbling";
+  /** Parser token. */
   String TYPE = "type";
   /** Parser token. */
   String TYPESWITCH = "typeswitch";
@@ -299,6 +311,8 @@ public interface QueryText {
   String VERSION = "version";
   /** Parser token. */
   String WEIGHT = "weight";
+  /** Parser token. */
+  String WHEN = "when";
   /** Parser token. */
   String WHERE = "where";
   /** Parser token. */
@@ -604,8 +618,6 @@ public interface QueryText {
   byte[] ENTRY = token("entry");
   /** Query Plan. */
   byte[] KEY = token("key");
-  /** Query Plan. */
-  byte[] COUNT = token("count");
 
   /** Example for a Date format. */
   String XDATE = "2000-12-31";
