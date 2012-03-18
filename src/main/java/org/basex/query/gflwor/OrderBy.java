@@ -12,8 +12,7 @@ import org.basex.io.serial.*;
 import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
-import org.basex.query.item.Item;
-import org.basex.query.item.Value;
+import org.basex.query.item.*;
 import org.basex.query.util.*;
 import org.basex.query.var.*;
 import org.basex.util.*;
@@ -113,7 +112,7 @@ public class OrderBy extends GFLWOR.Clause {
         if(len < 7) {
           // use insertion sort of small arrays
           for(int i = start; i < len + start; i++)
-            for(int j = i; j > start && cmp(ks[perm[j - 1]], ks[perm[j]], -1) > 0; j--)
+            for(int j = i; j > start && cmp(ks, perm[j - 1], perm[j]) > 0; j--)
               swap(perm, j, j - 1);
           return;
         }
@@ -131,19 +130,19 @@ public class OrderBy extends GFLWOR.Clause {
           mid = median(ks, left, mid, right);
         }
 
-        final Item[] pivot = ks[perm[mid]];
+        final int pivot = perm[mid];
 
         // partition the values
         int a = start, b = a, c = start + len - 1, d = c;
         while(true) {
           while(b <= c) {
-            final int h = cmp(ks[perm[b]], pivot, b - mid);
+            final int h = cmp(ks, perm[b], pivot);
             if(h > 0) break;
             if(h == 0) swap(perm, a++, b);
             ++b;
           }
           while(c >= b) {
-            final int h = cmp(ks[perm[c]], pivot, c - mid);
+            final int h = cmp(ks, perm[c], pivot);
             if(h < 0) break;
             if(h == 0) swap(perm, c, d--);
             --c;
@@ -167,23 +166,22 @@ public class OrderBy extends GFLWOR.Clause {
 
       /**
        * Returns the difference of two entries (part of QuickSort).
-       * @param a sort keys of first item
-       * @param b sort keys of second item
-       * @param d sort keys of second item
        * @return result
        * @throws QueryException query exception
        */
-      private int cmp(final Item[] a, final Item[] b, final int d) throws QueryException {
+      private int cmp(final Item[][] ks, final int x, final int y) throws QueryException {
+        final Item[] a = ks[x], b = ks[y];
         for(int k = 0; k < keys.length; k++) {
           final Key or = keys[k];
-          final Item m = a[k], n = b[k];
+          final Item m = a[k] == Dbl.NAN || a[k] == Flt.NAN ? null : a[k],
+              n = b[k] == Dbl.NAN || b[k] == Flt.NAN ? null : b[k];
           final int c = m == null ? n == null ? 0 : or.least ? -1 : 1 :
             n == null ? or.least ? 1 : -1 : m.diff(or.input, n);
           if(c != 0) return or.desc ? -c : c;
         }
 
         // optional stable sorting
-        return stable ? d : 0;
+        return stable ? x - y : 0;
       }
 
       /**
@@ -197,10 +195,10 @@ public class OrderBy extends GFLWOR.Clause {
        */
       private int median(final Item[][] ks, final int a, final int b, final int c)
           throws QueryException {
-        final Item[] ka = ks[perm[a]], kb = ks[perm[b]], kc = ks[perm[c]];
-        return cmp(ka, kb, a - b) < 0
-            ? cmp(kb, kc, b - c) < 0 ? b : cmp(ka, kc, a - c) < 0 ? c : a
-            : cmp(kb, kc, b - c) > 0 ? b : cmp(ka, kc, a - c) > 0 ? c : a;
+        final int ka = perm[a], kb = perm[b], kc = perm[c];
+        return cmp(ks, ka, kb) < 0
+            ? cmp(ks, kb, kc) < 0 ? b : cmp(ks, ka, kc) < 0 ? c : a
+            : cmp(ks, kb, kc) > 0 ? b : cmp(ks, ka, kc) > 0 ? c : a;
       }
     };
   }

@@ -898,7 +898,8 @@ public class QueryParser extends InputParser {
     if(module != null && !eq(vn.uri(), module.uri())) error(MODNS, vn);
 
     final Expr bind;
-    if(wsConsumeWs(EXTERNAL)) {
+    final boolean external = wsConsumeWs(EXTERNAL);
+    if(external) {
       bind = ctx.xquery3 && wsConsumeWs(ASSIGN) ? check(single(), NOVARDECL) : null;
     } else {
       wsCheck(ASSIGN);
@@ -907,7 +908,7 @@ public class QueryParser extends InputParser {
 
     // bind variable if not done yet
     // [LW] create no variable?
-    ctx.globals.set(ctx, input(), vn, tp, ann, bind, true);
+    ctx.globals.set(ctx, input(), vn, tp, ann, bind, true, external);
   }
 
   /**

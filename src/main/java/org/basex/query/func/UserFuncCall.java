@@ -103,7 +103,13 @@ public abstract class UserFuncCall extends Arr {
     func.comp(ctx, scp);
     if(func.expr.isValue() && allAreValues() && !func.uses(Use.NDT)) {
       // evaluate arguments to catch cast exceptions
-      for(int a = 0; a < expr.length; ++a) ctx.set(func.args[a], (Value) expr[a], input);
+      final Value[] sf = func.scope.enter(ctx);
+      try {
+        for(int a = 0; a < expr.length; ++a)
+          ctx.set(func.args[a], (Value) expr[a], input);
+      } finally {
+        func.scope.exit(ctx, sf);
+      }
       ctx.compInfo(OPTINLINE, func.name.string());
       return func.value(ctx);
     }

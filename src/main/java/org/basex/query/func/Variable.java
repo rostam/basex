@@ -63,7 +63,8 @@ public enum Variable {
   public static GlobalVar get(final QNm n, final QueryContext ctx) throws QueryException {
     for(final Variable v : values())
       if(v.qname.eq(n))
-        return ctx.globals.set(ctx, null, v.qname, v.value.type(), null, v.value, true);
+        return ctx.globals.set(ctx, null, v.qname, v.value.type(), null, v.value, true,
+            false);
     return null;
   }
 }

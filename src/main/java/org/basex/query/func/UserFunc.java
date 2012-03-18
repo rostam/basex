@@ -120,7 +120,7 @@ public class UserFunc extends Single implements Scope {
     final Value[] sf = scope.enter(ctx);
     try {
       expr = expr.comp(ctx, scope);
-      scope.cleanUp(this);
+      scope.cleanUp(ctx, this);
     } finally {
       scope.exit(ctx, sf);
     }

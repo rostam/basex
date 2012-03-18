@@ -85,7 +85,7 @@ public class GFLWOR extends ParseExpr {
   @Override
   public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     for(final Clause cl : clauses) cl.comp(ctx, scp);
-    ret.comp(ctx, scp);
+    ret = ret.comp(ctx, scp);
     // [LW] optimizations
     return this;
   }

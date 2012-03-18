@@ -445,6 +445,15 @@ public class Window extends GFLWOR.Clause {
       expr.plan(ser);
       ser.closeElement();
     }
+
+    @Override
+    public boolean visitVars(final VarVisitor visitor) {
+      return (item == null || visitor.declared(item))
+          && (pos  == null || visitor.declared(pos))
+          && (prev == null || visitor.declared(prev))
+          && (next == null || visitor.declared(next))
+          && expr.visitVars(visitor);
+    }
   }
 
   /**

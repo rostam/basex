@@ -178,9 +178,10 @@ public final class VarScope {
   /**
    * Deletes all unused variables from this scope and assigns stack slots.
    * This method should be run after compiling the scope.
+   * @param ctx query context
    * @param expr the scope
    */
-  public void cleanUp(final Scope expr) {
+  public void cleanUp(final QueryContext ctx, final Scope expr) {
     final BitSet declared = new BitSet();
     final int[] counter = new int[1];
     expr.visit(new VarVisitor() {
@@ -197,6 +198,7 @@ public final class VarScope {
     while(iter.hasNext()) {
       final Var v = iter.next();
       if(!declared.get(v.id)) {
+        ctx.compInfo(QueryText.OPTVAR, v);
         v.slot = -1;
         iter.remove();
       }

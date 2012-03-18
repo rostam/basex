@@ -43,21 +43,20 @@ public final class Globals extends ExprInfo {
    * @param a annotations
    * @param e expression, possibly {@code null}
    * @param d declaration flag
+   * @param ext external flag
    * @return static variable
    * @throws QueryException query exception
    */
   public GlobalVar set(final QueryContext ctx, final InputInfo ii, final QNm nm,
-      final SeqType t, final Ann a, final Expr e, final boolean d) throws QueryException {
+      final SeqType t, final Ann a, final Expr e, final boolean d, final boolean ext)
+          throws QueryException {
     final GlobalVar var = globals.get(nm);
     if(var != null) {
       if(d && var.declared) throw VARDEFINE.thrw(ii, var);
       var.declared = d;
-      if(a != null) {
-        for(int i = a.size(); --i >= 0;)
-          var.ann.add(a.names[i], a.values[i]);
-      }
+      if(a != null) for(int i = a.size(); --i >= 0;) var.ann.add(a.names[i], a.values[i]);
       var.refineType(t);
-      if(e != null) var.bind(e, ctx);
+      if(e != null && (var.expr() == null || !ext)) var.bind(e, ctx);
 
       return var;
     }

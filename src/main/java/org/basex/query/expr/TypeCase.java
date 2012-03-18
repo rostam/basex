@@ -109,7 +109,7 @@ public final class TypeCase extends Single {
 
   @Override
   public String toString() {
-    final TokenBuilder tb = new TokenBuilder(types == null ? DEFAULT : CASE);
+    final TokenBuilder tb = new TokenBuilder(types.length == 0 ? DEFAULT : CASE);
     if(var != null) {
       tb.add(' ').add(var.toString());
       if(types.length != 0) tb.add(' ').add(AS);
@@ -131,6 +131,7 @@ public final class TypeCase extends Single {
 
   @Override
   public boolean visitVars(final VarVisitor visitor) {
-    return visitor.declared(var) && expr.visitVars(visitor) && visitor.undeclared(var);
+    return var == null ? expr.visitVars(visitor)
+        : visitor.declared(var) && expr.visitVars(visitor) && visitor.undeclared(var);
   }
 }

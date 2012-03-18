@@ -67,8 +67,9 @@ public class For extends GFLWOR.Clause {
           final Item it = iter == null ? null : iter.next();
           if(it != null) {
             // there's another item to serve
+            ++p;
             ctx.set(var, it, input);
-            if(pos != null) ctx.set(pos, Int.get(++p), input);
+            if(pos != null) ctx.set(pos, Int.get(p), input);
             if(score != null) ctx.set(score, Dbl.get(it.score()), input);
             return true;
           } else if(empty && iter != null && p == 0) {

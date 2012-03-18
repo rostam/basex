@@ -56,7 +56,10 @@ public final class GlobalVar extends VarRef {
   @Override
   public Value comp(final QueryContext ctx, final VarScope scp)
       throws QueryException {
-    if(compiled) return value;
+    if(compiled) {
+      if(value == null) throw Err.CIRCVAR.thrw(input, this);
+      return value;
+    }
     if(expr == null) throw Err.VARUNDEF.thrw(input, this);
 
     compiled = true;

@@ -1,7 +1,6 @@
 package org.basex.query.gflwor;
 
 import static org.basex.query.QueryText.*;
-import static org.basex.query.util.Err.*;
 
 import java.io.*;
 import java.util.*;
@@ -17,7 +16,6 @@ import org.basex.query.util.*;
 import org.basex.query.var.*;
 import org.basex.util.*;
 import org.basex.util.hash.*;
-import org.basex.util.list.*;
 
 
 /**
@@ -88,30 +86,24 @@ public class GroupBy extends GFLWOR.Clause {
        */
       private void init(final QueryContext ctx) throws QueryException {
         final ArrayList<Group> grps = new ArrayList<Group>();
-        final IntMap<IntList> hashToPos = new IntMap<IntList>();
+        final IntMap<Group> hashMap = new IntMap<Group>();
         while(sub.next(ctx)) {
           final Item[] key = new Item[by.length];
           int hash = 1;
           for(int i = 0; i < by.length; i++) {
-            final Value ki = by[i].value(ctx);
-            if(ki.size() > 1) XGRP.thrw(input);
-            key[i] = ki.item(ctx, input);
+            final Item ki = by[i].item(ctx, input);
+            key[i] = ki == null ? null : StandardFunc.atom(ki, input);
             hash = 31 * hash + (key[i] == null ? 0 : key[i].hash(input));
           }
 
-          IntList poss = hashToPos.get(hash);
+          // find the group for this key
+          final Group fst = hashMap.get(hash);
           Group grp = null;
-          if(poss != null) {
-            for(int i = poss.size(); --i >= 0;) {
-              final Group g = grps.get(poss.get(i));
-              if(eq(key, g.key)) {
-                grp = g;
-                break;
-              }
+          for(Group g = fst; g != null; g = g.next) {
+            if(eq(key, g.key)) {
+              grp = g;
+              break;
             }
-          } else {
-            poss = new IntList();
-            hashToPos.add(hash, poss);
           }
 
           if(grp == null) {
@@ -119,8 +111,16 @@ public class GroupBy extends GFLWOR.Clause {
             final ItemCache[] ngs = new ItemCache[nongroup[0].length];
             for(int i = 0; i < ngs.length; i++) ngs[i] = new ItemCache();
             grp = new Group(key, ngs);
-            poss.add(grps.size());
             grps.add(grp);
+
+            // insert the group into the hash table
+            if(fst == null) {
+              hashMap.add(hash, grp);
+            } else {
+              final Group nxt = fst.next;
+              fst.next = grp;
+              grp.next = nxt;
+            }
           }
 
           for(int j = 0; j < nongroup[0].length; j++)
@@ -143,7 +143,7 @@ public class GroupBy extends GFLWOR.Clause {
   final boolean eq(final Item[] as, final Item[] bs) throws QueryException {
     for(int i = 0; i < as.length; i++) {
       final Item a = as[i], b = bs[i];
-      if(a == null ^ b == null || !(a.comparable(b) && a.eq(input, b))) return false;
+      if(a == null ^ b == null || a != null && !a.equiv(input, b)) return false;
     }
     return true;
   }
@@ -231,14 +231,9 @@ public class GroupBy extends GFLWOR.Clause {
 
     @Override
     public Item item(final QueryContext ctx, final InputInfo ii) throws QueryException {
-      return value(ctx).item(ctx, ii);
-    }
-
-    @Override
-    public Value value(final QueryContext ctx) throws QueryException {
       final Value val = expr.value(ctx);
       if(val.size() > 1) throw Err.XGRP.thrw(input);
-      return val.isEmpty() ? val : StandardFunc.atom(val.itemAt(0), input);
+      return val.isItem() ? (Item) val : null;
     }
 
     @Override
@@ -258,6 +253,8 @@ public class GroupBy extends GFLWOR.Clause {
     final Item[] key;
     /** Non-grouping variables. */
     final ItemCache[] ngv;
+    /** Overflow list. */
+    Group next;
 
     /**
      * Constructor.

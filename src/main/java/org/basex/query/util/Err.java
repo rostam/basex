@@ -66,6 +66,8 @@ public enum Err {
   LOCK(BASX, 20, "Database '%' cannot be marked as 'updating'."),
   /** BASX0020: Evaluation exception. */
   UNLOCK(BASX, 20, "The 'updating' flag of '%' could not be removed."),
+  /** BASX0021: Evaluation exception. */
+  XPSTACK(BASX, 21, "Stack Overflow: Try tail recursion?"),
 
   /** FOAR0001: Evaluation exception. */
   DIVZERO(FOAR, 1, "'%' was divided by zero."),
@@ -670,7 +672,7 @@ public enum Err {
   /** XQST0049: Parsing exception. */
   VARDEFINE(XQST, 49, "Duplicate declaration of %."),
   /** XQST0054: Parsing exception. */
-  XPSTACK(XQST, 54, "Stack Overflow: circular variable declaration?"),
+  CIRCVAR(XQST, 54, "Global variable depends on itself: %"),
   /** XQST0055: Parsing exception. */
   DUPLCOPYNS(XQST, 55, "Duplicate 'copy-namespace' declaration."),
   /** XQST0057: Parsing exception. */
