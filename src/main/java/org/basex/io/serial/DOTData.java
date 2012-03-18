@@ -26,7 +26,7 @@ import org.basex.query.expr.RangeAccess;
 import org.basex.query.expr.Root;
 import org.basex.query.expr.Try;
 import org.basex.query.expr.Union;
-import org.basex.query.expr.VarRef;
+import org.basex.query.expr.LocalVarRef;
 import org.basex.query.flwor.FLWR;
 import org.basex.query.flwor.ForLet;
 import org.basex.query.flwor.GFLWOR;
@@ -137,7 +137,7 @@ final class DOTData {
     { "009999", UserFuncCall.class },
     { "00BBBB", StandardFunc.class },
     { "00BBBB", Root.class },
-    { "00BBBB", VarRef.class },
+    { "00BBBB", LocalVarRef.class },
     { "00BBBB", IndexAccess.class },
     { "00BBBB", RangeAccess.class },
     { "00BBBB", FTIndexAccess.class },

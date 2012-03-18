@@ -43,7 +43,7 @@ public final class FuncItemTest extends QueryPlanTest {
         "return starts-with(?, $sub)('foobar')",
         "true false",
         "empty(//FuncItem)",
-        "exists(//InlineFunc)"
+        "exists(//PartFunc)"
     );
   }
 

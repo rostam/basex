@@ -16,19 +16,6 @@ import org.basex.util.*;
  * @author Leo Woerteler
  */
 public final class Var extends ExprInfo {
-  /**
-   * Variable kinds.
-   * @author Leo Woerteler
-   */
-  public static enum VarKind {
-    /** Local variable. */
-    LOCAL,
-    /** Global variable. */
-    GLOBAL,
-    /** Function parameter. */
-    FUNC_PARAM;
-  };
-
   /** Variable name. */
   public final QNm name;
   /** Variable ID. */
@@ -45,21 +32,21 @@ public final class Var extends ExprInfo {
   /** Actual return type (by type inference). */
   private SeqType type;
   /** Flag for global variables. */
-  public final VarKind kind;
+  public final boolean param;
 
   /**
    * Constructor.
    * @param ctx query context, used for generating a variable ID
    * @param n variable name, {@code null} for unnamed variable
    * @param typ expected type, {@code null} for no check
-   * @param k kind of variable
+   * @param fun function parameter flag
    */
-  Var(final QueryContext ctx, final QNm n, final SeqType typ, final VarKind k) {
+  Var(final QueryContext ctx, final QNm n, final SeqType typ, final boolean fun) {
     name = n;
     ret = typ;
     type = typ != null ? typ : SeqType.ITEM_ZM;
     id = ctx.varIDs++;
-    kind = k;
+    param = fun;
     size = type.occ();
   }
 
@@ -70,7 +57,7 @@ public final class Var extends ExprInfo {
    * @param typ expected type, {@code null} for no check
    */
   Var(final QueryContext ctx, final QNm n, final SeqType typ) {
-    this(ctx, n, typ, VarKind.LOCAL);
+    this(ctx, n, typ, false);
   }
 
   /**
@@ -95,14 +82,6 @@ public final class Var extends ExprInfo {
       // [LW] insert checks here
       type = t;
     }
-  }
-
-  /**
-   * Checks if this variable is global.
-   * @return result of check
-   */
-  public boolean global() {
-    return kind == VarKind.GLOBAL;
   }
 
   /**
@@ -171,10 +150,7 @@ public final class Var extends ExprInfo {
   public Value checkType(final Value val, final QueryContext ctx, final InputInfo ii)
       throws QueryException {
     if(ret == null || ret.instance(val)) return val;
-    switch(kind) {
-      case GLOBAL:     return ret.promote(val, ctx, ii);
-      case FUNC_PARAM: return ret.promote(val, ctx, ii);
-      default:         throw Err.XPTYPE.thrw(ii, val.description(), ret, val.type());
-    }
+    if(param) return ret.promote(val, ctx, ii);
+    throw Err.XPTYPE.thrw(ii, val.description(), ret, val.type());
   }
 }

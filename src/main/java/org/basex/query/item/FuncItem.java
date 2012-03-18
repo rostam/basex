@@ -10,12 +10,11 @@ import org.basex.query.*;
 import static org.basex.query.QueryText.*;
 
 import org.basex.query.expr.Expr;
-import org.basex.query.expr.VarRef;
+import org.basex.query.expr.LocalVarRef;
 import org.basex.query.func.DynamicFunc;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.*;
 import org.basex.query.var.*;
-import org.basex.query.var.Var.*;
 import org.basex.util.InputInfo;
 import static org.basex.util.Token.*;
 import org.basex.util.Util;
@@ -39,7 +38,7 @@ public final class FuncItem extends FItem {
   /** The closure of this function item. */
   private final Map<Var, Value> closure;
   /** Size of the stack frame needed for this function. */
-  private final VarScope scope;
+  private final int stackSize;
 
   /**
    * Constructor.
@@ -59,7 +58,7 @@ public final class FuncItem extends FItem {
     expr = body;
     cast = cst && t.ret != null ? t.ret : null;
     closure = cls != null ? cls : Collections.<Var, Value>emptyMap();
-    scope = scp;
+    stackSize = scp.stackSize();
   }
 
   /**
@@ -105,7 +104,8 @@ public final class FuncItem extends FItem {
       final Value... args) throws QueryException {
 
     // bind variables and cache context
-    final Value[] sf = scope.enter(ctx);
+    final Value[] sf = ctx.stackFrame;
+    ctx.stackFrame = stackSize == 0 ? null : new Value[stackSize];
     final Value cv = ctx.value;
     try {
       bindVars(ctx, ii, args);
@@ -115,7 +115,7 @@ public final class FuncItem extends FItem {
       return cast != null ? cast.promote(v, ctx, ii) : v;
     } finally {
       ctx.value = cv;
-      scope.exit(ctx, sf);
+      ctx.stackFrame = sf;
     }
   }
 
@@ -132,7 +132,8 @@ public final class FuncItem extends FItem {
       final Value... args) throws QueryException {
 
     // bind variables and cache context
-    final Value[] sf = scope.enter(ctx);
+    final Value[] sf = ctx.stackFrame;
+    ctx.stackFrame = stackSize == 0 ? null : new Value[stackSize];
     final Value cv = ctx.value;
     try {
       bindVars(ctx, ii, args);
@@ -142,7 +143,7 @@ public final class FuncItem extends FItem {
       return cast != null ? cast.cast(it, expr, false, ctx, ii) : it;
     } finally {
       ctx.value = cv;
-      scope.exit(ctx, sf);
+      ctx.stackFrame = sf;
     }
   }
 
@@ -175,8 +176,8 @@ public final class FuncItem extends FItem {
     final Var[] vars = new Var[fun.vars.length];
     final Expr[] refs = new Expr[vars.length];
     for(int i = vars.length; i-- > 0;) {
-      vars[i] = sc.uniqueVar(ctx, t.args[i], VarKind.FUNC_PARAM);
-      refs[i] = new VarRef(ii, vars[i]);
+      vars[i] = sc.uniqueVar(ctx, t.args[i], true);
+      refs[i] = new LocalVarRef(ii, vars[i]);
     }
     return new FuncItem(fun.name, vars, new DynamicFunc(ii, fun, refs), t,
         fun.cast != null, null, sc);

@@ -6,8 +6,7 @@ import java.util.*;
 import org.basex.io.serial.*;
 import org.basex.query.*;
 import org.basex.query.expr.*;
-import org.basex.query.item.Empty;
-import org.basex.query.item.Item;
+import org.basex.query.item.*;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.*;
 import org.basex.query.var.*;
@@ -89,6 +88,12 @@ public class GFLWOR extends ParseExpr {
     ret.comp(ctx, scp);
     // [LW] optimizations
     return this;
+  }
+
+  @Override
+  public Expr compEbv(final QueryContext ctx) {
+    // [LW] more optimizations
+    return super.compEbv(ctx);
   }
 
   @Override
@@ -181,6 +186,24 @@ public class GFLWOR extends ParseExpr {
     @Override
     public abstract Clause comp(QueryContext ctx, final VarScope scp)
         throws QueryException;
+
+    @Deprecated
+    @Override
+    public Iter iter(final QueryContext ctx) throws QueryException {
+      throw Util.notexpected();
+    }
+
+    @Deprecated
+    @Override
+    public Value value(final QueryContext ctx) throws QueryException {
+      throw Util.notexpected();
+    }
+
+    @Deprecated
+    @Override
+    public Item item(final QueryContext ctx, final InputInfo ii) throws QueryException {
+      throw Util.notexpected();
+    }
 
     /**
      * Undeclares all declared variables.

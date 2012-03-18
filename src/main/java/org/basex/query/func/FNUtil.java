@@ -87,6 +87,8 @@ public final class FNUtil extends StandardFunc {
       case _UTIL_TO_STRING:         return toString(ctx);
       case _UTIL_DEEP_EQUAL:        return deep(ctx);
       case _UTIL_PATH:              return filename(ctx);
+      case _UTIL_ALL:               return ebv(ctx, true);
+      case _UTIL_ANY:               return ebv(ctx, false);
       default:                      return super.item(ctx, ii);
     }
   }
@@ -474,6 +476,21 @@ public final class FNUtil extends StandardFunc {
   private static Str filename(final QueryContext ctx) {
     final String fn = ctx.context.prop.get(Prop.QUERYPATH);
     return fn.isEmpty() ? null : Str.get(fn);
+  }
+
+  /**
+   * Checks if some or all items in the input sequence have an effective boolean value
+   * of {@code true()}.
+   * @param ctx query context
+   * @param all all flag
+   * @return boolean result
+   * @throws QueryException query exception
+   */
+  private Bln ebv(final QueryContext ctx, final boolean all) throws QueryException {
+    final Iter in = ctx.iter(expr[0]);
+    for(Item it; (it = in.next()) != null;)
+      if(it.ebv(ctx, input).bool(input) ^ all) return Bln.get(!all);
+    return Bln.get(all);
   }
 
   @Override

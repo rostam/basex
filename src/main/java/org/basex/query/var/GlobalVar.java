@@ -7,6 +7,7 @@ import org.basex.io.serial.*;
 import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.item.*;
+import org.basex.query.iter.*;
 import org.basex.query.util.*;
 import org.basex.util.*;
 
@@ -16,32 +17,31 @@ import org.basex.util.*;
  * @author BaseX Team 2005-12, BSD License
  * @author Leo Woerteler
  */
-public final class GlobalVar extends ParseExpr {
-  /** Declared variable. */
-  public final Var var;
+public final class GlobalVar extends VarRef {
   /** Annotations. */
   public final Ann ann;
-
   /** Declaration flag. */
   public boolean declared;
-
   /** Bound value. */
   private Value value;
   /** Bound expression. */
   private Expr expr;
 
+  /** Variables should only be compiled once. */
+  private boolean compiled;
+
   /**
    * Constructor.
    * @param ii input info
-   * @param v variable
    * @param a annotations
+   * @param n variable name
+   * @param t variable type
    * @param e expression to be bound
    */
-  GlobalVar(final InputInfo ii, final Var v, final Ann a, final Expr e) {
-    super(ii);
-    var = v;
-    ann = a;
-    type = v.type();
+  GlobalVar(final InputInfo ii, final Ann a, final QNm n, final SeqType t, final Expr e) {
+    super(n, ii);
+    ann = a == null ? new Ann() : a;
+    type = t;
     expr = e;
   }
 
@@ -54,10 +54,25 @@ public final class GlobalVar extends ParseExpr {
   }
 
   @Override
-  public GlobalVar comp(final QueryContext ctx, final VarScope scp)
+  public Value comp(final QueryContext ctx, final VarScope scp)
       throws QueryException {
-    if(expr != null) bind(checkUp(expr, ctx).comp(ctx, scp), ctx);
-    return this;
+    if(compiled) return value;
+    if(expr == null) throw Err.VARUNDEF.thrw(input, this);
+
+    compiled = true;
+    return bind(checkUp(expr, ctx).comp(ctx, scp).value(ctx), ctx);
+  }
+
+  @Override
+  public Iter iter(final QueryContext ctx) throws QueryException {
+    return value(ctx).iter();
+  }
+
+  @Override
+  public Value value(final QueryContext ctx) throws QueryException {
+    if(value != null) return value;
+    if(expr == null) throw Err.VARUNDEF.thrw(input, this);
+    return bind(expr.value(ctx), ctx);
   }
 
   /**
@@ -66,9 +81,7 @@ public final class GlobalVar extends ParseExpr {
    * @param ctx query context
    * @throws QueryException query exception
    */
-  public void reset(final SeqType t, final QueryContext ctx)
-      throws QueryException {
-
+  public void reset(final SeqType t, final QueryContext ctx) throws QueryException {
     type = t;
     if(value != null && !value.type.instanceOf(t.type) &&
         value instanceof Item) {
@@ -83,17 +96,11 @@ public final class GlobalVar extends ParseExpr {
    * @return self reference
    * @throws QueryException query exception
    */
-  public GlobalVar bind(final Expr e, final QueryContext ctx) throws QueryException {
+  public Expr bind(final Expr e, final QueryContext ctx) throws QueryException {
     expr = e;
-    return e.isValue() ? bind((Value) e, ctx) : this;
-  }
-
-  /**
-   * Returns the bound expression.
-   * @return expression
-   */
-  public Expr expr() {
-    return expr;
+    if(e.isValue()) return bind((Value) e, ctx);
+    compiled = false;
+    return this;
   }
 
   /**
@@ -103,10 +110,10 @@ public final class GlobalVar extends ParseExpr {
    * @return self reference
    * @throws QueryException query exception
    */
-  public GlobalVar bind(final Value v, final QueryContext ctx) throws QueryException {
+  public Value bind(final Value v, final QueryContext ctx) throws QueryException {
     expr = v;
     value = cast(v, ctx);
-    return this;
+    return value;
   }
 
   /**
@@ -118,26 +125,27 @@ public final class GlobalVar extends ParseExpr {
    */
   private Value cast(final Value v, final QueryContext ctx)
       throws QueryException {
-    return type == null ? v : type.promote(v, ctx, input);
+    return type == null ? v : v.isItem() ? type.cast((Item) v, this, true, ctx, input)
+        : type.promote(v, ctx, input);
   }
 
   @Override
   public void plan(final Serializer ser) throws IOException {
-    ser.openElement(this, NAM, Token.token(toString()));
+    ser.openElement(this, NAM, name.string());
     if(expr != null) expr.plan(ser);
     ser.closeElement();
   }
 
   @Override
   public SeqType type() {
-    return type != null ? type : var.type();
+    return type != null ? type : SeqType.ITEM_ZM;
   }
 
   @Override
   public boolean sameAs(final Expr cmp) {
     if(!(cmp instanceof GlobalVar)) return false;
     final GlobalVar v = (GlobalVar) cmp;
-    return var.equals(v.var) && type().eq(v.type());
+    return name.equals(v.name) && type().eq(v.type());
   }
 
   @Override
@@ -156,17 +164,31 @@ public final class GlobalVar extends ParseExpr {
   }
 
   @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder(DECLARE).append(' ');
-    if(!ann.isEmpty()) sb.append(ann).append(' ');
-    sb.append(VARIABLE).append(' ').append(var).append(' ');
-    if(expr != null) sb.append(ASSIGN).append(' ').append(expr);
-    else sb.append(EXTERNAL);
-    return sb.append(';').toString();
-  }
-
-  @Override
   public boolean visitVars(final VarVisitor visitor) {
     return expr.visitVars(visitor);
+  }
+
+  /**
+   * Tries to refine the compile-time type of this variable through the type of the bound
+   * expression.
+   * @param t type of the bound expression
+   * @throws QueryException if the types are incompatible
+   */
+  @SuppressWarnings("unused")
+  public void refineType(final SeqType t) throws QueryException {
+    if(t == null) return;
+    if(type == null) type = t;
+    else {
+      // [LW] insert checks here
+      type = t;
+    }
+  }
+
+  /**
+   * Getter.
+   * @return the bound expression
+   */
+  protected Expr expr() {
+    return expr;
   }
 }

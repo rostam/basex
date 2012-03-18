@@ -1,5 +1,6 @@
 package org.basex.query.var;
 
+import static org.basex.query.QueryText.*;
 import static org.basex.query.util.Err.*;
 import org.basex.data.ExprInfo;
 import org.basex.io.serial.*;
@@ -11,7 +12,6 @@ import org.basex.query.*;
 import org.basex.query.item.*;
 import org.basex.query.expr.Expr;
 import org.basex.query.util.*;
-import org.basex.query.var.Var.*;
 import org.basex.util.InputInfo;
 
 
@@ -56,14 +56,14 @@ public final class Globals extends ExprInfo {
         for(int i = a.size(); --i >= 0;)
           var.ann.add(a.names[i], a.values[i]);
       }
-      var.var.refineType(t);
+      var.refineType(t);
       if(e != null) var.bind(e, ctx);
 
       return var;
     }
 
     // new variable
-    final GlobalVar nvar = new GlobalVar(ii, new Var(ctx, nm, t, VarKind.GLOBAL), a, e);
+    final GlobalVar nvar = new GlobalVar(ii, a, nm, t, e);
     nvar.declared = d;
     globals.put(nm, nvar);
     return nvar;
@@ -78,15 +78,16 @@ public final class Globals extends ExprInfo {
   }
 
   /**
-   * Number of declared global variables.
-   * @return number of variables
+   * Checks if no global variables are declared.
+   * @return {@code true} if no global variables are used, {@code false} otherwise
    */
-  public int size() {
-    return globals.size();
+  public boolean isEmpty() {
+    return globals.isEmpty();
   }
 
   @Override
   public void plan(final Serializer ser) throws IOException {
+    if(globals.isEmpty()) return;
     ser.openElement(this);
     for(final GlobalVar v : globals.values()) v.plan(ser);
     ser.closeElement();
@@ -95,7 +96,14 @@ public final class Globals extends ExprInfo {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    for(final GlobalVar v : globals.values()) sb.append(v);
+    for(final GlobalVar v : globals.values()) {
+      sb.append(DECLARE).append(' ');
+      if(!v.ann.isEmpty()) sb.append(v.ann).append(' ');
+      sb.append(VARIABLE).append(' ').append(v).append(' ');
+      if(v.expr() != null) sb.append(ASSIGN).append(' ').append(v.expr());
+      else sb.append(EXTERNAL);
+      return sb.append(';').toString();
+    }
     return sb.toString();
   }
 }

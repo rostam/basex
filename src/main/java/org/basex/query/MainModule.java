@@ -41,6 +41,7 @@ public class MainModule extends ExprInfo implements Scope {
     try {
       scope.enter(ctx);
       expr = expr.comp(ctx, scope);
+      scope.cleanUp(this);
     } finally {
       scope.exit(ctx, null);
     }

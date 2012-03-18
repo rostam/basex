@@ -164,7 +164,7 @@ public abstract class Expr extends ExprInfo {
     final int[] res = new int[1];
     visitVars(new VarVisitor() {
       @Override
-      public boolean used(final VarRef ref) {
+      public boolean used(final LocalVarRef ref) {
         if(ref.var.is(v)) res[0]++;
         return true;
       }
@@ -191,7 +191,7 @@ public abstract class Expr extends ExprInfo {
   public abstract boolean removable(final Var v);
 
   /**
-   * Substitutes all {@link VarRef} expressions for the given variable
+   * Substitutes all {@link LocalVarRef} expressions for the given variable
    * by a {@link Context} reference. This method is called by
    * {@link GFLWOR#comp} to rewrite where clauses as predicates.
    * @param v variable to be replaced
@@ -311,7 +311,7 @@ public abstract class Expr extends ExprInfo {
       }
 
       @Override
-      public boolean used(final VarRef ref) {
+      public boolean used(final LocalVarRef ref) {
         return declared.get(ref.var.id);
       }
     });

@@ -377,7 +377,7 @@ public final class QueryContext extends Progress {
    */
   void plan(final Serializer ser) throws IOException {
     // only show root node if functions or variables exist
-    final boolean r = funcs.funcs().length != 0 || globals.size() != 0;
+    final boolean r = funcs.funcs().length != 0 || !globals.isEmpty();
     if(r) ser.openElement(PLAN);
     funcs.plan(ser);
     globals.plan(ser);

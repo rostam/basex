@@ -1,5 +1,6 @@
 package org.basex.query.util;
 
+import org.basex.query.*;
 import org.basex.query.expr.Cast;
 import org.basex.query.expr.Expr;
 import org.basex.query.func.JavaMapping;
@@ -63,5 +64,10 @@ public final class TypedFunc {
    */
   public static TypedFunc java(final JavaMapping f) {
     return new TypedFunc(f, FuncType.arity(f.expr.length));
+  }
+
+  @Override
+  public String toString() {
+    return fun.toString() + ' ' + QueryText.AS + ' ' + type;
   }
 }

@@ -9,7 +9,6 @@ import org.basex.query.expr.*;
 import org.basex.query.func.*;
 import org.basex.query.item.*;
 import org.basex.query.util.*;
-import org.basex.query.var.Var.*;
 import org.basex.util.*;
 
 /**
@@ -22,10 +21,10 @@ public final class VarScope {
   /** stack of currently accessible variables. */
   private final VarStack current = new VarStack();
   /** Local variables in this scope. */
-  private final HashSet<Var> vars = new HashSet<Var>();
+  private final ArrayList<Var> vars = new ArrayList<Var>();
 
   /** This scope's closure. */
-  private final Map<Var, VarRef> closure = new HashMap<Var, VarRef>();
+  private final Map<Var, LocalVarRef> closure = new HashMap<Var, LocalVarRef>();
 
   /** This scope's parent scope, used for looking up non-local variables. */
   private final VarScope parent;
@@ -50,7 +49,8 @@ public final class VarScope {
    */
   private Var add(final Var var) {
     var.slot = vars.size();
-    if(!vars.add(var)) throw Util.notexpected(var);
+    for(final Var v : vars) if(v.is(var)) throw Util.notexpected(var);
+    vars.add(var);
     current.push(var);
     return var;
   }
@@ -65,28 +65,28 @@ public final class VarScope {
    * @return variable reference
    * @throws QueryException if the variable can't be found
    */
-  public Var resolve(final QNm name, final QueryParser qp, final QueryContext ctx,
+  public VarRef resolve(final QNm name, final QueryParser qp, final QueryContext ctx,
       final InputInfo ii, final Err err) throws QueryException {
     final Var v = current.get(name);
-    if(v != null) return v;
+    if(v != null) return new LocalVarRef(ii, v);
 
     if(parent != null) {
-      final Var nonLocal = parent.resolve(name, qp, ctx, ii, err);
-      if(nonLocal.kind == VarKind.GLOBAL) return nonLocal;
+      final VarRef nonLocal = parent.resolve(name, qp, ctx, ii, err);
+      if(!(nonLocal instanceof LocalVarRef)) return nonLocal;
 
       // a variable in the closure
       final Var local = new Var(ctx, name, null);
       local.refineType(nonLocal.type());
       add(local);
-      closure.put(local, new VarRef(ii, nonLocal));
-      return local;
+      closure.put(local, (LocalVarRef) nonLocal);
+      return new LocalVarRef(ii, local);
     }
 
     // global variable
     GlobalVar global = ctx.globals.get(name);
     if(global == null) global = Variable.get(name, ctx);
     if(global == null && err != null) throw qp.error(err, '$' + string(name.string()));
-    return global.var;
+    return global;
   }
 
   /**
@@ -127,11 +127,11 @@ public final class VarScope {
    * Creates a variable with a unique, non-clashing variable name.
    * @param ctx context for variable ID
    * @param type type
-   * @param kind kind of the variable
+   * @param param function parameter flag
    * @return variable
    */
-  public Var uniqueVar(final QueryContext ctx, final SeqType type, final VarKind kind) {
-    return add(new Var(ctx, new QNm(token(ctx.varIDs)), type, kind));
+  public Var uniqueVar(final QueryContext ctx, final SeqType type, final boolean param) {
+    return add(new Var(ctx, new QNm(token(ctx.varIDs)), type, param));
   }
 
   /**
@@ -144,23 +144,15 @@ public final class VarScope {
    */
   public Var newLocal(final QueryContext ctx, final QNm name, final SeqType typ,
       final boolean param) {
-    return add(new Var(ctx, name, typ, param ? VarKind.FUNC_PARAM : VarKind.LOCAL));
+    return add(new Var(ctx, name, typ, param));
   }
 
   /**
    * Get the closure of this scope.
    * @return mapping from non-local to local variables
    */
-  public Map<Var, VarRef> closure() {
+  public Map<Var, LocalVarRef> closure() {
     return closure;
-  }
-
-  /**
-   * Gets all local variables in this scope.
-   * @return array containing all local variables
-   */
-  public Var[] locals() {
-    return vars.toArray(new Var[vars.size()]);
   }
 
   /**
@@ -202,6 +194,37 @@ public final class VarScope {
 
     // purge all unused variables
     final Iterator<Var> iter = vars.iterator();
-    while(iter.hasNext()) if(!declared.get(iter.next().id)) iter.remove();
+    while(iter.hasNext()) {
+      final Var v = iter.next();
+      if(!declared.get(v.id)) {
+        v.slot = -1;
+        iter.remove();
+      }
+    }
+  }
+
+  @Override
+  public String toString() {
+    return Util.name(this) + vars.toString();
+  }
+
+  /**
+   * Gathers all parameters in this scope.
+   * @return array of parameters
+   */
+  public Var[] params() {
+    int n = 0;
+    for(final Var v : vars) if(v.param) n++;
+    final Var[] arr = new Var[n];
+    for(final Var v : vars) if(v.param) arr[arr.length - n--] = v;
+    return arr;
+  }
+
+  /**
+   * Stack-frame size needed for this scope.
+   * @return stack-frame size
+   */
+  public int stackSize() {
+    return vars.size();
   }
 }

@@ -24,10 +24,10 @@ public abstract class VarVisitor {
 
   /**
    * Notifies the visitor of a variable reference.
-   * @param var used variable
+   * @param ref used variable
    * @return if more variables should be visited
    */
-  public boolean used(final VarRef var) {
+  public boolean used(final LocalVarRef ref) {
     return true;
   };
 

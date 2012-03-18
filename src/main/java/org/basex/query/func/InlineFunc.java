@@ -21,7 +21,7 @@ import org.basex.util.*;
  * @author BaseX Team 2005-12, BSD License
  * @author Leo Woerteler
  */
-public final class InlineFunc extends UserFunc {
+public class InlineFunc extends UserFunc {
   /**
    * Constructor.
    * @param ii input info
@@ -33,15 +33,34 @@ public final class InlineFunc extends UserFunc {
    */
   public InlineFunc(final InputInfo ii, final SeqType r, final Var[] v,
       final Expr e, final Ann a, final VarScope scp) {
-    super(ii, null, v, r, a, scp);
+    this(ii, null, r, v, e, a, scp);
+  }
+
+  /**
+   * Package-private constructor allowing a name.
+   * @param ii input info
+   * @param nm name of the function
+   * @param r return type
+   * @param v argument variables
+   * @param e function expression
+   * @param a annotations
+   * @param scp variable scope
+   */
+  InlineFunc(final InputInfo ii, final QNm nm, final SeqType r, final Var[] v,
+      final Expr e, final Ann a, final VarScope scp) {
+    super(ii, nm, v, r, a, scp);
     expr = e;
   }
 
   @Override
   public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     cmp(ctx);
+    type = FuncType.get(this).seqType();
+    size = 1;
     // only evaluate if the closure is empty, so we don't lose variables
-    return expr.hasFreeVars() ? this : preEval(ctx);
+    return scope.closure().isEmpty()
+        ? preEval(ctx)
+        : this;
   }
 
   @Override
@@ -51,7 +70,7 @@ public final class InlineFunc extends UserFunc {
 
     // collect closure
     final Map<Var, Value> clos = new HashMap<Var, Value>();
-    for(final Entry<Var, VarRef> e : scope.closure().entrySet())
+    for(final Entry<Var, LocalVarRef> e : scope.closure().entrySet())
       clos.put(e.getKey(), e.getValue().value(ctx));
 
     return new FuncItem(args, expr, ft, c, clos, scope);
@@ -111,13 +130,13 @@ public final class InlineFunc extends UserFunc {
 
   @Override
   public boolean visit(final VarVisitor visitor) {
-    final Map<Var, VarRef> clos = scope.closure();
+    final Map<Var, LocalVarRef> clos = scope.closure();
     if(clos.isEmpty()) return visitor.withVars(args, expr);
 
     final Var[] cls = new Var[clos.size()];
     int i = cls.length;
-    for(final Entry<Var, VarRef> v : clos.entrySet()) {
-      if(!(visitor.used(v.getValue())) && visitor.declared(v.getKey())) return false;
+    for(final Entry<Var, LocalVarRef> v : clos.entrySet()) {
+      if(!(visitor.used(v.getValue()) && visitor.declared(v.getKey()))) return false;
       cls[--i] = v.getKey();
     }
     if(!visitor.withVars(args, expr)) return false;

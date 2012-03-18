@@ -38,7 +38,6 @@ import org.basex.query.util.pkg.Package.Component;
 import org.basex.query.util.pkg.Package.Dependency;
 import org.basex.query.util.pkg.Package;
 import org.basex.query.var.*;
-import org.basex.query.var.Var.*;
 import org.basex.util.*;
 import org.basex.util.Array;
 import org.basex.util.ft.*;
@@ -113,10 +112,8 @@ public class QueryParser extends InputParser {
 
   /** Cached QNames. */
   private final ArrayList<QNmCheck> names = new ArrayList<QNmCheck>();
-  /** Scope of static variables. */
-  private VarScope staticScope = new VarScope();
   /** Current variable scope. */
-  VarScope scope = staticScope;
+  VarScope scope = new VarScope();
 
   /**
    * Constructor.
@@ -1333,17 +1330,20 @@ public class QueryParser extends InputParser {
       if(type != null) wsCheck(ASSIGN);
       by = check(single(), NOVARDECL);
     } else {
-      final Var v = checkVar(name, GVARNOTDEFINED);
+      final VarRef vr = checkVar(name, GVARNOTDEFINED);
       // the grouping variable has to be declared by the same FLWOR expression
       boolean dec = false;
-      for(final Clause f : cl) {
-        if(f.declares(v)) {
-          dec = true;
-          break;
+      if(vr instanceof LocalVarRef) {
+        final Var v = ((LocalVarRef) vr).var;
+        for(final Clause f : cl) {
+          if(f.declares(v)) {
+            dec = true;
+            break;
+          }
         }
       }
-      if(!dec) throw error(GVARNOTDEFINED, v);
-      by = new VarRef(ii, v);
+      if(!dec) throw error(GVARNOTDEFINED, vr);
+      by = vr;
     }
 
     if(wsConsumeWs(COLLATION)) {
@@ -2002,9 +2002,14 @@ public class QueryParser extends InputParser {
         final Expr[] args = argumentList(e);
         if(args == null) break;
 
-        final VarScope sc = partial(args);
+        final PartFunc.Env env = partial(args);
         e = new DynamicFunc(input(), e, args);
-        if(sc != null) e = new PartFunc(input(), e, sc.locals(), sc);
+        if(env != null) {
+          // the function item expression can contain variables, too
+          scope = env.scope;
+          e = new PartFunc(input(), fixScope(e), env);
+          scope = scope.parent();
+        }
       }
     } while(e != old);
     return e;
@@ -2016,38 +2021,48 @@ public class QueryParser extends InputParser {
    * @return new scope if the expression was partially applied
    * @throws QueryException exception
    */
-  private VarScope partial(final Expr[] args) throws QueryException {
-    VarScope scp = null;
-    final InputInfo ii = input();
-    for(int i = 0; i < args.length; i++) {
-      if(args[i] == null) {
-        if(scp == null) {
-          scp = scope.child();
-          scope = scp;
-          // variable references in the preceding arguments have to be transferred
-          for(int j = 0; j < i; j++) fixScope(args[j]);
-        }
-        args[i] = new VarRef(ii, scp.uniqueVar(ctx, null, VarKind.FUNC_PARAM));
+  private PartFunc.Env partial(final Expr[] args) throws QueryException {
+    PartFunc.Env env = null;
+    for(final Expr e : args) {
+      if(e == null) {
+        scope = scope.child();
+        env = new PartFunc.Env(scope);
+        break;
       }
     }
-    if(scp != null) scope = scope.parent();
-    return scp;
+
+    if(env != null) {
+      final InputInfo ii = input();
+      for(int i = 0; i < args.length; i++) {
+        if(args[i] == null) {
+          final Var arg = scope.uniqueVar(ctx, null, true);
+          env.add(i, arg);
+          args[i] = new LocalVarRef(ii, arg);
+        } else {
+          fixScope(args[i]);
+        }
+      }
+      scope = scope.parent();
+    }
+    return env;
   }
 
   /**
    * Fixes all variable references for the new scope.
    * @param e expression
+   * @return the expression for convenience
    * @throws QueryException exception
    */
-  private void fixScope(final Expr e) throws QueryException {
+  private Expr fixScope(final Expr e) throws QueryException {
     try {
       e.visitVars(new VarVisitor() {
         @Override
-        public boolean used(final VarRef ref) {
-          final Var v = ref.var;
-          if(v.global()) return true;
+        public boolean used(final LocalVarRef ref) {
           try {
-            ref.var = scope.resolve(v.name, QueryParser.this, ctx, ref.input, VARUNDEF);
+            final VarRef lc = scope.resolve(ref.var.name, QueryParser.this, ctx,
+                ref.input, VARUNDEF);
+            // downcast is safe because the new reference is just the closure equivalent
+            ref.var = ((LocalVarRef) lc).var;
             return true;
           } catch(QueryException ex) {
             throw new QueryError(ex);
@@ -2057,6 +2072,7 @@ public class QueryParser extends InputParser {
     } catch(final QueryError qe) {
       throw qe.wrapped();
     }
+    return e;
   }
 
   /**
@@ -2071,10 +2087,7 @@ public class QueryParser extends InputParser {
     skipWS();
     final char c = curr();
     // variables
-    if(c == '$') {
-      final Var v = checkVar(varName(), VARUNDEF);
-      return new VarRef(input(), v);
-    }
+    if(c == '$') return checkVar(varName(), VARUNDEF);
     // parentheses
     if(c == '(' && next() != '#') return parenthesized();
     // direct constructor
@@ -2141,13 +2154,13 @@ public class QueryParser extends InputParser {
     final Ann ann = ctx.xquery3 && curr('%') ? annotations() : null;
     // inline function
     if(wsConsume(FUNCTION) && wsConsume(PAR1)) {
-      scope = scope.child();
+      final VarScope inner = scope = scope.child();
       final Var[] args = paramList();
       wsCheck(PAR2);
       final SeqType type = optAsType();
       final Expr body = enclosed(NOFUNBODY);
       scope = scope.parent();
-      return new InlineFunc(input(), type, args, body, ann, scope);
+      return new InlineFunc(input(), type, args, body, ann, inner);
     }
     // annotations not allowed here
     if(ann != null) error(NOANN);
@@ -2299,11 +2312,11 @@ public class QueryParser extends InputParser {
         alterFunc = name;
         ap = qp;
 
-        final VarScope sc = partial(args);
+        final PartFunc.Env env = partial(args);
         final TypedFunc f = Functions.get(name, args, false, ctx, input());
         if(f != null) {
           alter = null;
-          return sc != null ? new PartFunc(input(), f, sc.locals(), sc) : f.fun;
+          return env != null ? new PartFunc(input(), f, env) : f.fun;
         }
       }
     }
@@ -3746,7 +3759,7 @@ public class QueryParser extends InputParser {
    * @return referenced variable
    * @throws QueryException if the variable isn't defined
    */
-  private Var checkVar(final QNm name, final Err err) throws QueryException {
+  private VarRef checkVar(final QNm name, final Err err) throws QueryException {
     return scope.resolve(name, this, ctx, input(), err);
   }
 

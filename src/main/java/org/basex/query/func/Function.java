@@ -736,6 +736,10 @@ public enum Function {
   _UTIL_PATH(FNUtil.class, "path()", STR),
   /** Utility function: passes type information to {@code fn:trace()}. */
   _UTIL_TYPE(FNUtil.class, "type(expr)", ITEM_ZM, ITEM_ZM),
+  /** Utility function: tests if all items in a sequence have an EBV of {@code true()}. */
+  _UTIL_ALL(FNUtil.class, "all(seq)", BLN, ITEM_ZM),
+  /** Utility function: tests if one item in a sequence has an EBV of {@code true()}. */
+  _UTIL_ANY(FNUtil.class, "any(seq)", BLN, ITEM_ZM),
 
   /* FNXslt functions. */
 

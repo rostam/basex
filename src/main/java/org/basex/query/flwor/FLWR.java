@@ -3,7 +3,7 @@ package org.basex.query.flwor;
 import static org.basex.query.QueryText.*;
 import org.basex.query.*;
 import org.basex.query.expr.Expr;
-import org.basex.query.expr.VarRef;
+import org.basex.query.expr.LocalVarRef;
 import org.basex.query.item.Item;
 import org.basex.query.iter.Iter;
 import org.basex.query.var.*;
@@ -33,8 +33,8 @@ public final class FLWR extends GFLWOR {
     if(ex != this) return ex;
 
     // simplify basic GFLWOR expression (for $i in A return $i -> A)
-    if(fl.length == 1 && where == null && ret instanceof VarRef) {
-      final Var v = ((VarRef) ret).var;
+    if(fl.length == 1 && where == null && ret instanceof LocalVarRef) {
+      final Var v = ((LocalVarRef) ret).var;
       if(!v.checksType() && fl[0].var.is(v)) {
         ctx.compInfo(OPTFLWOR);
         return fl[0].expr;

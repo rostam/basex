@@ -6,8 +6,7 @@ import java.io.IOException;
 
 import org.basex.io.serial.Serializer;
 import org.basex.query.*;
-import org.basex.query.expr.Expr;
-import org.basex.query.expr.Single;
+import org.basex.query.expr.*;
 import org.basex.query.item.AtomType;
 import org.basex.query.item.Item;
 import org.basex.query.item.QNm;
@@ -42,7 +41,7 @@ public class UserFunc extends Single implements Scope {
   public final boolean updating;
 
   /** Local variables in the scope of this function. */
-  protected VarScope scope;
+  protected final VarScope scope;
 
   /** Cast flag. */
   private boolean cast;
@@ -122,6 +121,7 @@ public class UserFunc extends Single implements Scope {
     final Value[] sf = scope.enter(ctx);
     try {
       expr = expr.comp(ctx, scope);
+      scope.cleanUp(this);
     } finally {
       scope.exit(ctx, sf);
     }
@@ -212,6 +212,8 @@ public class UserFunc extends Single implements Scope {
 
   @Override
   public final boolean visitVars(final VarVisitor visitor) {
+    for(final LocalVarRef ref : scope.closure().values())
+      if(!visitor.used(ref)) return false;
     return visitor.subScope(this);
   }
 

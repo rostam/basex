@@ -14,7 +14,6 @@ import org.basex.query.item.*;
 import org.basex.query.item.SeqType.*;
 import org.basex.query.util.*;
 import org.basex.query.var.*;
-import org.basex.query.var.Var.*;
 import org.basex.util.InputInfo;
 import org.basex.util.Levenshtein;
 import org.basex.util.TokenBuilder;
@@ -101,8 +100,8 @@ public final class Functions extends TokenSet {
     final Expr[] args = new Expr[(int) arity];
     final Var[] vars = new Var[args.length];
     for(int i = 0; i < args.length; i++) {
-      vars[i] = sc.uniqueVar(ctx, null, VarKind.FUNC_PARAM);
-      args[i] = new VarRef(ii, vars[i]);
+      vars[i] = sc.uniqueVar(ctx, null, true);
+      args[i] = new LocalVarRef(ii, vars[i]);
     }
 
     final TypedFunc f = get(name, args, dyn, ctx, ii);
