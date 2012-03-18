@@ -122,7 +122,7 @@ public class QueryParser extends InputParser {
    * @throws QueryException query exception
    */
   public QueryParser(final String q, final QueryContext c) throws QueryException {
-    super(q, c.sc.baseIO());
+    super(q);
     ctx = c;
 
     // parse pre-defined external variables
@@ -168,19 +168,19 @@ public class QueryParser extends InputParser {
       throws QueryException {
 
     final String k = key.toString().trim();
-    if(!k.isEmpty()) ctx.bind(k, new Atm(token(val.toString())));
+    if(!k.isEmpty()) ctx.bind(k, new Atm(val.toString()), null);
   }
 
   /**
    * Parses the specified query or module.
-   * If a URI is specified, the query is treated as a module.
-   * @param input optional input file
+   * If the specified uri is {@code null}, the query is parsed as main module.
    * @param uri module uri.
    * @return resulting expression
    * @throws QueryException query exception
    */
-  public final MainModule parse(final IO input, final byte[] uri) throws QueryException {
-    file = input;
+  public final MainModule parse(final byte[] uri) throws QueryException {
+    file(ctx.sc.baseIO(), ctx.context);
+
     if(!more()) error(QUERYEMPTY);
 
     // checks if the query string contains invalid characters
@@ -196,7 +196,7 @@ public class QueryParser extends InputParser {
       p += hs ? Character.charCount(cp) : 1;
     }
 
-    final MainModule expr = parse(uri);
+    final MainModule expr = module(uri);
     if(more()) {
       if(alter != null) error();
       final String rest = rest();
@@ -221,12 +221,12 @@ public class QueryParser extends InputParser {
 
   /**
    * Parses the specified query and starts with the "Module" rule.
-   * If a URI is specified, the query is treated as a module.
+   * If the specified uri is {@code null}, the query is parsed as main module.
    * @param u module uri
    * @return resulting expression
    * @throws QueryException query exception
    */
-  public final MainModule parse(final byte[] u) throws QueryException {
+  public final MainModule module(final byte[] u) throws QueryException {
     try {
       MainModule mod = null;
       versionDecl();
@@ -314,10 +314,7 @@ public class QueryParser extends InputParser {
     prolog2();
     // check if import and declaration uri match
     // skip test if module has not been imported (in this case, URI is empty)
-    if(u.length != 0 && !eq(u, module.uri())) {
-      final boolean admin = ctx.context.user.perm(User.ADMIN);
-      error(WRONGMODULE, module.uri(), admin ? file.toString() : file.name());
-    }
+    if(u.length != 0 && !eq(u, uri)) error(WRONGMODULE, module.uri(), file);
   }
 
   /**
@@ -700,14 +697,15 @@ public class QueryParser extends InputParser {
       ns = ncName(XPNAME);
       wsCheck(IS);
     }
+
     final byte[] uri = trim(stringLiteral());
     if(uri.length == 0) error(NSMODURI);
     if(modules.contains(uri)) error(DUPLMODULE, uri);
     modules.add(uri);
-
     if(ns != EMPTY) ctx.sc.ns.add(ns, uri, input());
 
     try {
+      // search modules at specified locations
       if(wsConsumeWs(AT)) {
         do {
           module(stringLiteral(), uri);
@@ -715,8 +713,8 @@ public class QueryParser extends InputParser {
         return;
       }
 
+      // check Java modules (inheriting {@link QueryModule})
       if(startsWith(uri, JAVAPRE)) {
-        // check for Java modules
         final String path = string(substring(uri, JAVAPRE.length));
         final Class<?> clz = Reflect.find(path);
         if(clz == null) error(NOMODULE, uri);
@@ -746,13 +744,13 @@ public class QueryParser extends InputParser {
         return;
       }
 
-      // check statically known modules
+      // search for statically known modules
       boolean found = false;
       for(final byte[] u : MODULES) found |= eq(uri, u);
-      // check pre-declared modules
+
+      // search for pre-declared modules
       final byte[] path = ctx.modDeclared.get(uri);
       if(path != null) module(path, uri);
-      // module not found: show error
       else if(!found) error(NOMODULE, uri);
 
     } catch(final StackOverflowError ex) {
@@ -766,9 +764,7 @@ public class QueryParser extends InputParser {
    * @param uri module uri
    * @throws QueryException query exception
    */
-  private void module(final byte[] path, final byte[] uri)
-      throws QueryException {
-
+  private void module(final byte[] path, final byte[] uri) throws QueryException {
     final byte[] u = ctx.modParsed.get(path);
     if(u != null) {
       if(!eq(uri, u)) error(WRONGMODULE, uri, path);
@@ -777,18 +773,18 @@ public class QueryParser extends InputParser {
     ctx.modParsed.add(path, uri);
 
     // check specified path and path relative to query file
-    final IO io = io(string(path));
+    final IO io = ctx.sc.io(string(path));
     String qu = null;
     try {
       qu = string(io.read());
     } catch(final IOException ex) {
-      final boolean admin = ctx.context.user.perm(User.ADMIN);
-      error(NOMODULEFILE, admin ? io.path() : io.name());
+      error(NOMODULEFILE, ctx.context.user.perm(User.ADMIN) ? io.path() : io.name());
     }
 
     final StaticContext sc = ctx.sc;
     ctx.sc = new StaticContext();
-    new QueryParser(qu, ctx).parse(io, uri);
+    ctx.sc.baseURI(io.path());
+    new QueryParser(qu, ctx).parse(uri);
     ctx.sc = sc;
   }
 
@@ -1947,6 +1943,15 @@ public class QueryParser extends InputParser {
       return new NameTest(new QNm(ncName(QNAMEINV)), NameTest.Mode.NAME, att);
     }
 
+    if(ctx.xquery3 && consume(EQNAME)) {
+      // name test: {...}*
+      final byte[] uri = bracedURILiteral();
+      if(consume('*')) {
+        final QNm nm = new QNm(COLON, uri);
+        return new NameTest(nm, NameTest.Mode.NS, att);
+      }
+    }
+
     final QNm name = eQName(null, SKIPCHECK);
     if(name != null) {
       final int p2 = qp;
@@ -1967,13 +1972,6 @@ public class QueryParser extends InputParser {
           names.add(new QNmCheck(nm, !att));
           return new NameTest(nm, NameTest.Mode.NS, att);
         }
-      }
-    } else if(ctx.xquery3 && quote(curr())) {
-      // name test: '':*
-      final byte[] u = stringLiteral();
-      if(consume(':') && consume('*')) {
-        final QNm nm = new QNm(COLON, u);
-        return new NameTest(nm, NameTest.Mode.NS, att);
       }
     }
     qp = p;
@@ -2270,6 +2268,20 @@ public class QueryParser extends InputParser {
       }
       if(!consume(del)) break;
       tok.add(del);
+    }
+    return tok.finish();
+  }
+
+  /**
+   * Parses the "BracedURILiteral" rule without the "Q{" prefix.
+   * @return query expression
+   * @throws QueryException query exception
+   */
+  private byte[] bracedURILiteral() throws QueryException {
+    tok.reset();
+    while(!consume('}')) {
+      if(!more()) error(WRONGCHAR, BRACE2, found());
+      entity(tok);
     }
     return tok.finish();
   }
@@ -3365,8 +3377,8 @@ public class QueryParser extends InputParser {
               wsCheck(PAR2);
             } else if(wsConsumeWs(AT)) {
               String fn = string(stringLiteral());
-              if(ctx.stop != null) fn = ctx.stop.get(fn);
-              final IO fl = io(fn);
+              // optional: resolve URI reference
+              final IO fl = ctx.stop != null ? ctx.stop.get(fn) : ctx.sc.io(fn);
               if(!opt.sw.read(fl, except)) error(NOSTOPFILE, fl);
             } else if(!union && !except) {
               error(FTSTOP);
@@ -3401,8 +3413,8 @@ public class QueryParser extends InputParser {
     wsCheck(AT);
 
     String fn = string(stringLiteral());
-    if(ctx.thes != null) fn = ctx.thes.get(fn);
-    final IO fl = io(fn);
+    // optional: resolve URI reference
+    final IO fl = ctx.thes != null ? ctx.thes.get(fn) : ctx.sc.io(fn);
     final byte[] rel = wsConsumeWs(RELATIONSHIP) ? stringLiteral() : EMPTY;
     final Expr[] range = ftRange(true);
     long min = 0;
@@ -3562,14 +3574,12 @@ public class QueryParser extends InputParser {
    */
   private QNm eQName(final Err err, final byte[] def) throws QueryException {
     final int p = qp;
-    if(ctx.xquery3 && quote(curr())) {
-      final byte[] uri = stringLiteral();
-      if(consume(':')) {
-        final byte[] name = ncName(null);
-        if(name.length != 0) {
-          if(def == URICHECK && uri.length == 0) error(NOURI, name);
-          return new QNm(name, uri);
-        }
+    if(ctx.xquery3 && consume(EQNAME)) {
+      final byte[] uri = bracedURILiteral();
+      final byte[] name = ncName(null);
+      if(name.length != 0) {
+        if(def == URICHECK && uri.length == 0) error(NOURI, name);
+        return new QNm(name, uri);
       }
       qp = p;
     }
@@ -3693,29 +3703,6 @@ public class QueryParser extends InputParser {
     final int sc = sub.indexOf(';');
     final String ent = sc != -1 ? sub.substring(0, sc + 1) : sub;
     error(c, ent);
-  }
-
-  /**
-   * Returns an IO instance for the specified file, or {@code null}.
-   * @param fn filename
-   * @return io instance
-   */
-  private IO io(final String fn) {
-    final IO io = IO.get(fn);
-    if(io.exists()) return io;
-
-    // append with base uri
-    final IO base = ctx.sc.baseIO();
-    if(base != null) {
-      final IO io2 = base.merge(fn);
-      if(!io2.eq(io) && io2.exists()) return io2;
-    }
-    // append with query directory
-    if(file != null) {
-      final IO io2 = file.merge(fn);
-      if(!io2.eq(io) && io2.exists()) return io2;
-    }
-    return io;
   }
 
   /**

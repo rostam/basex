@@ -18,6 +18,9 @@ import org.basex.util.hash.TokenObjMap;
  * @author Christian Gruen
  */
 public final class StaticContext {
+  /** Decimal formats. */
+  public final TokenObjMap<DecFormatter> decFormats = new TokenObjMap<DecFormatter>();
+
   /** Static and dynamic namespaces. */
   public NSContext ns = new NSContext();
   /** Default element/type namespace. */
@@ -41,13 +44,9 @@ public final class StaticContext {
   public boolean nsInherit = true;
 
   /** Static Base URI. */
-  private byte[] baseURI = EMPTY;
+  private Uri baseURI = Uri.EMPTY;
   /** Default collation. */
   private Uri collation = Uri.uri(URLCOLL, false);
-
-  /** Decimal formats. */
-  public final TokenObjMap<DecFormatter> decFormats =
-    new TokenObjMap<DecFormatter>();
 
   /**
    * Adopts values of the specified static context.
@@ -71,15 +70,13 @@ public final class StaticContext {
 
   /**
    * Declares a namespace.
-   * A namespace is undeclared if the {@code uri} is an empty string.
-   * The default element namespaces is set if the {@code prefix} is empty.
+   * A namespace is undeclared if the specified URI is an empty string.
+   * The default element namespaces is set if the specified prefix is empty.
    * @param prefix namespace prefix
-   * @param uri namespace uri
+   * @param uri namespace URI
    * @throws QueryException query exception
    */
-  public void namespace(final String prefix, final String uri)
-      throws QueryException {
-
+  public void namespace(final String prefix, final String uri) throws QueryException {
     if(prefix.isEmpty()) {
       nsElem = uri.isEmpty() ? null : token(uri);
     } else if(uri.isEmpty()) {
@@ -90,39 +87,51 @@ public final class StaticContext {
   }
 
   /**
-   * Returns an IO representation of the base URI, or {@code null}.
+   * Returns an IO representation of the static base URI, or {@code null}.
    * @return IO reference
    */
   public IO baseIO() {
-    return baseURI.length != 0 ? IO.get(string(baseURI)) : null;
+    return baseURI == Uri.EMPTY ? null : IO.get(baseURI.toJava());
   }
 
   /**
-   * Returns a URI representation of the base URI.
-   * @return IO reference
+   * Returns an IO references for the specified filename.
+   * If a base URI exists, it is merged with the specified filename.
+   * Otherwise, a plain reference is returned.
+   * @param fn filename
+   * @return io reference
+   */
+  public IO io(final String fn) {
+    final IO base = baseIO();
+    return base != null ? base.merge(fn) : IO.get(fn);
+  }
+
+  /**
+   * Returns the static base URI.
+   * @return base URI
    */
   public Uri baseURI() {
-    return Uri.uri(baseURI, false);
+    return baseURI;
   }
 
   /**
-   * Sets the base URI.
+   * Sets the static base URI.
    * @param uri uri to be set
    */
   public void baseURI(final String uri) {
-    baseURI = norm(token(uri));
+    baseURI = uri.length() == 0 ? Uri.EMPTY : Uri.uri(token(IO.get(uri).url()));
   }
 
   /**
-   * Returns a URI representation of the base URI.
-   * @return IO reference
+   * Returns the URI of the default collation.
+   * @return collation URI
    */
   public Uri collation() {
     return collation;
   }
 
   /**
-   * Sets the collation.
+   * Sets the collation URI.
    * @param uri uri to be set
    */
   public void collation(final String uri) {

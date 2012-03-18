@@ -330,6 +330,8 @@ public interface QueryText {
   /** Parser token. */
   String WORDS = "words";
   /** Parser token. */
+  String XMLSTR = "xml";
+  /** Parser token. */
   String XQUERY = "xquery";
 
   /** Parser token. */
@@ -371,6 +373,8 @@ public interface QueryText {
   String BR1 = "[";
   /** Parser token. */
   String BR2 = "]";
+  /** Parser token. */
+  String EQNAME = "Q{";
   /** Parser token. */
   String BRACE1 = "{";
   /** Parser token. */

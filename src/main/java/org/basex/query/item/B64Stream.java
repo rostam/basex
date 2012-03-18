@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import org.basex.io.IO;
 import org.basex.query.QueryException;
+import org.basex.query.func.*;
 import org.basex.query.util.Err;
 import org.basex.util.InputInfo;
 import org.basex.util.Util;
@@ -15,7 +16,7 @@ import org.basex.util.Util;
  * @author BaseX Team 2005-12, BSD License
  * @author Christian Gruen
  */
-public final class B64Stream extends B64 {
+public final class B64Stream extends B64 implements Streamable {
   /** File reference. */
   private final IO input;
   /** Error message. */
@@ -61,6 +62,6 @@ public final class B64Stream extends B64 {
 
   @Override
   public String toString() {
-    return Util.info("\"%\"", input.name());
+    return Util.info(Function._FILE_READ_BINARY.args(input));
   }
 }

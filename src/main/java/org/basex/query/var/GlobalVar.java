@@ -125,7 +125,7 @@ public final class GlobalVar extends VarRef {
    */
   private Value cast(final Value v, final QueryContext ctx)
       throws QueryException {
-    return type == null ? v : v.isItem() ? type.cast((Item) v, this, true, ctx, input)
+    return type == null ? v : v.isItem() ? type.cast((Item) v, true, ctx, input, this)
         : type.promote(v, ctx, input);
   }
 

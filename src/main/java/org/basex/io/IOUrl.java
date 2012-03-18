@@ -49,6 +49,10 @@ public final class IOUrl extends IO {
     final URL url = new URL(path);
     try {
       return new BufferInput(url.openStream());
+    } catch(final IOException ex) {
+      final IOException io = new IOException(Util.message(ex));
+      io.setStackTrace(ex.getStackTrace());
+      throw io;
     } catch(final RuntimeException ex) {
       // catch unexpected runtime exceptions
       Util.debug(ex);
@@ -64,9 +68,8 @@ public final class IOUrl extends IO {
   @Override
   public IO merge(final String f) {
     final IO io = IO.get(f);
-    if(!(io instanceof IOFile)) return io;
-    final String p = path;
-    return IO.get((p.endsWith("/") ? p : p.replace("^(.*/).*", "$1")) + f);
+    if(!(io instanceof IOFile) || f.contains(":") || f.startsWith("/")) return io;
+    return IO.get((path.endsWith("/") ? path : path.replace("^(.*/).*", "$1")) + f);
   }
 
   /** Pattern for duplicate slashes. */

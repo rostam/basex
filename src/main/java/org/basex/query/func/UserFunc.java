@@ -57,8 +57,8 @@ public class UserFunc extends Single implements Scope {
    * @param a annotations
    * @param scp scope
    */
-  public UserFunc(final InputInfo ii, final QNm n, final Var[] v,
-      final SeqType r, final Ann a, final VarScope scp) {
+  public UserFunc(final InputInfo ii, final QNm n, final Var[] v, final SeqType r,
+      final Ann a, final VarScope scp) {
     this(ii, n, v, r, a, scp, true);
   }
 
@@ -114,7 +114,6 @@ public class UserFunc extends Single implements Scope {
    * @throws QueryException query exception
    */
   void cmp(final QueryContext ctx) throws QueryException {
-
     if(compiled) return;
     compiled = true;
 
@@ -152,7 +151,7 @@ public class UserFunc extends Single implements Scope {
     try {
       final Item it = expr.item(ctx, ii);
       // optionally promote return value to target type
-      return cast ? ret.cast(it, this, false, ctx, input) : it;
+      return cast ? ret.cast(it, false, ctx, input, this) : it;
     } finally {
       ctx.value = cv;
       ctx.sc.ns.stack(ns);

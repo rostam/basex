@@ -209,7 +209,7 @@ public enum Err {
   /** FORG0002: Evaluation exception. */
   URIINV(FORG, 2, "Invalid URI: %."),
   /** FORG0002: Evaluation exception. */
-  URIABS(FORG, 2, "URI % is not absolute."),
+  URIABS(FORG, 2, "Base URI % is not absolute."),
 
   /** FORG0003: Evaluation exception. */
   EXPECTZ0(FORG, 3, "Zero or one value expected."),
@@ -569,6 +569,8 @@ public enum Err {
   /** XPTY0004: Typing Exception. */
   XPTYPE(XPTY, 4, "%: % expected, % found."),
   /** XPTY0004: Typing Exception. */
+  CALCTYPE(XPTY, 4, "% not defined for % and %."),
+  /** XPTY0004: Typing Exception. */
   STRNODTYPE(XPTY, 4, "%: xs:string or node() expected, % found."),
   /** XPTY0004: Typing Exception. */
   NODFUNTYPE(XPTY, 4, "%: node() or map expected, % found."),
@@ -680,7 +682,7 @@ public enum Err {
   /** XQST0059: Parsing exception. */
   NOMODULE(XQST, 59, "No module found for namespace '%'."),
   /** XQST0059: Parsing exception. */
-  NOMODULEFILE(XQST, 59, "Module not found: '%'."),
+  NOMODULEFILE(XQST, 59, "Could not retrieve module '%'."),
   /** XQST0059: Parsing exception. */
   WRONGMODULE(XQST, 59, "Wrong URI '%' in imported module '%'."),
   /** XQST0060: Parsing exception. */
@@ -776,7 +778,7 @@ public enum Err {
   /** FOFD1350: Evaluation exception. */
   PICCOMP(FOFD, 1350, "Invalid component in string: '%'."),
   /** FOUT1170: Parsing exception. */
-  WRONGINPUT(FOUT, 1170, "Failed to read '%': %."),
+  WRONGINPUT(FOUT, 1170, "%"),
   /** FOUT1190: Evaluation exception. */
   WHICHENC(FOUT, 1190, "Encoding '%' is not supported."),
 
