@@ -317,6 +317,15 @@ public final class QueryContext extends Progress {
   }
 
   /**
+   * Checks if there's a value bound to the given variable.
+   * @param vr variable
+   * @return {@code true} is a value is bound, {@code false} otherwise
+   */
+  public boolean isBound(final Var vr) {
+    return stackFrame[vr.slot] != null;
+  }
+
+  /**
    * Adds some optimization info.
    * @param string evaluation info
    * @param ext text text extensions

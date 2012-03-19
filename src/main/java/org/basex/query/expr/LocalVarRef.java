@@ -41,6 +41,9 @@ public final class LocalVarRef extends VarRef {
     type = var.type();
     size = var.size;
 
+    // constant propagation
+    if(ctx.isBound(var)) return ctx.get(var);
+
     Expr e = null; // [LW] ctx.getExpr(var);
     // return if variable expression has not yet been assigned
     if(e == null) return this;
