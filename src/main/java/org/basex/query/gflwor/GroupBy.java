@@ -11,6 +11,7 @@ import org.basex.query.expr.*;
 import org.basex.query.func.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
 import org.basex.query.item.*;
+import org.basex.query.item.SeqType.Occ;
 import org.basex.query.iter.*;
 import org.basex.query.util.*;
 import org.basex.query.var.*;
@@ -28,30 +29,35 @@ public class GroupBy extends GFLWOR.Clause {
   /** Grouping specs. */
   Spec[] by;
   /** Non-grouping variables. */
-  Var[][] nongroup;
+  LocalVarRef[] pre;
+  /** Non-grouping variables. */
+  Var[] post;
 
   /**
    * Constructor.
    * @param specs grouping specs
-   * @param ngrp non-grouping variables
+   * @param pr references to pre-grouping variables
+   * @param pst post-grouping variables
    * @param ii input info
    */
-  public GroupBy(final Spec[] specs, final Var[][] ngrp, final InputInfo ii) {
-    super(ii, vars(specs, ngrp));
+  public GroupBy(final Spec[] specs, final LocalVarRef[] pr, final Var[] pst,
+      final InputInfo ii) {
+    super(ii, vars(specs, pst));
     by = specs;
-    nongroup = ngrp;
+    pre = pr;
+    post = pst;
   }
 
   /**
    * Gathers all declared variables.
    * @param specs grouping specs
-   * @param ngrp non-grouping variables
+   * @param vs non-grouping variables
    * @return declared variables
    */
-  private static Var[] vars(final Spec[] specs, final Var[][] ngrp) {
-    final Var[] res = new Var[specs.length + ngrp[1].length];
+  private static Var[] vars(final Spec[] specs, final Var[] vs) {
+    final Var[] res = new Var[specs.length + vs.length];
     for(int i = 0; i < specs.length; i++) res[i] = specs[i].var;
-    System.arraycopy(ngrp[1], 0, res, specs.length, ngrp[1].length);
+    System.arraycopy(vs, 0, res, specs.length, vs.length);
     return res;
   }
 
@@ -74,8 +80,7 @@ public class GroupBy extends GFLWOR.Clause {
 
         for(int i = 0; i < by.length; i++)
           ctx.set(by[i].var, curr.key[i] == null ? Empty.SEQ : curr.key[i], input);
-        for(int i = 0; i < nongroup[1].length; i++)
-          ctx.set(nongroup[1][i], curr.ngv[i].value(), input);
+        for(int i = 0; i < post.length; i++) ctx.set(post[i], curr.ngv[i].value(), input);
         return true;
       }
 
@@ -108,7 +113,7 @@ public class GroupBy extends GFLWOR.Clause {
 
           if(grp == null) {
             // new group, add it to the list
-            final ItemCache[] ngs = new ItemCache[nongroup[0].length];
+            final ItemCache[] ngs = new ItemCache[pre.length];
             for(int i = 0; i < ngs.length; i++) ngs[i] = new ItemCache();
             grp = new Group(key, ngs);
             grps.add(grp);
@@ -123,8 +128,7 @@ public class GroupBy extends GFLWOR.Clause {
             }
           }
 
-          for(int j = 0; j < nongroup[0].length; j++)
-            grp.ngv[j].add(ctx.get(nongroup[0][j]));
+          for(int j = 0; j < pre.length; j++) grp.ngv[j].add(pre[j].value(ctx));
         }
 
         // we're finished, copy the array so the list can be garbage-collected
@@ -172,6 +176,12 @@ public class GroupBy extends GFLWOR.Clause {
   @Override
   public GroupBy comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     for(int i = 0; i < by.length; i++) by[i].comp(ctx, scp);
+    for(int i = 0; i < pre.length; i++) {
+      final Var inv = pre[i].var, outv = post[i];
+      final SeqType it = inv.type();
+      outv.refineType(SeqType.get(it.type, it.mayBeZero() ? Occ.ZERO_MORE : Occ.ONE_MORE),
+          input);
+    }
     return this;
   }
 
@@ -190,8 +200,21 @@ public class GroupBy extends GFLWOR.Clause {
   @Override
   public boolean visitVars(final VarVisitor visitor) {
     if(!visitor.visitAll(by)) return false;
-    for(final Var ng : nongroup[1]) if(!visitor.declared(ng)) return false;
+    for(final LocalVarRef ng : pre) if(!visitor.used(ng)) return false;
+    for(final Var ng : post) if(!visitor.declared(ng)) return false;
     return true;
+  }
+
+  @Override
+  boolean clean(final QueryContext ctx, final BitArray used) {
+    final int len = pre.length;
+    for(int i = 0; i < post.length; i++) {
+      if(!used.get(post[i].id)) {
+        pre  = Array.delete(pre, i);
+        post = Array.delete(post, i--);
+      }
+    }
+    return pre.length < len;
   }
 
   /**
@@ -265,5 +288,10 @@ public class GroupBy extends GFLWOR.Clause {
       key = k;
       ngv = ng;
     }
+  }
+
+  @Override
+  boolean skippable(final Let let) {
+    return false;
   }
 }

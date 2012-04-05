@@ -93,4 +93,17 @@ public final class FuncItemTest extends QueryPlanTest {
         "exists(//FuncItem)"
     );
   }
+
+  /** Checks if compile-time constants are propagated into inline functions. */
+  @Test
+  public void constPropagateTest() {
+    check("(typeswitch(1)" +
+        "  case $i as xs:string  return function() { 'wrong: ', $i }" +
+        "  case $i as xs:integer return function() { $i * 42 }" +
+        "  default return error()" +
+        ")()",
+        "42",
+        "exactly-one(//FuncItem) and empty(//InlineFunc)"
+    );
+  }
 }

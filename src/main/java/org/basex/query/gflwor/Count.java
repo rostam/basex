@@ -6,7 +6,7 @@ import org.basex.io.serial.*;
 import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
-import org.basex.query.item.Int;
+import org.basex.query.item.*;
 import org.basex.query.util.*;
 import org.basex.query.var.*;
 import org.basex.util.*;
@@ -65,6 +65,7 @@ public class Count extends GFLWOR.Clause {
 
   @Override
   public Count comp(final QueryContext ctx, final VarScope scp) throws QueryException {
+    count.refineType(SeqType.ITR, input);
     return this;
   }
 

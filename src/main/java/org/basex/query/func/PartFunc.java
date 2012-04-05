@@ -26,7 +26,7 @@ public final class PartFunc extends InlineFunc {
    */
   public PartFunc(final InputInfo ii, final TypedFunc fun, final Env env)
       throws QueryException {
-    super(ii, new QNm(), fun.ret(), args(env, fun.type), fun.fun, null, env.scope);
+    super(ii, new QNm(), fun.ret(), args(env, fun.type, ii), fun.fun, null, env.scope);
   }
 
   /**
@@ -39,23 +39,25 @@ public final class PartFunc extends InlineFunc {
   public PartFunc(final InputInfo ii, final Expr func, final Env env)
       throws QueryException {
     // [LW] XQuery/HOF: dynamic type propagation
-    super(ii, new QNm(), func.type(), args(env, null), func, null, env.scope);
+    super(ii, new QNm(), func.type(), args(env, null, ii), func, null, env.scope);
   }
 
   /**
    * Gathers this partial function application's arguments and sets the types.
    * @param env variables to type
    * @param ft function type
+   * @param ii input info
    * @return the variables for convenience
    * @throws QueryException exception
    */
-  public static Var[] args(final Env env, final FuncType ft) throws QueryException {
+  public static Var[] args(final Env env, final FuncType ft, final InputInfo ii)
+      throws QueryException {
     final Var[] args = env.args.toArray(new Var[env.args.size()]);
     if(ft != null && ft != FuncType.ANY_FUN) {
       for(int i = 0; i < args.length; i++) {
         final int pos = env.poss.get(i);
         if(ft.args[pos] !=  null && ft.args[pos] != SeqType.ITEM_ZM)
-          args[i].setRetType(ft.args[pos]);
+          args[i].setRetType(ft.args[pos], ii);
       }
     }
     return args;

@@ -26,7 +26,7 @@ import org.basex.util.*;
  */
 public class OrderBy extends GFLWOR.Clause {
   /** Variables to sort. */
-  Var[] vars;
+  LocalVarRef[] tvars;
   /** Sort keys. */
   final Key[] keys;
   /** Stable sort flag. */
@@ -39,9 +39,10 @@ public class OrderBy extends GFLWOR.Clause {
    * @param stbl stable sort
    * @param ii input info
    */
-  public OrderBy(final Var[] vs, final Key[] ks, final boolean stbl, final InputInfo ii) {
+  public OrderBy(final LocalVarRef[] vs, final Key[] ks, final boolean stbl,
+      final InputInfo ii) {
     super(ii);
-    vars = vs;
+    tvars = vs;
     keys = ks;
     stable = stbl;
   }
@@ -63,7 +64,7 @@ public class OrderBy extends GFLWOR.Clause {
         final Value[] tuple = tpls[p];
         // free the space occupied by the tuple
         tpls[p] = null;
-        for(int i = 0; i < vars.length; i++) ctx.set(vars[i], tuple[i], input);
+        for(int i = 0; i < tvars.length; i++) ctx.set(tvars[i].var, tuple[i], input);
         return true;
       }
 
@@ -81,8 +82,8 @@ public class OrderBy extends GFLWOR.Clause {
             key[i] = keys[i].expr.item(ctx, keys[i].input);
           tuples.add(key);
 
-          final Value[] vals = new Value[vars.length];
-          for(int i = 0; i < vars.length; i++) vals[i] = ctx.get(vars[i]);
+          final Value[] vals = new Value[tvars.length];
+          for(int i = 0; i < tvars.length; i++) vals[i] = tvars[i].value(ctx);
           tuples.add(vals);
         }
 
@@ -245,7 +246,17 @@ public class OrderBy extends GFLWOR.Clause {
 
   @Override
   public boolean visitVars(final VarVisitor visitor) {
+    for(final LocalVarRef ref : tvars) if(!visitor.used(ref)) return false;
     return visitor.visitAll(keys);
+  }
+
+  @Override
+  boolean clean(final QueryContext ctx, final BitArray used) {
+    final int len = tvars.length;
+    for(int i = 0; i < tvars.length; i++)
+      if(!used.get(tvars[i].var.id))
+        tvars = Array.delete(tvars, i--);
+    return tvars.length < len;
   }
 
   /**
@@ -288,5 +299,10 @@ public class OrderBy extends GFLWOR.Clause {
       if(least) sb.append(' ').append(EMPTYORD).append(' ').append(LEAST);
       return sb.toString();
     }
+  }
+
+  @Override
+  boolean skippable(final Let let) {
+    return false;
   }
 }

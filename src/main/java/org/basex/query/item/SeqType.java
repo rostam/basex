@@ -428,7 +428,7 @@ public final class SeqType {
   }
 
   /**
-   * Checks if the specified SeqType is an instance of the current SeqType.
+   * Checks if the current SeqType is an instance of the specified SeqType.
    * @param t SeqType to check
    * @return result of check
    */

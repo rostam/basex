@@ -1101,30 +1101,31 @@ public class QueryParser extends InputParser {
         do grp = groupSpec(clauses, grp); while(wsConsume(COMMA));
 
         // find all non-grouping variables that aren't shadowed
-        final ArrayList<Var> ng = new ArrayList<Var>();
+        final ArrayList<LocalVarRef> ng = new ArrayList<LocalVarRef>();
         for(final GroupBy.Spec spec : grp) curr.add(spec.var.name.eqname(), spec.var);
         vars: for(int i = 0; i < curr.size(); i++) {
           // weird quirk of TokenObjMap
           final Var v = curr.value(i + 1);
           for(final GroupBy.Spec spec : grp) if(spec.var.is(v)) continue vars;
-          ng.add(v);
+          ng.add(new LocalVarRef(grp[0].input, v));
         }
 
         // add new copies for all non-grouping variables
         final Var[] ngrp = new Var[ng.size()];
         for(int i = ng.size(); --i >= 0;) {
-          final Var v = ng.get(i);
+          final LocalVarRef v = ng.get(i);
 
           // if one groups variables such as $x as xs:integer, then the resulting
           // sequence isn't compatible with the type and can't be assigned
-          final Var nv = addLocal(v.name, null, false);
-          if(v.type().one()) nv.refineType(SeqType.get(v.type().type, Occ.ONE_MORE));
+          final Var nv = addLocal(v.var.name, null, false);
+          if(v.type().one())
+            nv.refineType(SeqType.get(v.type().type, Occ.ONE_MORE), grp[0].input);
           ngrp[i] = nv;
           curr.add(nv.name.eqname(), nv);
         }
 
-        clauses.add(new GroupBy(grp, new Var[][]{ ng.toArray(new Var[ng.size()]), ngrp },
-            grp[0].input));
+        final LocalVarRef[] pre = new LocalVarRef[ng.size()];
+        clauses.add(new GroupBy(grp, ng.toArray(pre), ngrp, grp[0].input));
         alter = GRPBY;
       }
 
@@ -1136,14 +1137,18 @@ public class QueryParser extends InputParser {
         OrderBy.Key[] ob = null;
         do ob = orderSpec(ob); while(wsConsume(COMMA));
 
-        final Var[] vs = new Var[curr.size()];
-        for(int i = 0; i < vs.length; i++) vs[i] = curr.value(i + 1);
+        final LocalVarRef[] vs = new LocalVarRef[curr.size()];
+        for(int i = 0; i < vs.length; i++)
+          vs[i] = new LocalVarRef(ob[0].input, curr.value(i + 1));
         clauses.add(new OrderBy(vs, ob, stable, ob[0].input));
         alter = ORDERBY;
       }
 
-      if(ctx.xquery3 && wsConsumeWs(COUNT, DOLLAR, NOCOUNT))
-        clauses.add(new Count(addLocal(varName(), SeqType.ITR, false), input()));
+      if(ctx.xquery3 && wsConsumeWs(COUNT, DOLLAR, NOCOUNT)) {
+        final Var v = addLocal(varName(), SeqType.ITR, false);
+        curr.add(v.name.eqname(), v);
+        clauses.add(new Count(v, input()));
+      }
     } while(ctx.xquery3 && size < clauses.size());
 
     if(!wsConsumeWs(RETURN)) {

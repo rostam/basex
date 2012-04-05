@@ -788,7 +788,7 @@ public enum AtomType implements Type {
 
   @Override
   public final boolean instanceOf(final Type t) {
-    return this == t || par != null && par.instanceOf(t);
+    return this == t || par != null && par.instanceOf(t) || this == EMP || this == SEQ;
   }
 
   @Override

@@ -8,10 +8,8 @@ import org.basex.io.serial.*;
 import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
-import org.basex.query.item.Dbl;
-import org.basex.query.item.Empty;
-import org.basex.query.item.Int;
-import org.basex.query.item.Item;
+import org.basex.query.item.*;
+import org.basex.query.item.SeqType.Occ;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.*;
 import org.basex.query.var.*;
@@ -130,6 +128,11 @@ public class For extends GFLWOR.Clause {
   @Override
   public For comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     expr = expr.comp(ctx, scp);
+    final SeqType tp = expr.type();
+    final boolean emp = empty && tp.mayBeZero();
+    type = SeqType.get(tp.type, emp ? Occ.ZERO_ONE : Occ.ONE);
+    var.refineType(type, input);
+    size = emp ? -1 : 1;
     return this;
   }
 

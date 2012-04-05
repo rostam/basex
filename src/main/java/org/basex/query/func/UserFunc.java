@@ -3,6 +3,9 @@ package org.basex.query.func;
 import static org.basex.query.util.Err.*;
 import static org.basex.query.QueryText.*;
 import java.io.IOException;
+import java.util.*;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Map.Entry;
 
 import org.basex.io.serial.Serializer;
 import org.basex.query.*;
@@ -104,21 +107,40 @@ public class UserFunc extends Single implements Scope {
 
   @Override
   public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
-    cmp(ctx);
+    cmp(ctx, scp);
     return this;
   }
 
   /**
    * Compiles the expression.
    * @param ctx query context
+   * @param outer enclosing scope
    * @throws QueryException query exception
    */
-  void cmp(final QueryContext ctx) throws QueryException {
+  void cmp(final QueryContext ctx, final VarScope outer) throws QueryException {
     if(compiled) return;
     compiled = true;
 
+    // compile closure
+    ArrayList<Entry<Var, Value>> propagate = null;
+    final Iterator<Entry<Var, LocalVarRef>> cls = scope.closure().entrySet().iterator();
+    while(cls.hasNext()) {
+      final Entry<Var, LocalVarRef> e = cls.next();
+      final Expr c = e.getValue().comp(ctx, outer);
+      if(c.isValue()) {
+        if(propagate == null) propagate = new ArrayList<Entry<Var, Value>>();
+        propagate.add(new SimpleImmutableEntry<Var, Value>(e.getKey(), (Value) c));
+        cls.remove();
+      }
+    }
+
     final Value[] sf = scope.enter(ctx);
     try {
+      // constant propagation
+      if(propagate != null)
+        for(final Entry<Var, Value> e : propagate)
+          ctx.set(e.getKey(), e.getValue(), input);
+
       expr = expr.comp(ctx, scope);
       scope.cleanUp(ctx, this);
     } finally {

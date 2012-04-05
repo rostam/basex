@@ -60,10 +60,10 @@ public final class For extends ForLet {
     type = expr.type();
     size = expr.size();
     if(ctx.grouping) {
-      var.refineType(SeqType.get(type.type, Occ.ZERO_MORE));
+      var.refineType(SeqType.get(type.type, Occ.ZERO_MORE), input);
     } else {
       var.size = 1;
-      var.refineType(type.type.seqType());
+      var.refineType(type.type.seqType(), input);
     }
     return this;
   }

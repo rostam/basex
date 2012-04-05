@@ -5,6 +5,7 @@ import org.basex.io.serial.Serializer;
 import org.basex.data.ExprInfo;
 import org.basex.query.*;
 import org.basex.query.item.*;
+import org.basex.query.item.SeqType.Occ;
 import org.basex.query.util.*;
 import org.basex.util.*;
 
@@ -25,7 +26,7 @@ public final class Var extends ExprInfo {
   public int slot = -1;
 
   /** Expected result size. */
-  public long size;
+  public long size = -1;
 
   /** Expected return type, {@code null} if not important. */
   private SeqType ret;
@@ -72,16 +73,22 @@ public final class Var extends ExprInfo {
    * Tries to refine the compile-time type of this variable through the type of the bound
    * expression.
    * @param t type of the bound expression
+   * @param ii input info for errors
    * @throws QueryException if the types are incompatible
    */
-  @SuppressWarnings("unused")
-  public void refineType(final SeqType t) throws QueryException {
-    if(t == null) return;
-    if(type == null) type = t;
-    else {
-      // [LW] insert checks here
-      type = t;
+  public void refineType(final SeqType t, final InputInfo ii) throws QueryException {
+    if(t == null || type == null || type.eq(t) || t.instance(type)) {
+      if(type == null) type = t;
+      return;
     }
+
+    final Type tp = type.type.instanceOf(t.type) ? t.type
+        : t.type.instanceOf(type.type) ? type.type : null;
+    final Occ occ = type.occ.instance(t.occ) ? t.occ
+        : t.occ.instance(type.occ) ? type.occ : null;
+
+    if(tp == null || occ == null) throw Err.XPTYPE.thrw(ii, toString(), type, t);
+    type = SeqType.get(tp, occ);
   }
 
   /**
@@ -132,10 +139,11 @@ public final class Var extends ExprInfo {
   /**
    * Sets the return type of this variable.
    * @param rt return type
+   * @param ii input info
    * @throws QueryException if the return type is incompatible
    */
-  public void setRetType(final SeqType rt) throws QueryException {
-    refineType(ret);
+  public void setRetType(final SeqType rt, final InputInfo ii) throws QueryException {
+    refineType(ret, ii);
     ret = rt;
   }
 

@@ -40,7 +40,18 @@ public class GFLWOR extends ParseExpr {
 
   @Override
   public Iter iter(final QueryContext ctx) throws QueryException {
-    Eval e = start();
+    // Start evaluator, doing nothing, once.
+    Eval e = new Eval() {
+      /** First-evaluation flag. */
+      private boolean first = true;
+      @Override
+      public boolean next(final QueryContext c) {
+        if(!first) return false;
+        first = false;
+        return true;
+      }
+    };
+
     for(final Clause cls : clauses) e = cls.eval(e);
     final Eval ev = e;
 
@@ -65,35 +76,148 @@ public class GFLWOR extends ParseExpr {
     };
   }
 
-  /**
-   * Start evaluator, doing nothing, once.
-   * @return evaluator
-   */
-  private Eval start() {
-    return new Eval() {
-      /** First-evaluation flag. */
-      private boolean first = true;
-      @Override
-      public boolean next(final QueryContext ctx) {
-        if(!first) return false;
-        first = false;
-        return true;
-      }
-    };
-  }
-
   @Override
   public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
-    for(final Clause cl : clauses) cl.comp(ctx, scp);
+    final Iterator<Clause> iter = clauses.iterator();
+    while(iter.hasNext()) {
+      // the first round of constant propagation is free
+      final Clause c = iter.next();
+      c.comp(ctx, scp);
+      if(c instanceof Let) ((Let) c).bindConst(ctx);
+    }
     ret = ret.comp(ctx, scp);
-    // [LW] optimizations
+
+    // the other optimizations are applied until nothing changes any more
+    boolean changed;
+    do {
+      // remove FLWOR expressions when all clauses were removed
+      if(clauses.isEmpty()) {
+        ctx.compInfo(QueryText.OPTFLWOR, this);
+        return ret;
+      }
+
+      // inline let expressions if they are used only once (and not in a loop)
+      changed = inlineLets(ctx);
+
+      // clean unused variables from group-by and order-by expression
+      changed |= cleanDeadVars(ctx);
+
+      // slide let clauses out to avoid repeated evaluation
+      changed |= slideLetsOut(ctx);
+    } while(changed);
     return this;
   }
 
-  @Override
-  public Expr compEbv(final QueryContext ctx) {
-    // [LW] more optimizations
-    return super.compEbv(ctx);
+  /**
+   * Inline let expressions if they are used only once (and not in a loop).
+   * @param ctx query context
+   * @return change flag
+   */
+  private boolean inlineLets(final QueryContext ctx) {
+    boolean change = false;
+    for(int i = 0; i < clauses.size(); i++) {
+      final Clause c = clauses.get(i);
+      if(c instanceof Let) {
+        final Let lt = (Let) c;
+        if(lt.expr.uses(Use.NDT)) continue;
+        final int uses = count(lt.var, i);
+        if(uses == 0) {
+          ctx.compInfo(QueryText.OPTVAR, lt.var);
+          clauses.remove(i--);
+          change = true;
+        } else if(uses > 0 && !lt.expr.uses(Use.CTX) && !lt.score) {
+          for(int j = i + 1; j < uses; j++) {
+            // [LW] implement inlining
+          }
+        }
+      }
+    }
+    return change;
+  }
+
+  /**
+   * Cleans dead entries from the tuples that {@link GroupBy} and {@link OrderBy} handle.
+   * @param ctx query context
+   * @return change flag
+   */
+  private boolean cleanDeadVars(final QueryContext ctx) {
+    final BitArray used = new BitArray();
+    final VarVisitor marker = new VarVisitor() {
+      @Override
+      public boolean used(final LocalVarRef ref) {
+        used.set(ref.var.id);
+        return true;
+      }
+    };
+
+    ret.visitVars(marker);
+    boolean change = false;
+    for(int i = clauses.size(); --i >= 0;) {
+      final Clause curr = clauses.get(i);
+      change |= curr.clean(ctx, used);
+      curr.visitVars(marker);
+    }
+    return change;
+  }
+
+  /**
+   * Optimization pass which tries to slide let expressions out of loops. Care is taken
+   * that no unnecessary relocations are done.
+   * @param ctx query context
+   * @return {@code true} if there were relocations, {@code false} otherwise
+   */
+  private boolean slideLetsOut(final QueryContext ctx) {
+    boolean change = false;
+    for(int i = 1; i < clauses.size(); i++) {
+      final Clause l = clauses.get(i);
+      if(!(l instanceof Let) || l.uses(Use.NDT) || l.uses(Use.CNS)) continue;
+      final Let let = (Let) l;
+
+      // find insertion position
+      int insert = -1;
+      for(int j = i; --j >= 0;) {
+        final Clause curr = clauses.get(j);
+        if(!curr.skippable(let)) break;
+        // insert directly above the highest skippable for or window clause
+        // this guarantees that no unnecessary swaps occur
+        if(curr instanceof For || curr instanceof Window) insert = j;
+      }
+
+      if(insert >= 0) {
+        clauses.add(insert, clauses.remove(i));
+        if(!change) ctx.compInfo(QueryText.OPTFORLET);
+        change = true;
+        // it's safe to go on because clauses below the current one are never touched
+      }
+    }
+    return change;
+  }
+
+  /**
+   * Checks how often a variable is used within this FLWOR expression.
+   * @param v variable
+   * @param p position of the declaring clause
+   * @return {@code 0} for no uses, {@code -1} for more than one and {@code n} > 0
+   *   if the only usage is in the {@code n}-th clause ({@code clauses.size()}
+   *   means return expression)
+   */
+  private int count(final Var v, final int p) {
+    final int[] count = new int[1];
+    final VarVisitor uses = new VarVisitor() {
+      @Override
+      public boolean used(final LocalVarRef ref) {
+        return !ref.var.is(v) || ++count[0] == 1;
+      }
+    };
+
+    final int sz = clauses.size();
+    int n = sz;
+    for(int i = p + 1; i < sz; i++) {
+      if(!clauses.get(i).visitVars(uses)) return -1;
+      if(count[0] == 1 && n == sz) n = i;
+    }
+    if(!ret.visitVars(uses)) return -1;
+    return n * count[0];
   }
 
   @Override
@@ -165,7 +289,7 @@ public class GFLWOR extends ParseExpr {
    */
   public abstract static class Clause extends ParseExpr {
     /** All variables declared in this clause. */
-    private Var[] vars;
+    Var[] vars;
     /**
      * Constructor.
      * @param ii input info
@@ -174,6 +298,17 @@ public class GFLWOR extends ParseExpr {
     protected Clause(final InputInfo ii, final Var... vs) {
       super(ii);
       vars = vs;
+    }
+
+    /**
+     * Cleans unused variables from this clause.
+     * @param ctx query context
+     * @param used list of the IDs of all variables used in the following clauses
+     * @return {@code true} if something changed, {@code false} otherwise
+     */
+    @SuppressWarnings("unused")
+    boolean clean(final QueryContext ctx, final BitArray used) {
+      return false;
     }
 
     /**
@@ -203,6 +338,21 @@ public class GFLWOR extends ParseExpr {
     @Override
     public Item item(final QueryContext ctx, final InputInfo ii) throws QueryException {
       throw Util.notexpected();
+    }
+
+    /**
+     * Checks if the given {@link Let} clause can be slided over this clause.
+     * @param let let clause
+     * @return result of check
+     */
+    boolean skippable(final Let let) {
+      return let.visitVars(new VarVisitor() {
+        @Override
+        public boolean used(final LocalVarRef ref) {
+          for(final Var v : vars) if(v.is(ref.var)) return false;
+          return true;
+        }
+      });
     }
 
     /**

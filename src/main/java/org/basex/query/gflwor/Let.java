@@ -7,9 +7,7 @@ import static org.basex.query.QueryText.*;
 import org.basex.query.*;
 import org.basex.query.expr.*;
 import org.basex.query.gflwor.GFLWOR.Eval;
-import org.basex.query.item.Dbl;
-import org.basex.query.item.Item;
-import org.basex.query.item.Value;
+import org.basex.query.item.*;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.*;
 import org.basex.query.var.*;
@@ -50,20 +48,23 @@ public class Let extends GFLWOR.Clause {
       @Override
       public boolean next(final QueryContext ctx) throws QueryException {
         if(!sub.next(ctx)) return false;
-        final Value bind;
-        if(score) {
-          final Iter iter = expr.iter(ctx);
-          double sum = 0;
-          int sz = 0;
-          for(Item it; (it = iter.next()) != null; sum += it.score(), sz++);
-          bind = Dbl.get(Scoring.let(sum, sz));
-        } else {
-          bind = ctx.value(expr);
-        }
-        ctx.set(var, bind, input);
+        ctx.set(var, score ? score(expr.iter(ctx)) : ctx.value(expr), input);
         return true;
       }
     };
+  }
+
+  /**
+   * Calculates the score of the given iterator.
+   * @param iter iterator
+   * @return score
+   * @throws QueryException evaluation exception
+   */
+  static Dbl score(final Iter iter) throws QueryException {
+    double sum = 0;
+    int sz = 0;
+    for(Item it; (it = iter.next()) != null; sum += it.score(), sz++);
+    return Dbl.get(Scoring.let(sum, sz));
   }
 
   @Override
@@ -88,7 +89,19 @@ public class Let extends GFLWOR.Clause {
   @Override
   public Let comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     expr = expr.comp(ctx, scp);
+    type = score ? SeqType.DBL : expr.type();
+    var.refineType(type, input);
+    size = score ? 1 : expr.size();
     return this;
+  }
+
+  /**
+   * Binds the the value of this let clause to the context if it is statically known.
+   * @param ctx query context
+   * @throws QueryException evaluation exception
+   */
+  void bindConst(final QueryContext ctx) throws QueryException {
+    if(expr.isValue()) ctx.set(var, score ? score(expr.iter(ctx)) : (Value) expr, input);
   }
 
   @Override

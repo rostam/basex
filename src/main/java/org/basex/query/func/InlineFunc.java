@@ -54,7 +54,7 @@ public class InlineFunc extends UserFunc {
 
   @Override
   public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
-    cmp(ctx);
+    cmp(ctx, scp);
     type = FuncType.get(this).seqType();
     size = 1;
     // only evaluate if the closure is empty, so we don't lose variables

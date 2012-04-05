@@ -76,7 +76,7 @@ public final class VarScope {
 
       // a variable in the closure
       final Var local = new Var(ctx, name, null);
-      local.refineType(nonLocal.type());
+      local.refineType(nonLocal.type(), ii);
       add(local);
       closure.put(local, (LocalVarRef) nonLocal);
       return new LocalVarRef(ii, local);

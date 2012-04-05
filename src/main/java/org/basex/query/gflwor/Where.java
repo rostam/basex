@@ -80,4 +80,9 @@ public class Where extends GFLWOR.Clause {
   public boolean visitVars(final VarVisitor visitor) {
     return pred.visitVars(visitor);
   }
+
+  @Override
+  final boolean skippable(final Let let) {
+    return true;
+  }
 }

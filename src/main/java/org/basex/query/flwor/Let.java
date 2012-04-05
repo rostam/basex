@@ -55,7 +55,7 @@ public final class Let extends ForLet {
     expr = checkUp(expr, ctx).comp(ctx, scp);
     type = SeqType.ITEM;
     size = var.size = expr.size();
-    var.refineType(score ? SeqType.DBL : expr.type());
+    var.refineType(score ? SeqType.DBL : expr.type(), input);
     return this;
   }
 
