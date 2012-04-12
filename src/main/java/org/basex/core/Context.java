@@ -1,21 +1,21 @@
 package org.basex.core;
 
 import static org.basex.core.Text.*;
-import org.basex.data.Data;
-import org.basex.data.MetaData;
-import org.basex.data.Nodes;
-import org.basex.index.Resources;
-import org.basex.query.util.pkg.Repo;
-import org.basex.server.ClientListener;
-import org.basex.server.Sessions;
+
+import java.util.*;
+
+import org.basex.data.*;
+import org.basex.index.*;
+import org.basex.io.random.*;
+import org.basex.query.util.pkg.*;
+import org.basex.server.*;
 
 /**
  * This class serves as a central database context.
- * It references the currently opened database. Moreover, it provides
- * references to the currently used, marked and copied node sets.
- *
- * This class should only be instantiated once in a project; otherwise,
- * database updates may lead to conflicts.
+ * It references the currently opened database, properties, client sessions,
+ * users and other meta data. Next, the instance of this class will be passed on to
+ * all operations, as it organizes concurrent data access, ensuring that no
+ * process will concurrently write to the same data instances.
  *
  * @author BaseX Team 2005-12, BSD License
  * @author Christian Gruen
@@ -49,8 +49,8 @@ public final class Context {
   /** Focused node. */
   public int focused = -1;
 
-  /** Database path. */
-  private String path;
+  /** Path to the documents in the database. */
+  private String docpath;
   /** Node context. */
   private Nodes current;
   /** Process locking. */
@@ -61,28 +61,27 @@ public final class Context {
   private Databases databases;
 
   /**
-   * Default constructor, which should only be called once in a project.
+   * Default constructor, which is only called once in a project.
    */
   public Context() {
-    listener = null;
-    mprop = new MainProp();
-    datas = new Datas();
-    events = new Events();
-    sessions = new Sessions();
-    lock = new Lock(this);
-    users = new Users(true);
-    repo = new Repo(this);
-    user = users.get(ADMIN);
+    this(new MainProp());
   }
 
   /**
-   * Constructor, passing on the main context.
+   * Default constructor, which is only called once in a project.
+   * @param props initial properties
+   */
+  public Context(final HashMap<String, String> props) {
+    this(new MainProp(props));
+  }
+
+  /**
+   * Constructor, called by clients, and adopting the variables of the main process.
    * The {@link #user} reference must be set after calling this method.
-   * @param ctx parent database context
+   * @param ctx context of the main process
    * @param cl client listener
    */
   public Context(final Context ctx, final ClientListener cl) {
-    listener = cl;
     mprop = ctx.mprop;
     datas = ctx.datas;
     events = ctx.events;
@@ -91,10 +90,27 @@ public final class Context {
     users = ctx.users;
     repo = ctx.repo;
     databases = ctx.databases();
+    listener = cl;
   }
 
   /**
-   * Closes the database context.
+   * Private constructor.
+   * @param mp main properties
+   */
+  private Context(final MainProp mp) {
+    mprop = mp;
+    datas = new Datas();
+    events = new Events();
+    sessions = new Sessions();
+    lock = new Lock(this);
+    users = new Users(true);
+    repo = new Repo(this);
+    user = users.get(ADMIN);
+    listener = null;
+  }
+
+  /**
+   * Closes the database context. Should only be called from the main context instance.
    */
   public synchronized void close() {
     while(!sessions.isEmpty()) sessions.get(0).quit();
@@ -133,8 +149,9 @@ public final class Context {
   public Nodes current() {
     if(current == null && data != null) {
       final Resources res = data.resources;
-      current = new Nodes((path == null ? res.docs() : res.docs(path)).toArray(), data);
-      current.root = path == null;
+      current = new Nodes((docpath == null ? res.docs() :
+        res.docs(docpath)).toArray(), data);
+      current.root = docpath == null;
     }
     return current;
   }
@@ -163,13 +180,13 @@ public final class Context {
    */
   public void openDB(final Data d, final String p) {
     data = d;
-    path = p;
+    docpath = p;
     copied = null;
     set(null, new Nodes(d));
   }
 
   /**
-   * Resets the current database context.
+   * Closes the current database context.
    */
   public void closeDB() {
     data = null;
@@ -228,7 +245,7 @@ public final class Context {
    * @return result of check
    */
   public boolean pinned(final String db) {
-    return datas.pinned(db);
+    return datas.pinned(db) || TableDiskAccess.locked(db, this);
   }
 
   /**
@@ -237,7 +254,7 @@ public final class Context {
    */
   public void register(final Progress pr) {
     // administrators will not be affected by the timeout
-    pr.startTimeout(user.perm(User.ADMIN) ? 0 : mprop.num(MainProp.TIMEOUT));
+    pr.startTimeout(user.has(Perm.ADMIN) ? 0 : mprop.num(MainProp.TIMEOUT));
     lock.lock(pr);
   }
 
@@ -272,18 +289,19 @@ public final class Context {
    * @param md optional meta data reference
    * @return result of check
    */
-  public boolean perm(final int p, final MetaData md) {
-    final User us = md == null || p == User.CREATE || p == User.ADMIN ? null :
-        md.users.get(user.name);
-    return (us == null ? user : us).perm(p);
+  public boolean perm(final Perm p, final MetaData md) {
+    final User us = md == null || p == Perm.CREATE || p == Perm.ADMIN ?
+        null : md.users.get(user.name);
+    return (us == null ? user : us).has(p);
   }
 
   /**
-   * Get list of currently available databases.
-   * @return the databases
+   * Returns a reference to currently available databases.
+   * @return available databases
    */
   public Databases databases() {
-    if(null == databases) databases = new Databases(this);
+    if(databases == null || !databases.dbpath.eq(mprop.dbpath()))
+      databases = new Databases(this);
     return databases;
   }
 }

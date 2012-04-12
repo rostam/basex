@@ -1,9 +1,11 @@
 package org.basex.query.item;
 
+import java.util.*;
+
 import org.basex.data.Data;
 import org.basex.query.*;
 import org.basex.query.expr.Expr;
-import org.basex.query.iter.ItemCache;
+import org.basex.query.iter.ValueBuilder;
 import org.basex.query.iter.ValueIter;
 import org.basex.query.util.*;
 import org.basex.query.var.*;
@@ -12,10 +14,14 @@ import org.basex.util.InputInfo;
 /**
  * Abstract value.
  *
+ * This class also implements the {@link Iterable} interface, which is why all of its
+ * values can also be retrieved via enhanced for (for-each) loops. Note, however, that
+ * using the default {@link #iter()} method will give you better performance.
+ *
  * @author BaseX Team 2005-12, BSD License
  * @author Christian Gruen
  */
-public abstract class Value extends Expr {
+public abstract class Value extends Expr implements Iterable<Item> {
   /** Data type. */
   public Type type;
 
@@ -35,6 +41,11 @@ public abstract class Value extends Expr {
   @Override
   public final ValueIter iter(final QueryContext ctx) {
     return iter();
+  }
+
+  @Override
+  public final Iterator<Item> iterator() {
+    return iter().iterator();
   }
 
   /**
@@ -113,14 +124,14 @@ public abstract class Value extends Expr {
   public abstract int writeTo(final Item[] arr, final int start);
 
   /**
-   * Creates an {@link ItemCache}, containing all items of this value.
+   * Creates an {@link ValueBuilder}, containing all items of this value.
    * Use with care, as compressed Values are expanded, creating many objects.
    * @return cached items
    */
-  public final ItemCache cache() {
-    final ItemCache ic = new ItemCache((int) size());
-    ic.size(writeTo(ic.item, 0));
-    return ic;
+  public final ValueBuilder cache() {
+    final ValueBuilder vb = new ValueBuilder((int) size());
+    vb.size(writeTo(vb.item, 0));
+    return vb;
   }
 
   /**

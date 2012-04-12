@@ -50,17 +50,17 @@ public final class GlobalVar extends VarRef {
    * @throws QueryException query exception
    */
   public void checkUp() throws QueryException {
-    if(expr != null && expr.uses(Use.UPD)) UPNOT.thrw(input, description());
+    if(expr != null && expr.uses(Use.UPD)) UPNOT.thrw(info, description());
   }
 
   @Override
   public Value comp(final QueryContext ctx, final VarScope scp)
       throws QueryException {
     if(compiled) {
-      if(value == null) throw Err.CIRCVAR.thrw(input, this);
+      if(value == null) throw Err.CIRCVAR.thrw(info, this);
       return value;
     }
-    if(expr == null) throw Err.VARUNDEF.thrw(input, this);
+    if(expr == null) throw Err.VARUNDEF.thrw(info, this);
 
     compiled = true;
     return bind(checkUp(expr, ctx).comp(ctx, scp).value(ctx), ctx);
@@ -74,7 +74,7 @@ public final class GlobalVar extends VarRef {
   @Override
   public Value value(final QueryContext ctx) throws QueryException {
     if(value != null) return value;
-    if(expr == null) throw Err.VARUNDEF.thrw(input, this);
+    if(expr == null) throw Err.VARUNDEF.thrw(info, this);
     return bind(expr.value(ctx), ctx);
   }
 
@@ -88,7 +88,7 @@ public final class GlobalVar extends VarRef {
     type = t;
     if(value != null && !value.type.instanceOf(t.type) &&
         value instanceof Item) {
-      value = type.type.cast((Item) value, ctx, input);
+      value = type.type.cast((Item) value, ctx, info);
     }
   }
 
@@ -128,8 +128,8 @@ public final class GlobalVar extends VarRef {
    */
   private Value cast(final Value v, final QueryContext ctx)
       throws QueryException {
-    return type == null ? v : v.isItem() ? type.cast((Item) v, true, ctx, input, this)
-        : type.promote(v, ctx, input);
+    return type == null ? v : v.isItem() ? type.cast((Item) v, true, ctx, info, this)
+        : type.promote(v, ctx, info);
   }
 
   @Override

@@ -4,30 +4,15 @@ import static org.basex.query.QueryText.*;
 import static org.basex.query.util.Err.*;
 import static org.basex.util.Token.*;
 
-import org.basex.core.Commands.CmdPerm;
 import org.basex.core.*;
-import org.basex.io.IO;
-import org.basex.io.IOFile;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
-import org.basex.query.func.Function;
-import org.basex.query.item.ANode;
-import org.basex.query.item.AtomType;
-import org.basex.query.item.Bln;
-import org.basex.query.item.DBNode;
-import org.basex.query.item.Empty;
-import org.basex.query.item.Item;
-import org.basex.query.item.NodeType;
-import org.basex.query.item.SeqType;
-import org.basex.query.item.Str;
-import org.basex.query.item.Type;
-import org.basex.query.item.Uri;
-import org.basex.query.item.Value;
-import org.basex.query.item.map.Map;
-import org.basex.query.iter.ItemCache;
-import org.basex.query.iter.Iter;
-import org.basex.query.util.Err;
-import org.basex.util.InputInfo;
+import org.basex.io.*;
+import org.basex.query.*;
+import org.basex.query.func.*;
+import org.basex.query.item.*;
+import org.basex.query.item.map.*;
+import org.basex.query.iter.*;
+import org.basex.query.util.*;
+import org.basex.util.*;
 
 /**
  * Abstract parse expression. All non-value expressions are derived from
@@ -38,7 +23,7 @@ import org.basex.util.InputInfo;
  */
 public abstract class ParseExpr extends Expr {
   /** Input information. */
-  public final InputInfo input;
+  public final InputInfo info;
   /** Cardinality of result; unknown if set to -1. */
   public long size = -1;
   /** Static type. */
@@ -49,30 +34,28 @@ public abstract class ParseExpr extends Expr {
    * @param ii input info
    */
   protected ParseExpr(final InputInfo ii) {
-    input = ii;
+    info = ii;
   }
 
   @Override
   public Iter iter(final QueryContext ctx) throws QueryException {
-    final Item it = item(ctx, input);
+    final Item it = item(ctx, info);
     return it != null ? it.iter() : Empty.ITER;
   }
 
   @Override
-  public Item item(final QueryContext ctx, final InputInfo ii)
-      throws QueryException {
-
+  public Item item(final QueryContext ctx, final InputInfo ii) throws QueryException {
     final Iter ir = iter(ctx);
     final Item it = ir.next();
     if(it == null || ir.size() == 1) return it;
     Item n = ir.next();
     if(n != null) {
-      final ItemCache ic = new ItemCache();
-      ic.add(it);
-      ic.add(n);
+      final ValueBuilder vb = new ValueBuilder();
+      vb.add(it);
+      vb.add(n);
       n = ir.next();
-      if(n != null) ic.add(Str.get("..."));
-      XPSEQ.thrw(ii, ic.value());
+      if(n != null) vb.add(Str.get("..."));
+      XPSEQ.thrw(ii, vb.value());
     }
     return it;
   }
@@ -80,7 +63,7 @@ public abstract class ParseExpr extends Expr {
   @Override
   public Value value(final QueryContext ctx) throws QueryException {
     if(type().zeroOrOne()) {
-      final Value v = item(ctx, input);
+      final Value v = item(ctx, info);
       return v == null ? Empty.SEQ : v;
     }
     return ctx.iter(this).value();
@@ -92,12 +75,12 @@ public abstract class ParseExpr extends Expr {
 
     final Item it;
     if(type().zeroOrOne()) {
-      it = item(ctx, input);
+      it = item(ctx, info);
     } else {
       final Iter ir = iter(ctx);
       it = ir.next();
       if(it != null && !it.type.isNode() && ir.next() != null)
-        CONDTYPE.thrw(input, this);
+        CONDTYPE.thrw(info, this);
     }
     return it == null ? Bln.FALSE : it;
   }
@@ -106,9 +89,9 @@ public abstract class ParseExpr extends Expr {
   public final Item test(final QueryContext ctx, final InputInfo ii)
       throws QueryException {
 
-    final Item it = ebv(ctx, input);
-    return (it.type.isNumber() ? it.dbl(input) == ctx.pos :
-      it.bool(input)) ? it : null;
+    final Item it = ebv(ctx, info);
+    return (it.type.isNumber() ? it.dbl(info) == ctx.pos :
+      it.bool(info)) ? it : null;
   }
 
   @Override
@@ -130,7 +113,7 @@ public abstract class ParseExpr extends Expr {
    * @throws QueryException query exception
    */
   public final Expr preEval(final QueryContext ctx) throws QueryException {
-    return optPre(item(ctx, input), ctx);
+    return optPre(item(ctx, info), ctx);
   }
 
   /**
@@ -152,7 +135,7 @@ public abstract class ParseExpr extends Expr {
    * @return expression
    */
   protected final Expr compBln(final Expr e) {
-    return e.type().eq(SeqType.BLN) ? e : Function.BOOLEAN.get(input, e);
+    return e.type().eq(SeqType.BLN) ? e : Function.BOOLEAN.get(info, e);
   }
 
   // VALIDITY CHECKS ==========================================================
@@ -164,9 +147,8 @@ public abstract class ParseExpr extends Expr {
    * @return the specified expression
    * @throws QueryException query exception
    */
-  public final Expr checkUp(final Expr e, final QueryContext ctx)
-      throws QueryException {
-    if(e != null && ctx.updating() && e.uses(Use.UPD)) UPNOT.thrw(input, description());
+  public final Expr checkUp(final Expr e, final QueryContext ctx) throws QueryException {
+    if(e != null && ctx.updating() && e.uses(Use.UPD)) UPNOT.thrw(info, description());
     return e;
   }
 
@@ -176,15 +158,13 @@ public abstract class ParseExpr extends Expr {
    * @param expr expression array
    * @throws QueryException query exception
    */
-  public void checkUp(final QueryContext ctx, final Expr... expr)
-      throws QueryException {
-
+  public void checkUp(final QueryContext ctx, final Expr... expr) throws QueryException {
     if(!ctx.updating()) return;
     int s = 0;
     for(final Expr e : expr) {
       if(e.isVacuous()) continue;
       final boolean u = e.uses(Use.UPD);
-      if(u && s == 2 || !u && s == 1) UPNOT.thrw(input, description());
+      if(u && s == 2 || !u && s == 1) UPNOT.thrw(info, description());
       s = u ? 1 : 2;
     }
   }
@@ -200,10 +180,10 @@ public abstract class ParseExpr extends Expr {
   public final boolean checkBln(final Expr e, final QueryContext ctx)
       throws QueryException {
 
-    final Item it = checkNoEmpty(e.item(ctx, input), AtomType.BLN);
+    final Item it = checkNoEmpty(e.item(ctx, info), AtomType.BLN);
     final Type ip = it.type;
     if(!ip.isUntyped() && ip != AtomType.BLN) Err.type(this, AtomType.BLN, it);
-    return it.bool(input);
+    return it.bool(info);
   }
 
   /**
@@ -217,10 +197,10 @@ public abstract class ParseExpr extends Expr {
   public final double checkDbl(final Expr e, final QueryContext ctx)
       throws QueryException {
 
-    final Item it = checkNoEmpty(e.item(ctx, input), AtomType.DBL);
+    final Item it = checkNoEmpty(e.item(ctx, info), AtomType.DBL);
     final Type ip = it.type;
     if(!ip.isUntyped() && !ip.isNumber()) number(this, it);
-    return it.dbl(input);
+    return it.dbl(info);
   }
 
   /**
@@ -231,9 +211,8 @@ public abstract class ParseExpr extends Expr {
    * @return integer value
    * @throws QueryException query exception
    */
-  public final long checkItr(final Expr e, final QueryContext ctx)
-      throws QueryException {
-    return checkItr(checkNoEmpty(e.item(ctx, input), AtomType.ITR));
+  public final long checkItr(final Expr e, final QueryContext ctx) throws QueryException {
+    return checkItr(checkNoEmpty(e.item(ctx, info), AtomType.ITR));
   }
 
   /**
@@ -247,7 +226,7 @@ public abstract class ParseExpr extends Expr {
     final Type ip = it.type;
     if(!ip.isUntyped() && !ip.instanceOf(AtomType.ITR))
       Err.type(this, AtomType.ITR, it);
-    return it.itr(input);
+    return it.itr(info);
   }
 
   /**
@@ -270,7 +249,7 @@ public abstract class ParseExpr extends Expr {
    * @throws QueryException query exception
    */
   public final DBNode checkDBNode(final Item it) throws QueryException {
-    if(!(it instanceof DBNode)) NODBCTX.thrw(input, this);
+    if(!(it instanceof DBNode)) NODBCTX.thrw(info, this);
     return (DBNode) it;
   }
 
@@ -282,11 +261,12 @@ public abstract class ParseExpr extends Expr {
    */
   public final void checkColl(final Expr e, final QueryContext ctx)
       throws QueryException {
+
     final byte[] u = checkStr(e, ctx);
     if(eq(URLCOLL, u)) return;
     final Uri uri = Uri.uri(u);
     if(uri.isAbsolute() || !eq(ctx.sc.baseURI().resolve(uri).string(), URLCOLL))
-      IMPLCOL.thrw(input, e);
+      IMPLCOL.thrw(info, e);
     }
 
   /**
@@ -299,10 +279,11 @@ public abstract class ParseExpr extends Expr {
    */
   public final byte[] checkStr(final Expr e, final QueryContext ctx)
       throws QueryException {
+
     final Item it = checkItem(e, ctx);
     final Type ip = it.type;
     if(!ip.isString() && !ip.isUntyped()) Err.type(this, AtomType.STR, it);
-    return it.string(input);
+    return it.string(info);
   }
 
   /**
@@ -316,7 +297,7 @@ public abstract class ParseExpr extends Expr {
     if(it == null) return EMPTY;
     final Type ip = it.type;
     if(!ip.isString() && !ip.isUntyped()) Err.type(this, AtomType.STR, it);
-    return it.string(input);
+    return it.string(info);
   }
 
   /**
@@ -327,7 +308,7 @@ public abstract class ParseExpr extends Expr {
    */
   public final Value checkCtx(final QueryContext ctx) throws QueryException {
     final Value v = ctx.value;
-    if(v == null) XPNOCTX.thrw(input, this);
+    if(v == null) XPNOCTX.thrw(info, this);
     return v;
   }
 
@@ -340,7 +321,7 @@ public abstract class ParseExpr extends Expr {
    */
   public final Item checkItem(final Expr e, final QueryContext ctx)
       throws QueryException {
-    return checkNoEmpty(e.item(ctx, input));
+    return checkNoEmpty(e.item(ctx, info));
   }
 
   /**
@@ -351,9 +332,7 @@ public abstract class ParseExpr extends Expr {
    * @return specified item
    * @throws QueryException query exception
    */
-  public final Item checkType(final Item it, final Type t)
-      throws QueryException {
-
+  public final Item checkType(final Item it, final Type t) throws QueryException {
     if(!checkNoEmpty(it).type.instanceOf(t)) Err.type(this, t, it);
     return it;
   }
@@ -365,7 +344,7 @@ public abstract class ParseExpr extends Expr {
    * @throws QueryException query exception
    */
   public final Item checkNoEmpty(final Item it) throws QueryException {
-    if(it == null) XPEMPTY.thrw(input, description());
+    if(it == null) XPEMPTY.thrw(info, description());
     return it;
   }
 
@@ -376,9 +355,8 @@ public abstract class ParseExpr extends Expr {
    * @return specified item
    * @throws QueryException query exception
    */
-  private Item checkNoEmpty(final Item it, final Type t)
-      throws QueryException {
-    if(it == null) XPEMPTYPE.thrw(input, description(), t);
+  private Item checkNoEmpty(final Item it, final Type t) throws QueryException {
+    if(it == null) XPEMPTYPE.thrw(info, description(), t);
     return it;
   }
 
@@ -392,7 +370,7 @@ public abstract class ParseExpr extends Expr {
    */
   public final byte[] checkEStr(final Expr e, final QueryContext ctx)
       throws QueryException {
-    return checkEStr(e.item(ctx, input));
+    return checkEStr(e.item(ctx, info));
   }
 
   /**
@@ -411,7 +389,7 @@ public abstract class ParseExpr extends Expr {
       final IO iob = ctx.sc.baseIO();
       if(iob != null) {
         io = new IOFile(iob.path(), name);
-        if(!io.exists()) RESFNF.thrw(input, name);
+        if(!io.exists()) RESFNF.thrw(info, name);
       }
     }
     return io;
@@ -424,7 +402,7 @@ public abstract class ParseExpr extends Expr {
    * @throws QueryException query exception
    */
   public final void checkCreate(final QueryContext ctx) throws QueryException {
-    checkPerm(ctx, User.CREATE);
+    checkPerm(ctx, Perm.CREATE);
   }
 
   /**
@@ -434,7 +412,7 @@ public abstract class ParseExpr extends Expr {
    * @throws QueryException query exception
    */
   public final void checkWrite(final QueryContext ctx) throws QueryException {
-    checkPerm(ctx, User.WRITE);
+    checkPerm(ctx, Perm.WRITE);
   }
 
   /**
@@ -444,17 +422,8 @@ public abstract class ParseExpr extends Expr {
    * @param p permission
    * @throws QueryException query exception
    */
-  private void checkPerm(final QueryContext ctx, final byte p)
-      throws QueryException {
-
-    if(ctx.context.user.perm(p)) return;
-    // dump error output
-    final CmdPerm perm;
-    if(p == User.ADMIN) perm = CmdPerm.ADMIN;
-    else if(p == User.CREATE) perm = CmdPerm.CREATE;
-    else if(p == User.WRITE) perm = CmdPerm.WRITE;
-    else perm = CmdPerm.READ;
-    throw PERMNO.thrw(input, perm);
+  private void checkPerm(final QueryContext ctx, final Perm p) throws QueryException {
+    if(!ctx.context.user.has(p)) throw PERMNO.thrw(info, p);
   }
 
   /**

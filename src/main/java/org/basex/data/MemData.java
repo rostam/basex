@@ -1,15 +1,12 @@
 package org.basex.data;
 
-import org.basex.core.Prop;
-import org.basex.index.IdPreMap;
-import org.basex.index.Index;
+import org.basex.core.*;
+import org.basex.index.*;
 import org.basex.index.IndexToken.IndexType;
-import org.basex.index.path.PathSummary;
-import org.basex.index.value.MemValues;
-import org.basex.index.value.UpdatableMemValues;
-import org.basex.index.Names;
-import org.basex.io.random.TableMemAccess;
-import org.basex.util.Token;
+import org.basex.index.path.*;
+import org.basex.index.value.*;
+import org.basex.io.random.*;
+import org.basex.util.*;
 
 /**
  * This class stores and organizes the database table and the index structures
@@ -65,9 +62,6 @@ public final class MemData extends Data {
   }
 
   @Override
-  public void flush() { }
-
-  @Override
   public void close() { }
 
   @Override
@@ -77,14 +71,10 @@ public final class MemData extends Data {
   public void setIndex(final IndexType type, final Index index) { }
 
   @Override
-  public boolean update(final boolean updating) {
-    return true;
-  }
+  public boolean startUpdate() { return true; }
 
   @Override
-  public boolean pinned() {
-    return false;
-  }
+  public void finishUpdate() { }
 
   @Override
   public byte[] text(final int pre, final boolean text) {
@@ -109,8 +99,7 @@ public final class MemData extends Data {
   // UPDATE OPERATIONS ========================================================
 
   @Override
-  protected void delete(final int pre, final boolean text) {
-  }
+  protected void delete(final int pre, final boolean text) { }
 
   @Override
   public void updateText(final int pre, final byte[] val, final int kind) {

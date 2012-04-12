@@ -1,11 +1,9 @@
 package org.basex.core.cmd;
 
-import static org.basex.core.Text.*;
 import static org.basex.data.DataText.*;
 
 import java.io.*;
 
-import org.basex.build.*;
 import org.basex.core.*;
 import org.basex.data.*;
 import org.basex.index.*;
@@ -23,31 +21,32 @@ import org.basex.util.list.*;
  * @author Christian Gruen
  */
 public abstract class ACreate extends Command {
-  /** Flag for creating new data instances. */
-  private boolean closing;
+  /** Flag for closing a data instances before executing the command. */
+  private boolean newData;
 
   /**
    * Protected constructor, specifying command arguments.
    * @param arg arguments
    */
   ACreate(final String... arg) {
-    this(User.CREATE, arg);
-    closing = true;
+    this(Perm.CREATE, false, arg);
+    newData = true;
   }
 
   /**
    * Protected constructor, specifying command flags and arguments.
-   * @param flags command flags
+   * @param p required permission
+   * @param d requires opened database
    * @param arg arguments
    */
-  ACreate(final int flags, final String... arg) {
-    super(flags, arg);
+  ACreate(final Perm p, final boolean d, final String... arg) {
+    super(p, d, arg);
   }
 
   @Override
   public boolean newData(final Context ctx) {
-    if(closing) new Close().run(ctx);
-    return closing;
+    if(newData) new Close().run(ctx);
+    return newData;
   }
 
   @Override
@@ -58,75 +57,6 @@ public abstract class ACreate extends Command {
   @Override
   public boolean stoppable() {
     return true;
-  }
-
-  /**
-   * Builds and creates a new database instance.
-   * @param parser parser instance
-   * @param db name of database
-   * @return success of operation
-   */
-  protected final boolean build(final Parser parser, final String db) {
-    if(!MetaData.validName(db, false)) return error(NAME_INVALID_X, db);
-
-    // close open database
-    new Close().run(context);
-
-    try {
-      if(context.pinned(db)) return error(DB_PINNED_X, db);
-
-      // database builder instance.
-      if(prop.is(Prop.MAINMEM)) {
-        final Data data = progress(new MemBuilder(db, parser)).build();
-        context.openDB(data);
-        context.pin(data);
-      } else {
-        // first step: create database
-        progress(new DiskBuilder(db, parser, context)).build().close();
-        // second step: open database and create index structures
-        final Open open = new Open(db);
-        if(!open.run(context)) return error(open.info());
-        final Data data = context.data();
-        if(data.meta.createtext) create(IndexType.TEXT,      data, this);
-        if(data.meta.createattr) create(IndexType.ATTRIBUTE, data, this);
-        if(data.meta.createftxt) create(IndexType.FULLTEXT,  data, this);
-        data.flush();
-        context.databases().add(db);
-      }
-      return info(parser.info() + DB_CREATED_X_X, db, perf);
-    } catch(final ProgressException ex) {
-      throw ex;
-    } catch(final IOException ex) {
-      Util.debug(ex);
-      abort();
-      final String msg = ex.getMessage();
-      return error(msg != null && !msg.isEmpty() ? msg :
-        Util.info(NOT_PARSED_X, parser.src));
-    } catch(final Exception ex) {
-      // known exceptions:
-      // - IllegalArgumentException (UTF8, zip files)
-      Util.debug(ex);
-      abort();
-      return error(Util.info(NOT_PARSED_X, parser.src));
-    }
-  }
-
-  /**
-   * Starts an update by marking the database as 'updating'.
-   * @param data data reference
-   * @return success flag
-   */
-  protected boolean startUpdate(final Data data) {
-    return data.update(true) || error(LOCK_X, data.meta.name);
-  }
-
-  /**
-   * Finalizes an update by removing 'updating' flag.
-   * @param data data reference
-   * @return success flag
-   */
-  protected boolean stopUpdate(final Data data) {
-    return data.update(false) || error(UNLOCK_X, data.meta.name);
   }
 
   /**
@@ -163,6 +93,7 @@ public abstract class ACreate extends Command {
       throws IOException {
 
     if(data instanceof MemData) return;
+
     final IndexBuilder ib;
     switch(index) {
       case TEXT:      ib = new ValueBuilder(data, true); break;
@@ -179,11 +110,8 @@ public abstract class ACreate extends Command {
    * @param index index type
    * @param data data reference
    * @return success of operation
-   * @throws IOException I/O exception
    */
-  protected static boolean drop(final IndexType index, final Data data)
-      throws IOException {
-
+  protected static boolean drop(final IndexType index, final Data data) {
     String pat = null;
     switch(index) {
       case TEXT:
@@ -202,23 +130,6 @@ public abstract class ACreate extends Command {
     }
     data.closeIndex(index);
     data.meta.dirty = true;
-    data.flush();
     return pat == null || data.meta.drop(pat + '.');
-  }
-
-  /**
-   * Checks if the addressed database is pinned by this or another process.
-   * @param name name of database
-   * @param ctx database context
-   * @return result of check
-   */
-  protected static boolean pinned(final Context ctx, final String name) {
-    // check if name is not valid or if db will be created in main memory
-    if(!MetaData.validName(name, false)) return false;
-    // check if db is already pinned
-    final Data data = ctx.data();
-    // check if name of opened and specified database are identical
-    return data != null && data.meta.name.equals(name) ?
-        data.pinned() : DiskData.pinned(ctx.mprop.dbpath(name), "");
   }
 }

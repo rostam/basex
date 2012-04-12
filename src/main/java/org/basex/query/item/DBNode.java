@@ -24,7 +24,7 @@ import org.basex.util.ft.Scoring;
 import org.basex.util.list.*;
 
 /**
- * Disk-based Node item.
+ * Database nodes.
  *
  * @author BaseX Team 2005-12, BSD License
  * @author Christian Gruen
@@ -466,8 +466,7 @@ public class DBNode extends ANode {
 
   @Override
   public final void plan(final Serializer ser) throws IOException {
-    ser.openElement(Token.token(Util.name(this)), NAM,
-        Token.token(data.meta.name));
+    ser.openElement(Token.token(Util.name(this)), NAM, Token.token(data.meta.name));
     if(pre != 0) ser.attribute(PRE, Token.token(pre));
     ser.closeElement();
   }

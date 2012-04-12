@@ -141,6 +141,7 @@ public interface Text {
     "  -S         Start as service" + NL +
     "  -U<name>   Specify user name" + NL +
     "  -W         Deactivate WebDAV service" + NL +
+    "  -X         Deactivate RESTXQ service" + NL +
     "  -z         Suppress logging";
 
   /** Bug info. */
@@ -497,15 +498,10 @@ public interface Text {
   /** Parse error. */
   String NOT_PARSED_X = lang("not_parsed_%");
 
-  /** Updating error. */
-  String LOCK_X = "Database '%' cannot be marked as 'updating'.";
-  /** Updating error. */
-  String UNLOCK_X = "Database '%' is still marked as 'updating'.";
-
-  /** File not found. */
-  String FILE_NOT_FOUND_X = lang("file_not_found_%");
-  /** Path not found. */
-  String FILE_NOT_FOUND = lang("file_not_found");
+  /** Resource not found. */
+  String RESOURCE_NOT_FOUND_X = lang("resource_not_found_%");
+  /** Resource "%" not found. */
+  String RESOURCE_NOT_FOUND = lang("resource_not_found");
   /** Skipped corrupt files. */
   String SKIPPED = lang("skipped");
   /** Info on skipped corrupt files. */
@@ -531,8 +527,6 @@ public interface Text {
   String DB_UPDATED_X = lang("db_updated_%");
   /** Database closed. */
   String DB_CLOSED_X = lang("db_closed_%");
-  /** Database not closed. */
-  String DB_NOT_CLOSED_X = lang("db_not_closed_%");
   /** Database optimized. */
   String DB_OPTIMIZED_X = lang("db_optimized_%");
   /** Database dropped. */
@@ -567,7 +561,7 @@ public interface Text {
   String DB_EXPORTED_X = lang("db_exported_%");
   /** Database not deleted. */
   String FILE_NOT_DELETED_X = lang("file_not_deleted_%");
-  /** Database exists already. */
+  /** Database already exists. */
   String DB_EXISTS_X = lang("db_exists_%");
   /** Database was dropped. */
   String BACKUP_DROPPED_X = lang("backup_dropped_%");
@@ -718,14 +712,16 @@ public interface Text {
   /** Package deleted. */
   String PKG_DELETED_X = lang("pkg_deleted_%");
   /** Package installed. */
-  String PKG_INSTALLED_X = lang("pkg_installed_%");
+  String PKG_INSTALLED_X_X = lang("pkg_installed_%_%");
+  /** Package replaced. */
+  String PKG_REPLACED_X_X = lang("pkg_replaced_%_%");
 
   // GENERAL COMMANDS =========================================================
 
   /** "Unknown option '%'". */
   String UNKNOWN_OPTION_X = lang("unknown_option_%");
   /** Unknown command error. */
-  String UNKNOWN_OPT_SIMILAR_X = lang("unknown_option_%") + ' ' +
+  String UNKNOWN_OPT_SIMILAR_X_X = lang("unknown_option_%") + ' ' +
       lang("similar_cmd_%");
   /** "Unknown parser '%'". */
   String UNKNOWN_PARSER_X = lang("unknown_parser_%");
@@ -736,8 +732,6 @@ public interface Text {
 
   /** Waiting information. */
   String PLEASE_WAIT_D = lang("please_wait") + DOTS;
-  /** Optimize information. */
-  String OPTIMIZING_DB_D = lang("optimizing_db") + DOTS;
   /** Statistics information. */
   String CREATE_STATS_D = lang("create_stats") + DOTS;
 
@@ -1017,21 +1011,23 @@ public interface Text {
   /** Target path. */
   String TARGET_PATH = lang("target_path");
 
-  /** XML file description. */
+  /** File description: XML Documents. */
   String XML_DOCUMENTS = "XML Documents";
-  /** JSON file description. */
+  /** File description: JSON Documents. */
   String JSON_DOCUMENTS = "JSON Documents";
-  /** HTML file description. */
+  /** File description: HTML Documents. */
   String HTML_DOCUMENTS = "HTML Documents";
-  /** CSV file description. */
+  /** File description: Comma-Separated Values. */
   String CSV_DOCUMENTS = "Comma-Separated Values";
-  /** TXT file description. */
+  /** File description: Plain Text. */
   String PLAIN_TEXT = "Plain Text";
-  /** ZIP file description. */
+  /** File description: ZIP Archives. */
   String ZIP_ARCHIVES = "ZIP Archives";
-  /** XAR file description. */
+  /** File description: XML Archives. */
   String XML_ARCHIVES = "XML Archives";
-  /** XQuery file extensions description. */
+  /** File description: Java archives. */
+  String JAVA_ARCHIVES = "Java Archives";
+  /** File description: XQuery files. */
   String XQUERY_FILES = "XQuery Files";
 
   /** Dialog title for database options. */
@@ -1150,8 +1146,6 @@ public interface Text {
   String OUTPUT_DIR = lang("output_dir");
   /** Dialog title for exporting nodes. */
   String DIR_NOT_EMPTY = lang("dir_not_empty");
-  /** Dialog title for exporting nodes. */
-  String INDENT_WITH_WS = lang("indent_with_ws");
 
   /** Database path. */
   String DATABASE_PATH = lang("database_path");
@@ -1259,8 +1253,6 @@ public interface Text {
   String H_USED_MEM = lang("h_used_mem");
   /** Out of memory error due to database creation. */
   String H_OUT_OF_MEM = NL + lang("h_out_of_mem");
-  /** XML parsing error due to internal XML Parser. */
-  String H_PARSE_ERROR = NL + lang("h_parse_error");
 
   /** Help string. */
   String H_EXECUTE_QUERY = lang("h_execute_query");
@@ -1367,8 +1359,6 @@ public interface Text {
   String H_CHOP_WS = lang("h_chop_ws");
   /** Internal parser information. */
   String H_INT_PARSER = lang("h_int_parser");
-  /** Input format information. */
-  String H_INPUT_FORMAT = lang("h_input_format");
 
   /** Path summary information. */
   String H_PATH_INDEX = lang("h_path_index");

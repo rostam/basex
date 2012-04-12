@@ -516,8 +516,8 @@ public interface QueryText {
 
   /** EXQuery URI. */
   String EXQUERY = "http://exquery.org/ns/";
-  /** REXQ URI. */
-  byte[] REXQURI = token(EXQUERY + "rest/annotation");
+  /** RESTXQ URI. */
+  byte[] RESTXQURI = token(EXQUERY + "restxq");
 
   /** EXPath URI. */
   String EXPATH = "http://expath.org/ns/";
@@ -556,13 +556,12 @@ public interface QueryText {
   byte[] REPOURI = token(BXMODULES + "repo");
 
   /** Java prefix. */
-  byte[] JAVAPRE = token("java:");
+  byte[] JAVAPREF = token("java:");
   /** Default collation. */
   byte[] URLCOLL = concat(FNURI, token("/collation/codepoint"));
 
   /** Static modules. */
-  TokenSet MODULES = new TokenSet(FILEURI, HTTPURI, PKGURI, ZIPURI, SQLURI,
-      CRYPTOURI);
+  TokenSet MODULES = new TokenSet(FILEURI, HTTPURI, PKGURI, ZIPURI, SQLURI, CRYPTOURI);
 
   // QUERY PLAN ===============================================================
 

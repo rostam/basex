@@ -26,7 +26,7 @@ public final class CreateBackup extends Command {
    * @param arg optional argument
    */
   public CreateBackup(final String arg) {
-    super(User.CREATE, arg);
+    super(Perm.CREATE, arg);
   }
 
   @Override
@@ -51,11 +51,6 @@ public final class CreateBackup extends Command {
       }
     }
     return ok;
-  }
-
-  @Override
-  public String pinned(final Context ctx) {
-    return null;
   }
 
   /**

@@ -4,19 +4,13 @@ import static org.basex.query.func.Function.*;
 import static org.basex.util.Token.*;
 import static org.junit.Assert.*;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import org.basex.core.Prop;
-import org.basex.query.util.Err;
-import org.basex.test.query.AdvancedQueryTest;
-import org.basex.util.Util;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import java.io.*;
+import java.util.zip.*;
+
+import org.basex.core.*;
+import org.basex.query.util.*;
+import org.basex.test.query.*;
+import org.junit.*;
 
 /**
  * This class tests the functions of the file library.
@@ -25,14 +19,12 @@ import org.junit.Test;
  * @author Christian Gruen
  */
 public final class FNZipTest extends AdvancedQueryTest {
-  /** Temporary file. */
-  private static final String NAME = Util.name(FNZipTest.class);
   /** Test ZIP file. */
   private static final String ZIP = "src/test/resources/xml.zip";
   /** Temporary ZIP file. */
   private static final String TMPZIP = Prop.TMP + NAME + ".zip";
   /** Temporary file. */
-  private static final String TMPFILE = Prop.TMP + NAME;
+  private static final String TMPFILE = Prop.TMP + NAME + ".tmp";
   /** Test ZIP entry. */
   private static final String ENTRY1 = "infos/stopWords";
   /** Test ZIP entry. */
@@ -63,11 +55,11 @@ public final class FNZipTest extends AdvancedQueryTest {
   @Test
   public void binaryEntry() {
     check(_ZIP_BINARY_ENTRY);
-//    query(ZIPBIN.args(ZIP, ENTRY1));
-//    contains("xs:hexBinary(" + ZIPBIN.args(ZIP, ENTRY1) + ")", "610A61626F");
-//
-//    error(ZIPBIN.args("abc", "xyz"), Err.ZIPNOTFOUND);
-//    error(ZIPBIN.args(ZIP, ""), Err.ZIPNOTFOUND);
+    query(_ZIP_BINARY_ENTRY.args(ZIP, ENTRY1));
+    contains("xs:hexBinary(" + _ZIP_BINARY_ENTRY.args(ZIP, ENTRY1) + ")", "610A61626F");
+
+    error(_ZIP_BINARY_ENTRY.args("abc", "xyz"), Err.ZIPNOTFOUND);
+    error(_ZIP_BINARY_ENTRY.args(ZIP, ""), Err.ZIPNOTFOUND);
   }
 
   /**
@@ -120,12 +112,11 @@ public final class FNZipTest extends AdvancedQueryTest {
         zipParams("<entry name='three' encoding='UTF-16'>!</entry>")));
     checkZipEntry("three", new byte[] { '\0', '!' });
     // check fourth file
-    query(_ZIP_ZIP_FILE.args(zipParams("<entry name='four' src='" +
-        TMPFILE + "'/>")));
+    query(_ZIP_ZIP_FILE.args(zipParams("<entry name='four' src='" + TMPFILE + "'/>")));
     checkZipEntry("four", new byte[] { '!' });
     // check fifth file
     query(_ZIP_ZIP_FILE.args(zipParams("<entry src='" + TMPFILE + "'/>")));
-    checkZipEntry(NAME, new byte[] { '!' });
+    checkZipEntry(NAME + ".tmp", new byte[] { '!' });
     // check sixth file
     query(_ZIP_ZIP_FILE.args(zipParams("<dir name='a'><entry name='b' src='" +
         TMPFILE + "'/></dir>")));
@@ -154,8 +145,7 @@ public final class FNZipTest extends AdvancedQueryTest {
     query(_ZIP_ZIP_FILE.args(zipParams("<entry name='3'><a><b/></a></entry>")));
     checkZipEntry("3", token("<a>" + Prop.NL + "  <b/>" + Prop.NL + "</a>"));
     // ZIP namespace must be removed from zipped entry
-    query(_ZIP_ZIP_FILE.args(
-        zipParams("<entry name='4'><a xmlns=''/></entry>")));
+    query(_ZIP_ZIP_FILE.args(zipParams("<entry name='4'><a xmlns=''/></entry>")));
     checkZipEntry("4", token("<a/>"));
 
     // ZIP namespace must be removed from zipped entry
@@ -178,8 +168,8 @@ public final class FNZipTest extends AdvancedQueryTest {
    * @return parameter string
    * @throws IOException I/O Exception
    */
-  private static String zipParamsPrefix(final String name,
-      final String entry) throws IOException {
+  private static String zipParamsPrefix(final String name, final String entry)
+      throws IOException {
     return "<zip:file xmlns:zip='http://expath.org/ns/zip' href='" +
         new File(TMPZIP).getCanonicalPath() + "'>" +
         "<zip:entry name='" + name + "'>" + entry + "</zip:entry></zip:file>";

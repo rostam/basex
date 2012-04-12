@@ -60,10 +60,10 @@ public final class For extends ForLet {
     type = expr.type();
     size = expr.size();
     if(ctx.grouping) {
-      var.refineType(SeqType.get(type.type, Occ.ZERO_MORE), input);
+      var.refineType(SeqType.get(type.type, Occ.ZERO_MORE), info);
     } else {
       var.size = 1;
-      var.refineType(type.type.seqType(), input);
+      var.refineType(type.type.seqType(), info);
     }
     return this;
   }
@@ -122,9 +122,9 @@ public final class For extends ForLet {
        * @throws QueryException if the items can't be bound
        */
       private Item bind(final Item it, final long i) throws QueryException {
-        ctx.set(var, it, input);
-        if(pos != null) ctx.set(pos, Int.get(i), input);
-        if(score != null) ctx.set(score, Dbl.get(it.score()), input);
+        ctx.set(var, it, info);
+        if(pos != null) ctx.set(pos, Int.get(i), info);
+        if(score != null) ctx.set(score, Dbl.get(it.score()), info);
         return it;
       }
     };

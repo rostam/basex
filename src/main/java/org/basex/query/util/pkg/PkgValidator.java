@@ -18,6 +18,7 @@ import org.basex.util.hash.*;
 /**
  * Package validator. This class executes some essential checks before the
  * installation of a package.
+ *
  * @author BaseX Team 2005-12, BSD License
  * @author Rositsa Shadura
  */
@@ -25,7 +26,7 @@ public final class PkgValidator {
   /** Repository context. */
   private final Repo repo;
   /** Input info. */
-  private final InputInfo input;
+  private final InputInfo info;
 
   /**
    * Constructor.
@@ -34,7 +35,7 @@ public final class PkgValidator {
    */
   public PkgValidator(final Repo r, final InputInfo ii) {
     repo = r;
-    input = ii;
+    info = ii;
   }
 
   /**
@@ -44,9 +45,6 @@ public final class PkgValidator {
    * @throws QueryException query exception
    */
   public void check(final Package pkg) throws QueryException {
-    // check if package is already installed
-    final byte[] name = pkg.uniqueName();
-    if(repo.pkgDict().get(name) != null) PKGINST.thrw(input, name);
     // check package dependencies
     checkDepends(pkg);
     // check package components
@@ -64,12 +62,10 @@ public final class PkgValidator {
     for(final Dependency dep : pkg.dep) {
       // first check of dependency elements are consistently defined in the
       // descriptor
-      if(dep.pkg == null && dep.processor == null)
-        PKGDESCINV.thrw(input, MISSSECOND);
+      if(dep.pkg == null && dep.processor == null) PKGDESCINV.thrw(info, MISSSECOND);
       // if dependency involves a package, check if this package or an
       // appropriate version of it is installed
-      if(dep.pkg != null && depPkg(dep) == null)
-        NECPKGNOTINST.thrw(input, dep.pkg);
+      if(dep.pkg != null && depPkg(dep) == null) PKGNOTINST.thrw(info, dep.pkg);
       // if dependency involves a processor, add it to the list with processor
       // dependencies
       if(dep.processor != null) procs.add(dep);
@@ -86,9 +82,9 @@ public final class PkgValidator {
   public byte[] depPkg(final Dependency dep) {
     // get installed versions of secondary package
     final TokenSet instVers = new TokenSet();
-    for(final byte[] nextPkg : repo.pkgDict().keys())
-      if(nextPkg != null && startsWith(nextPkg, dep.pkg))
-        instVers.add(version(nextPkg));
+    for(final byte[] nextPkg : repo.pkgDict().keys()) {
+      if(nextPkg != null && startsWith(nextPkg, dep.pkg)) instVers.add(version(nextPkg));
+    }
     // check if an appropriate version is already installed
     final byte[] version = availVersion(dep, instVers);
     return version == null ? null : dep.name(version);
@@ -114,14 +110,14 @@ public final class PkgValidator {
       // check if current version is acceptable for the dependency
       supported = availVersion(d, new TokenSet(token(v))) != null;
     }
-    if(!supported) PKGNOTSUPP.thrw(input);
+    if(!supported) PKGNOTSUPP.thrw(info);
   }
 
   /**
    * Checks compatibility of dependency version with installed version.
    * @param dep dependency
    * @param currentVers current versions - either currently installed versions
-   *          for a package or current version of BaseX
+   *        for a package or current version of BaseX
    * @return available appropriate version
    */
   private static byte[] availVersion(final Dependency dep,
@@ -132,7 +128,7 @@ public final class PkgValidator {
       // get acceptable versions for secondary package/processor
       final TokenSet versList = new TokenSet(split(dep.versions, ' '));
       // check if any acceptable version is already installed
-      for(final byte[] v : versList) if(currentVers.id(v) != 0) return v;
+      for(final byte[] v : versList) if(currentVers.contains(v)) return v;
     } else if(dep.semver != null) {
       // version template - version of secondary package or BaseX version must
       // be compatible with the defined template
@@ -184,7 +180,7 @@ public final class PkgValidator {
   private void checkComps(final Package pkg) throws QueryException {
     // modules other than xquery could be supported in future
     for(final Component comp : pkg.comps) {
-      if(isInstalled(comp, pkg.name)) MODISTALLED.thrw(input, comp.name());
+      if(isInstalled(comp, pkg.name)) MODISTALLED.thrw(info, comp.name());
     }
   }
 
@@ -198,6 +194,7 @@ public final class PkgValidator {
    */
   private boolean isInstalled(final Component comp, final byte[] name)
       throws QueryException {
+
     // get packages in which the module's namespace is found
     final TokenSet pkgs = repo.nsDict().get(comp.uri);
     if(pkgs == null) return false;
@@ -208,7 +205,7 @@ public final class PkgValidator {
         // of the current one
         final String pkgDir = string(repo.pkgDict().get(nextPkg));
         final IO pkgDesc = new IOFile(repo.path(pkgDir), DESCRIPTOR);
-        final Package pkg = new PkgParser(repo, input).parse(pkgDesc);
+        final Package pkg = new PkgParser(repo, info).parse(pkgDesc);
         for(final Component nextComp : pkg.comps) {
           if(nextComp.name().equals(comp.name())) return true;
         }

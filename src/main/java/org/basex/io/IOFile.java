@@ -60,15 +60,6 @@ public final class IOFile extends IO {
    * @param dir directory
    * @param n file name
    */
-  public IOFile(final File dir, final String n) {
-    this(new File(dir, n));
-  }
-
-  /**
-   * Constructor.
-   * @param dir directory
-   * @param n file name
-   */
   public IOFile(final IOFile dir, final String n) {
     this(new File(dir.file, n));
   }
@@ -87,7 +78,7 @@ public final class IOFile extends IO {
    */
   public boolean touch() {
     // some file systems require several runs
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < 5; i++) {
       try {
         if(file.createNewFile()) return true;
       } catch(final IOException ex) {
@@ -100,25 +91,7 @@ public final class IOFile extends IO {
 
   @Override
   public byte[] read() throws IOException {
-    final long l = length();
-    if(l > -1) {
-      // read all bytes in one go if length is known
-      final DataInputStream dis = new DataInputStream(
-          is == null ? new FileInputStream(file) : is);
-      final byte[] cont = new byte[(int) l];
-      try {
-        dis.readFully(cont);
-      } finally {
-        if(is == null) dis.close();
-      }
-      return cont;
-    }
-
-    // otherwise, read from stream
-    final BufferedInputStream bis = new BufferedInputStream(is);
-    final ByteList bl = new ByteList();
-    for(int b; (b = bis.read()) != -1;) bl.add(b);
-    return bl.toArray();
+    return new BufferInput(this).content();
   }
 
   @Override
@@ -191,41 +164,13 @@ public final class IOFile extends IO {
   }
 
   @Override
-  public boolean isArchive() {
-    return isSuffix(ZIPSUFFIXES);
-  }
-
-  @Override
-  public boolean isXML() {
-    return isSuffix(XMLSUFFIXES);
-  }
-
-  /**
-   * Tests if the file suffix matches the specified suffixes.
-   * @param suffixes suffixes to compare with
-   * @return result of check
-   */
-  private boolean isSuffix(final String[] suffixes) {
-    final int i = path.lastIndexOf('.');
-    if(i == -1) return false;
-    final String suf = path.substring(i).toLowerCase(Locale.ENGLISH);
-    for(final String z : suffixes) if(suf.equals(z)) return true;
-    return false;
-  }
-
-  @Override
   public InputSource inputSource() {
     return is == null ? new InputSource(path) : new InputSource(is);
   }
 
   @Override
-  public BufferInput inputStream() throws IOException {
-    // return file stream
-    if(is == null) return new BufferInput(this);
-    // return input stream
-    final BufferInput in = new BufferInput(is);
-    if(zip != null && zip.getSize() != -1) in.length(zip.getSize());
-    return in;
+  public InputStream inputStream() throws IOException {
+    return is != null ? is : new FileInputStream(file);
   }
 
   @Override
@@ -237,7 +182,7 @@ public final class IOFile extends IO {
 
   /**
    * Recursively creates the directory.
-   * @return contents
+   * @return success flag
    */
   public boolean md() {
     return !file.exists() && file.mkdirs();
@@ -259,15 +204,15 @@ public final class IOFile extends IO {
   /**
    * Returns the children of the path that match the specified regular
    * expression.
-   * @param pattern regular expression pattern
+   * @param regex regular expression pattern
    * @return children
    */
-  public IOFile[] children(final String pattern) {
+  public IOFile[] children(final String regex) {
     final File[] ch = file.listFiles();
     if(ch == null) return new IOFile[] {};
 
     final ArrayList<IOFile> io = new ArrayList<IOFile>(ch.length);
-    final Pattern p = Pattern.compile(pattern, Prop.WIN ? Pattern.CASE_INSENSITIVE : 0);
+    final Pattern p = Pattern.compile(regex, Prop.WIN ? Pattern.CASE_INSENSITIVE : 0);
     for(final File f : ch) {
       if(p.matcher(f.getName()).matches()) io.add(new IOFile(f));
     }
@@ -338,7 +283,7 @@ public final class IOFile extends IO {
     if(file.exists()) {
       if(isDir()) for(final IOFile ch : children()) ok &= ch.delete();
       // some file systems require several runs
-      for(int i = 0; i < 10; i++) {
+      for(int i = 0; i < 5; i++) {
         if(file.delete() && !file.exists()) return ok;
         Performance.sleep(i * 10);
       }
@@ -353,6 +298,32 @@ public final class IOFile extends IO {
    */
   public boolean rename(final IOFile trg) {
     return file.renameTo(trg.file);
+  }
+
+  /**
+   * Copies a file to another destination.
+   * @param trg target
+   * @throws IOException I/O exception
+   */
+  public void copyTo(final IOFile trg) throws IOException {
+    // optimize buffer size
+    final int bsize = (int) Math.max(1, Math.min(length(), 1 << 22));
+    final byte[] buf = new byte[bsize];
+
+    FileInputStream fis = null;
+    FileOutputStream fos = null;
+    try {
+      // create parent directory of target file
+      new IOFile(trg.dir()).md();
+      fis = new FileInputStream(file);
+      fos = new FileOutputStream(trg.file);
+      // copy file buffer by buffer
+      for(int i; (i = fis.read(buf)) != -1;) fos.write(buf, 0, i);
+    } finally {
+      // close file references
+      if(fis != null) try { fis.close(); } catch(final IOException ex) { }
+      if(fos != null) try { fos.close(); } catch(final IOException ex) { }
+    }
   }
 
   @Override
@@ -471,7 +442,7 @@ public final class IOFile extends IO {
       }
       if(s.equals("..") && size > 0) {
         // parent step
-        if(list[size - 1].indexOf(':') == -1) delete(size - 1);
+        if(list[size - 1].indexOf(':') == -1) deleteAt(size - 1);
       } else if(!s.equals(".") && !s.isEmpty()) {
         // skip self and empty steps
         add(s);

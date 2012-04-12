@@ -2,26 +2,17 @@ package org.basex.core.cmd;
 
 import static org.basex.core.Text.*;
 
-import java.io.IOException;
+import java.io.*;
 
-import org.basex.build.Builder;
-import org.basex.build.DiskBuilder;
-import org.basex.build.Parser;
-import org.basex.core.BaseXException;
-import org.basex.core.CommandBuilder;
+import org.basex.build.*;
+import org.basex.core.*;
 import org.basex.core.Commands.Cmd;
-import org.basex.core.Context;
-import org.basex.core.User;
-import org.basex.data.Data;
-import org.basex.data.DiskData;
-import org.basex.data.MetaData;
+import org.basex.data.*;
 import org.basex.index.IndexToken.IndexType;
-import org.basex.io.IO;
-import org.basex.io.IOFile;
-import org.basex.io.serial.BuilderSerializer;
-import org.basex.io.serial.Serializer;
-import org.basex.util.Util;
-import org.basex.util.list.IntList;
+import org.basex.io.*;
+import org.basex.io.serial.*;
+import org.basex.util.*;
+import org.basex.util.list.*;
 
 /**
  * Evaluates the 'optimize all' command and rebuilds all data structures of
@@ -41,7 +32,7 @@ public final class OptimizeAll extends ACreate {
    * Default constructor.
    */
   public OptimizeAll() {
-    super(DATAREF | User.WRITE);
+    super(Perm.WRITE, true);
   }
 
   @Override
@@ -117,9 +108,8 @@ public final class OptimizeAll extends ACreate {
       // move binary files
       final IOFile bin = data.meta.binaries();
       if(bin.exists()) bin.rename(d.meta.binaries());
-
       final IOFile upd = old.updateFile();
-      if(upd.exists()) Copy.copy(upd.file(), d.updateFile().file());
+      if(upd.exists()) upd.copyTo(d.updateFile());
       d.close();
     } finally {
       try {
@@ -131,7 +121,6 @@ public final class OptimizeAll extends ACreate {
     Close.close(data, ctx);
 
     // drop old database and rename temporary to final name
-    // usually, no exceptions should be thrown here anymore
     if(!DropDB.drop(m.name, ctx))
       throw new BaseXException(DB_NOT_DROPPED_X, m.name);
     if(!AlterDB.alter(tname, m.name, ctx))
@@ -171,7 +160,7 @@ public final class OptimizeAll extends ACreate {
         }
 
         @Override
-        protected void openDoc(final byte[] name) throws IOException {
+        public void openDoc(final byte[] name) throws IOException {
           super.openDoc(name);
           if(cmd != null) cmd.pre++;
         }

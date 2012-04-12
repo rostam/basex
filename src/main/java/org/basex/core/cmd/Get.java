@@ -4,7 +4,7 @@ import static org.basex.core.Text.*;
 import java.io.IOException;
 import java.util.Locale;
 
-import org.basex.core.User;
+import org.basex.core.*;
 
 /**
  * Evaluates the 'get' command and return the value of a database property.
@@ -18,8 +18,8 @@ public final class Get extends AGet {
    * @param key property
    */
   public Get(final Object key) {
-    super(User.READ, (key instanceof Object[] ?
-        ((Object[]) key)[0] : key).toString());
+    super(Perm.NONE,
+        (key instanceof Object[] ? ((Object[]) key)[0] : key).toString());
   }
 
   @Override
@@ -27,7 +27,7 @@ public final class Get extends AGet {
     final String key = args[0].toUpperCase(Locale.ENGLISH);
     Object type = prop.get(key);
     if(type == null && !context.client()) type = mprop.get(key);
-    if(type == null) return whichKey();
+    if(type == null) return error(prop.unknown(key));
     out.println(key + COLS + type);
     return true;
   }

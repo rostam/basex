@@ -2,15 +2,12 @@ package org.basex.test.query;
 
 import static org.junit.Assert.*;
 
-import org.basex.core.Context;
-import org.basex.query.QueryException;
-import org.basex.query.QueryProcessor;
-import org.basex.query.func.Function;
-import org.basex.query.item.AtomType;
-import org.basex.query.item.SeqType;
-import org.basex.query.util.Err;
-import org.basex.util.Token;
-import org.basex.util.Util;
+import org.basex.query.*;
+import org.basex.query.func.*;
+import org.basex.query.item.*;
+import org.basex.query.util.*;
+import org.basex.test.*;
+import org.basex.util.*;
 
 /**
  * This class contains some methods for performing advanced query tests.
@@ -18,24 +15,21 @@ import org.basex.util.Util;
  * @author BaseX Team 2005-12, BSD License
  * @author Christian Gruen
  */
-public abstract class AdvancedQueryTest {
-  /** Database context. */
-  protected static final Context CONTEXT = new Context();
-
+public abstract class AdvancedQueryTest extends SandboxTest {
   /**
    * Runs the specified query.
    * @param query query string
    * @return result
    */
   protected static String query(final String query) {
-    final QueryProcessor qp = new QueryProcessor(query, CONTEXT);
+    final QueryProcessor qp = new QueryProcessor(query, context);
     try {
       return qp.execute().toString().replaceAll("(\\r|\\n) *", "");
     } catch(final QueryException ex) {
       fail("Query failed:\n" + query + "\nMessage: " + ex.getMessage());
       return null;
     } finally {
-      try { qp.close(); } catch(final QueryException ex) { }
+      qp.close();
     }
   }
 
@@ -70,7 +64,7 @@ public abstract class AdvancedQueryTest {
    * @param error expected error
    */
   protected static void error(final String query, final Err... error) {
-    final QueryProcessor qp = new QueryProcessor(query, CONTEXT);
+    final QueryProcessor qp = new QueryProcessor(query, context);
     try {
       final String res = qp.execute().toString().replaceAll("(\\r|\\n) *", "");
       fail("Query did not fail:\n" + query + "\n[E] " +
@@ -78,7 +72,7 @@ public abstract class AdvancedQueryTest {
     } catch(final QueryException ex) {
       check(ex, error);
     } finally {
-      try { qp.close(); } catch(final QueryException ex) { }
+      qp.close();
     }
   }
 

@@ -1,16 +1,17 @@
 package org.basex.io.random;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.Arrays;
+import static org.basex.data.DataText.*;
 
-import org.basex.data.MetaData;
-import org.basex.io.IO;
+import java.io.*;
+import java.nio.channels.*;
+import java.util.*;
+
+import org.basex.core.*;
+import org.basex.data.*;
+import org.basex.io.*;
 import org.basex.io.in.DataInput;
 import org.basex.io.out.DataOutput;
-import org.basex.util.Array;
-import org.basex.util.BitArray;
-import org.basex.util.Util;
+import org.basex.util.*;
 
 /**
  * This class stores the table on disk and reads it block-wise.
@@ -24,8 +25,8 @@ public final class TableDiskAccess extends TableAccess {
   private final Buffers bm = new Buffers();
   /** File storing all blocks. */
   private final RandomAccessFile file;
-  /** Filename prefix. */
-  private final String pref;
+  /** File lock. */
+  private FileLock fl;
 
   /** FirstPre values (sorted ascending; length={@link #allBlocks}). */
   private int[] fpres;
@@ -49,17 +50,14 @@ public final class TableDiskAccess extends TableAccess {
   /**
    * Constructor.
    * @param md meta data
-   * @param pf file prefix
+   * @param lock exclusive access
    * @throws IOException I/O exception
    */
-  public TableDiskAccess(final MetaData md, final String pf)
-      throws IOException {
-
+  public TableDiskAccess(final MetaData md, final boolean lock) throws IOException {
     super(md);
-    pref = pf;
 
     // read meta and index data
-    final DataInput in = new DataInput(meta.dbfile(pf + 'i'));
+    final DataInput in = new DataInput(meta.dbfile(DATATBL + 'i'));
     allBlocks  = in.readNum();
     blocks     = in.readNum();
     fpres      = in.readNums();
@@ -78,15 +76,42 @@ public final class TableDiskAccess extends TableAccess {
     in.close();
 
     // initialize data file
-    file = new RandomAccessFile(meta.dbfile(pf).file(), "rw");
+    file = new RandomAccessFile(meta.dbfile(DATATBL).file(), "rw");
+    if(lock) exclusiveLock();
+    else sharedLock();
+    if(fl == null) throw new BaseXException(Text.DB_PINNED_X, md.name);
+
     readIndex(0);
+  }
+
+  /**
+   * Checks if the table of the specified database is locked.
+   * @param db name of database
+   * @param ctx database context
+   * @return result of check
+   */
+  public static boolean locked(final String db, final Context ctx) {
+    final IOFile table = MetaData.file(ctx.mprop.dbpath(db), DATATBL);
+    if(!table.exists()) return false;
+
+    RandomAccessFile file = null;
+    try {
+      file = new RandomAccessFile(table.file(), "rw");
+      try {
+        return file.getChannel().tryLock() == null;
+      } finally {
+        file.close();
+      }
+    } catch(final IOException ex) {
+      return true;
+    }
   }
 
   @Override
   public synchronized void flush() throws IOException {
     for(final Buffer b : bm.all()) if(b.dirty) writeBlock(b);
     if(!dirty) return;
-    final DataOutput out = new DataOutput(meta.dbfile(pref + 'i'));
+    final DataOutput out = new DataOutput(meta.dbfile(DATATBL + 'i'));
     out.writeNum(allBlocks);
     out.writeNum(blocks);
 
@@ -95,9 +120,6 @@ public final class TableDiskAccess extends TableAccess {
     for(int a = 0; a < allBlocks; a++) out.writeNum(fpres[a]);
     out.writeNum(allBlocks);
     for(int a = 0; a < allBlocks; a++) out.writeNum(pages[a]);
-
-    //out.writeNums(fpres);
-    //out.writeNums(pages);
 
     out.writeLongs(pagemap.toArray());
     out.close();
@@ -108,6 +130,54 @@ public final class TableDiskAccess extends TableAccess {
   public synchronized void close() throws IOException {
     flush();
     file.close();
+  }
+
+  @Override
+  public boolean lock(final boolean lock) {
+    try {
+      if(lock) {
+        if(exclusiveLock()) return true;
+        if(sharedLock()) return false;
+      } else {
+        if(sharedLock()) return true;
+      }
+    } catch(final IOException ex) {
+      Util.stack(ex);
+    }
+    throw Util.notexpected((lock ? "Exclusive" : "Shared") +
+        " lock could not be acquired.");
+  }
+
+  /**
+   * Acquires an exclusive lock on the file.
+   * @return success flag
+   * @throws IOException I/O exception
+   */
+  private boolean exclusiveLock() throws IOException {
+    return lck(false);
+  }
+
+  /**
+   * Acquires a shared lock on the file.
+   * @return success flag
+   * @throws IOException I/O exception
+   */
+  private boolean sharedLock() throws IOException {
+    return lck(true);
+  }
+
+  /**
+   * Acquires a lock on the file. Does nothing if the correct lock has already been
+   * acquired. Otherwise, releases an existing lock.
+   * @param shared shared/exclusive lock
+   * @return success flag
+   * @throws IOException I/O exception
+   */
+  private boolean lck(final boolean shared) throws IOException {
+    if(fl != null && shared == fl.isShared()) return true;
+    if(fl != null) fl.release();
+    fl = file.getChannel().tryLock(0, Long.MAX_VALUE, shared);
+    return fl != null;
   }
 
   @Override
@@ -480,8 +550,8 @@ public final class TableDiskAccess extends TableAccess {
     // update index entries for all following blocks and reduce counter
     for(int i = index + 1; i < blocks; ++i) fpres[i] -= nr;
     meta.size -= nr;
-    npre = index + 1 < blocks && fpres[index + 1] < meta.size ? fpres[index + 1]
-        : meta.size;
+    npre = index + 1 < blocks && fpres[index + 1] < meta.size ? fpres[index + 1] :
+      meta.size;
   }
 
   /**

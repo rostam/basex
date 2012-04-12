@@ -2,17 +2,14 @@ package org.basex.core.cmd;
 
 import static org.basex.core.Text.*;
 
-import java.io.IOException;
+import java.io.*;
 
-import org.basex.core.Command;
-import org.basex.core.CommandBuilder;
+import org.basex.core.*;
 import org.basex.core.Commands.Cmd;
 import org.basex.core.Commands.CmdRepo;
-import org.basex.core.User;
-import org.basex.query.QueryException;
-import org.basex.query.util.pkg.RepoManager;
-import org.basex.util.InputInfo;
-import org.basex.util.Util;
+import org.basex.query.*;
+import org.basex.query.util.pkg.*;
+import org.basex.util.*;
 
 /**
  * Evaluates the 'repo install' command.
@@ -22,7 +19,7 @@ import org.basex.util.Util;
  */
 public final class RepoInstall extends Command {
   /** Input info. */
-  private final InputInfo ii;
+  private final InputInfo info;
 
   /**
    * Constructor.
@@ -30,15 +27,15 @@ public final class RepoInstall extends Command {
    * @param i input info
    */
   public RepoInstall(final String p, final InputInfo i) {
-    super(User.CREATE, p);
-    ii = i;
+    super(Perm.CREATE, p);
+    info = i;
   }
 
   @Override
   protected boolean run() throws IOException {
     try {
-      new RepoManager(context.repo).install(args[0], ii);
-      return info(PKG_INSTALLED_X, args[0], perf);
+      final boolean exists = new RepoManager(context, info).install(Token.token(args[0]));
+      return info(exists ? PKG_REPLACED_X_X : PKG_INSTALLED_X_X, args[0], perf);
     } catch(final QueryException ex) {
       Util.debug(ex);
       return error(ex.getMessage());

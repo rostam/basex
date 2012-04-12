@@ -179,7 +179,7 @@ public abstract class OutputSerializer extends Serializer {
         }
         print(ATT2);
         print(PI_C);
-        sep = indent;
+        sep = untyped;
       } else if(!sa.equals(OMIT) || !ver.equals(V10) && docsys != null) {
         SERSTAND.thrwSerial();
       }
@@ -267,8 +267,7 @@ public abstract class OutputSerializer extends Serializer {
     final FTLexer lex = new FTLexer().sc().init(b);
     while(lex.hasNext()) {
       final FTSpan span = lex.next();
-      if(!span.special && ftp.contains(span.pos))
-        print((char) TokenBuilder.MARK);
+      if(!span.special && ftp.contains(span.pos)) print((char) TokenBuilder.MARK);
       final byte[] t = span.text;
       for(int k = 0; k < t.length; k += cl(t, k)) code(cp(t, k));
     }
@@ -281,6 +280,7 @@ public abstract class OutputSerializer extends Serializer {
     print(COMM_O);
     print(n);
     print(COMM_C);
+    sep = untyped;
   }
 
   @Override
@@ -291,6 +291,7 @@ public abstract class OutputSerializer extends Serializer {
     print(' ');
     print(v);
     print(PI_C);
+    sep = untyped;
   }
 
   @Override
@@ -321,12 +322,17 @@ public abstract class OutputSerializer extends Serializer {
       throw new SerializerException(ex);
     }
 
-    sep = format;
+    sep = true;
     item = true;
   }
 
+  @Override
+  public void openDoc(final byte[] n) throws IOException {
+    sep = false;
+  }
+
   /**
-   * Encode the specified character before printing it.
+   * Encodes the specified character before printing it.
    * @param ch character to be encoded and printed
    * @throws IOException I/O exception
    */
@@ -357,7 +363,7 @@ public abstract class OutputSerializer extends Serializer {
     if(sep) indent();
     print(ELEM_O);
     print(t);
-    sep = indent;
+    sep = untyped;
   }
 
   /**
@@ -365,7 +371,7 @@ public abstract class OutputSerializer extends Serializer {
    * @param dt document type, or {@code null} for html type
    * @throws IOException I/O exception
    */
-  void doctype(final byte[] dt) throws IOException {
+  protected void doctype(final byte[] dt) throws IOException {
     if(level != 0 || docsys == null) return;
     if(sep) indent();
     print(DOCTYPE);
@@ -398,7 +404,7 @@ public abstract class OutputSerializer extends Serializer {
     print(ELEM_OS);
     print(tag);
     print(ELEM_C);
-    sep = indent;
+    sep = untyped;
   }
 
   /**
@@ -491,15 +497,13 @@ public abstract class OutputSerializer extends Serializer {
    * @return {@code true} if declaration was printed
    * @throws IOException I/O exception
    */
-  boolean ct(final boolean empty, final boolean html)
-      throws IOException {
-
+  boolean ct(final boolean empty, final boolean html) throws IOException {
     if(ct != 1) return false;
     ct++;
     if(empty) finishOpen();
     level++;
     startOpen(META);
-    attribute(HTTPEQUIV, token(CONTENT_TYPE));
+    attribute(HTTPEQUIV, token(MimeTypes.CONTENT_TYPE));
     attribute(CONTENT, new TokenBuilder(media.isEmpty() ? MimeTypes.TEXT_HTML :
       media).add(CHARSET).addExt(encoding).finish());
     if(html) {

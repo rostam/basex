@@ -2,25 +2,16 @@ package org.basex.gui.dialog;
 
 import static org.basex.core.Text.*;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 
-import javax.swing.Box;
-import javax.swing.SwingConstants;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.EtchedBorder;
+import javax.swing.*;
+import javax.swing.border.*;
 
-import org.basex.core.MainProp;
-import org.basex.gui.GUI;
-import org.basex.gui.GUIConstants;
+import org.basex.core.*;
+import org.basex.gui.*;
 import org.basex.gui.GUIConstants.Fill;
-import org.basex.gui.layout.BaseXBack;
-import org.basex.gui.layout.BaseXLabel;
-import org.basex.gui.layout.BaseXLayout;
-import org.basex.gui.layout.TableLayout;
+import org.basex.gui.layout.*;
 
 /**
  * Dialog window for displaying information about the project.
@@ -38,8 +29,7 @@ public final class DialogAbout extends Dialog {
 
     BaseXBack p = new BaseXBack(new BorderLayout(12, 0));
     p.setBackground(Color.white);
-    p.setBorder(new CompoundBorder(new EtchedBorder(),
-        new EmptyBorder(10, 10, 15, 22)));
+    p.setBorder(new CompoundBorder(new EtchedBorder(), new EmptyBorder(10, 10, 15, 22)));
 
     final BaseXLabel label = new BaseXLabel();
     label.setIcon(BaseXLayout.icon("logo"));
@@ -47,8 +37,7 @@ public final class DialogAbout extends Dialog {
 
     p.add(label, BorderLayout.WEST);
 
-    final BaseXBack pp = new BaseXBack(Fill.NONE).layout(
-        new TableLayout(16, 1));
+    final BaseXBack pp = new BaseXBack(Fill.NONE).layout(new TableLayout(16, 1));
 
     pp.add(new BaseXLabel(TITLE, false, true));
     final BaseXLabel url = new BaseXLabel("<html><u>" + URL + "</u></html>");
@@ -73,8 +62,7 @@ public final class DialogAbout extends Dialog {
     pp.add(new BaseXLabel(TEAM3));
     pp.add(Box.createVerticalStrut(7));
     final String lang = main.context.mprop.get(MainProp.LANG);
-    pp.add(new BaseXLabel(TRANSLATION + " (" + lang + "): " +
-        DialogPrefs.creds(lang)));
+    pp.add(new BaseXLabel(TRANSLATION + " (" + lang + "): " + DialogPrefs.creds(lang)));
     p.add(pp, BorderLayout.EAST);
     add(p, BorderLayout.NORTH);
 

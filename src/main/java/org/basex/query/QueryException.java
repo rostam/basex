@@ -31,6 +31,15 @@ public final class QueryException extends Exception {
   private int markedCol;
 
   /**
+   * Constructor, specifying a simple error message. {@link Err#JAVACALL} will be set
+   * as error code.
+   * @param msg error message
+   */
+  public QueryException(final String msg) {
+    this(null, Err.JAVACALL, msg);
+  }
+
+  /**
    * Default constructor.
    * @param ii input info
    * @param er error reference
@@ -134,12 +143,12 @@ public final class QueryException extends Exception {
    * @param parser parser
    */
   void pos(final InputParser parser) {
-    markedCol = parser.qm;
+    markedCol = parser.im;
     // check if line/column information has already been added
     if(lineCol != null) return;
 
     file = parser.file;
-    lineCol = InputInfo.lineCol(parser.query, Math.min(parser.qm, parser.ql));
+    lineCol = InputInfo.lineCol(parser.input, Math.min(parser.im, parser.il));
   }
 
   /**

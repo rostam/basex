@@ -69,8 +69,8 @@ public final class Catch extends Single {
     final Value val = ex.value();
     for(final Value v : new Value[] { ex.qname(),
         Str.get(ex.getLocalizedMessage()), val == null ? Empty.SEQ : val,
-        Str.get(io), Int.get(ex.col()), Int.get(ex.line()), Empty.SEQ }) {
-      ctx.set(vars[i++], v, input);
+        Str.get(io), Int.get(ex.line()), Int.get(ex.col()), Empty.SEQ }) {
+      ctx.set(vars[i++], v, info);
     }
     return ctx.value(expr);
   }

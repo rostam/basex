@@ -219,7 +219,7 @@ public final class DialogImport extends BaseXBack {
 
     final boolean dir = io.isDir();
     final boolean archive = io.isArchive();
-    if(dir || archive) filter.setText("*" + IO.XMLSUFFIX);
+    if(dir || archive) filter.setText('*' + IO.XMLSUFFIX);
 
     // evaluate input type
     String type = null;
@@ -260,12 +260,12 @@ public final class DialogImport extends BaseXBack {
    * @param in input stream
    * @return type
    */
-  String guess(final IO in) {
+  static String guess(final IO in) {
     if(!in.exists()) return null;
 
-    TextInput ti = null;
+    BufferInput ti = null;
     try {
-      ti = new TextInput(in);
+      ti = new BufferInput(in.inputStream());
       int b = ti.read();
       // input starts with opening bracket: may be xml
       if(b == '<') return DataText.M_XML;

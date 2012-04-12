@@ -78,7 +78,7 @@ public class InlineFunc extends UserFunc {
 
   @Override
   public Value value(final QueryContext ctx) throws QueryException {
-    return item(ctx, input);
+    return item(ctx, info);
   }
 
   @Override

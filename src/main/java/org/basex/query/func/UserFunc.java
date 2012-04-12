@@ -97,11 +97,11 @@ public class UserFunc extends Single implements Scope {
     final boolean u = expr.uses(Use.UPD);
     if(updating) {
       // updating function
-      if(ret != null) UPFUNCTYPE.thrw(input);
-      if(!u && !expr.isVacuous()) UPEXPECTF.thrw(input);
+      if(ret != null) UPFUNCTYPE.thrw(info);
+      if(!u && !expr.isVacuous()) UPEXPECTF.thrw(info);
     } else if(u) {
       // uses updates, but is not declared as such
-      UPNOT.thrw(input, description());
+      UPNOT.thrw(info, description());
     }
   }
 
@@ -139,7 +139,7 @@ public class UserFunc extends Single implements Scope {
       // constant propagation
       if(propagate != null)
         for(final Entry<Var, Value> e : propagate)
-          ctx.set(e.getKey(), e.getValue(), input);
+          ctx.set(e.getKey(), e.getValue(), info);
 
       expr = expr.comp(ctx, scope);
       scope.cleanUp(ctx, this);
@@ -173,7 +173,7 @@ public class UserFunc extends Single implements Scope {
     try {
       final Item it = expr.item(ctx, ii);
       // optionally promote return value to target type
-      return cast ? ret.cast(it, false, ctx, input, this) : it;
+      return cast ? ret.cast(it, false, ctx, info, this) : it;
     } finally {
       ctx.value = cv;
       ctx.sc.ns.stack(ns);
@@ -189,7 +189,7 @@ public class UserFunc extends Single implements Scope {
     try {
       final Value v = ctx.value(expr);
       // optionally promote return value to target type
-      return cast ? ret.promote(v, ctx, input) : v;
+      return cast ? ret.promote(v, ctx, info) : v;
     } finally {
       ctx.value = cv;
       ctx.sc.ns.stack(ns);

@@ -12,7 +12,7 @@ import org.basex.core.Progress;
 import org.basex.core.Prop;
 import org.basex.io.IO;
 import org.basex.io.IOContent;
-import org.basex.io.in.TextInput;
+import org.basex.io.in.*;
 import org.basex.util.TokenBuilder;
 import org.basex.util.Util;
 import org.basex.util.hash.TokenMap;
@@ -56,6 +56,8 @@ final class XMLScanner extends Progress {
   private final TokenMap pents = new TokenMap();
   /** DTD flag. */
   private final boolean dtd;
+  /** Chop whitespaces. */
+  private final boolean chop;
 
   /** Current scanner state. */
   private State state = State.CONTENT;
@@ -63,12 +65,12 @@ final class XMLScanner extends Progress {
   private boolean prolog = true;
   /** Parameter entity parsing. */
   private boolean pe;
-  /** Tag flag. */
-  private boolean tag;
+  /** Text mode. */
+  private boolean text = true;
   /** Current quote character. */
   private int quote;
   /** XML input. */
-  private TextInput input;
+  private XMLInput input;
 
   /**
    * Initializes the scanner.
@@ -77,11 +79,12 @@ final class XMLScanner extends Progress {
    * @throws IOException I/O exception
    */
   XMLScanner(final IO f, final Prop pr) throws IOException {
-    input = new TextInput(f);
+    input = new XMLInput(f);
     for(int e = 0; e < ENTITIES.length; e += 2) {
       ents.add(token(ENTITIES[e]), token(ENTITIES[e + 1]));
     }
     dtd = pr.is(Prop.DTD);
+    chop = pr.is(Prop.CHOP);
 
     String enc = null;
     // process document declaration...
@@ -104,7 +107,11 @@ final class XMLScanner extends Progress {
     }
     encoding = enc == null ? UTF8 : enc;
 
-    if(!s(consume())) prev(1);
+    final int n = consume();
+    if(!s(n)) {
+      if(n != '<') error(BEFOREROOT);
+      prev(1);
+    }
   }
 
   /**
@@ -147,13 +154,13 @@ final class XMLScanner extends Progress {
    */
   private void scanCONTENT(final int ch) throws IOException {
     // parse TEXT
-    if(!tag && (ch != '<' || isCDATA())) {
+    if(text && (ch != '<' || isCDATA())) {
       content(ch);
       return;
     }
 
     // parse a TAG
-    tag = false;
+    text = true;
     final int c = nextChar();
 
     // parse comments etc...
@@ -278,40 +285,42 @@ final class XMLScanner extends Progress {
    */
   private void content(final int ch) throws IOException {
     type = Type.TEXT;
-    boolean ws = true;
     boolean f = true;
     int c = ch;
     while(c != 0) {
       if(c != '<') {
-        if(ws) ws = ws(c);
         if(c == '&') {
-          // verify...
+          // scan entity
           final byte[] r = ref(true);
           if(r.length == 1) token.add(r);
           else if(!input.add(r, false)) error(RECENT);
         } else {
           if(c == ']') {
+            // ']]>' not allowed in content
             if(consume() == ']') {
               if(consume() == '>') error(CONTCDATA);
               prev(1);
             }
             prev(1);
           }
+          // add character to cached content
           token.add(c);
         }
       } else {
         if(!f && !isCDATA()) {
-          tag = true;
+          text = false;
           prev(1);
+          if(chop) token.trim();
           return;
         }
-        ws = false;
         cDATA();
       }
       c = consume();
       f = false;
     }
-    if(ws) type = Type.EOF;
+    // end of file
+    if(!ws(token.finish())) error(AFTERROOT);
+    type = Type.EOF;
   }
 
   /**
@@ -495,7 +504,7 @@ final class XMLScanner extends Progress {
 
     byte[] en = ents.get(name);
     if(en == null) {
-      // unknown entity: try HTML entities
+      // unknown entity: try HTML entities (lazy initialization)
       if(HTMLENTS.size() == 0) {
         for(int s = 0; s < HTMLENTITIES.length; s += 2) {
           HTMLENTS.add(token(HTMLENTITIES[s]), token(HTMLENTITIES[s + 1]));
@@ -682,7 +691,7 @@ final class XMLScanner extends Progress {
         final String name = string(tok.finish());
         if(!dtd && r) return cont;
 
-        final TextInput tin = input;
+        final XMLInput tin = input;
         try {
           final IO file = input.io().merge(name);
           cont = file.read();
@@ -691,7 +700,7 @@ final class XMLScanner extends Progress {
           // skip unknown DTDs/entities
           cont = new byte[] { '?' };
         }
-        input = new TextInput(new IOContent(cont, name));
+        input = new XMLInput(new IOContent(cont, name));
 
         if(consume(XDECL)) {
           check(XML); s();
@@ -922,8 +931,8 @@ final class XMLScanner extends Progress {
       }
     }
 
-    final TextInput tmp = input;
-    input = new TextInput(new IOContent(tok.finish()));
+    final XMLInput tmp = input;
+    input = new XMLInput(new IOContent(tok.finish()));
     tok = new TokenBuilder();
     while((ch = consume()) != 0) {
       if(ch == '&') tok.add(ref(false));
@@ -997,8 +1006,7 @@ final class XMLScanner extends Progress {
    * @return build exception (indicates that an error is raised)
    * @throws BuildException build exception
    */
-  private BuildException error(final String e, final Object... a)
-      throws BuildException {
+  private BuildException error(final String e, final Object... a) throws BuildException {
     throw new BuildException(det() + COLS + e, a);
   }
 

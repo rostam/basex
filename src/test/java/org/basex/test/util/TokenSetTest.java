@@ -2,11 +2,9 @@ package org.basex.test.util;
 
 import static org.junit.Assert.*;
 
-import org.basex.util.hash.TokenSet;
-import org.basex.util.list.TokenList;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.basex.util.hash.*;
+import org.basex.util.list.*;
+import org.junit.*;
 
 /**
  * Token set tests.
@@ -39,32 +37,26 @@ public class TokenSetTest {
   @Test
   public void add() {
     assertEquals(SIZE, set.size());
-    for(final byte[] t : LIST)
-      assertTrue("Token is missing in list.", set.id(t) != 0);
+    for(final byte[] t : LIST) assertTrue("Token is missing.", set.contains(t));
   }
 
   /** Tests removed tokens. */
   @Test
   public void delete() {
     for(final byte[] t : LIST) set.delete(t);
-    for(final byte[] t : LIST)
-      assertEquals("Token should not be contained in list.", 0, set.id(t));
+    for(final byte[] t : LIST) assertFalse("Token exists.", set.contains(t));
   }
 
   /** Tests removed tokens. */
   @Test
   public void addDelete() {
     for(final byte[] t : LIST) set.add(t);
-    for(final byte[] t : LIST)
-      assertTrue("Token is missing in list.", set.id(t) != 0);
+    for(final byte[] t : LIST) assertTrue("Token is missing.", set.contains(t));
     for(final byte[] t : LIST) set.delete(t);
-    for(final byte[] t : LIST)
-      assertEquals("Token should not be contained in list.", 0, set.id(t));
+    for(final byte[] t : LIST) assertFalse("Token exists.", set.contains(t));
     for(final byte[] t : LIST) set.add(t);
-    for(final byte[] t : LIST)
-      assertTrue("Token is missing in list.", set.id(t) != 0);
+    for(final byte[] t : LIST) assertTrue("Token is missing.", set.contains(t));
     for(final byte[] t : LIST) set.delete(t);
-    for(final byte[] t : LIST)
-      assertEquals("Token should not be contained in list.", 0, set.id(t));
+    for(final byte[] t : LIST) assertFalse("Token exists.", set.contains(t));
   }
 }

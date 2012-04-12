@@ -106,7 +106,7 @@ public abstract class UserFuncCall extends Arr {
       final Value[] sf = func.scope.enter(ctx);
       try {
         for(int a = 0; a < expr.length; ++a)
-          ctx.set(func.args[a], (Value) expr[a], input);
+          ctx.set(func.args[a], (Value) expr[a], info);
       } finally {
         func.scope.exit(ctx, sf);
       }

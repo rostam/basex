@@ -46,7 +46,7 @@ final class TailFuncCall extends UserFuncCall {
     checkHeight(ctx);
 
     // cache arguments, evaluate function and reset variable scope
-    final Value[] cs = addArgs(ctx, input, func.scope, func.args, args(ctx));
+    final Value[] cs = addArgs(ctx, info, func.scope, func.args, args(ctx));
     try {
       return ctx.value(func);
     } finally {

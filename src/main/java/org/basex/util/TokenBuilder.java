@@ -1,10 +1,8 @@
 package org.basex.util;
 
 import static org.basex.util.Token.*;
-import java.util.Arrays;
-
-import org.basex.util.list.ByteList;
-import org.basex.util.list.ElementList;
+import java.util.*;
+import org.basex.util.list.*;
 
 /**
  * This class serves as an efficient constructor for byte arrays.
@@ -311,7 +309,8 @@ public final class TokenBuilder {
    */
   public TokenBuilder addExt(final Object str, final Object... ext) {
     final byte[] t = str instanceof byte[] ? (byte[]) str :
-      token(str == null ? "null" : str.toString());
+      token(str instanceof Throwable ? Util.message((Throwable) str) :
+          str == null ? "null" : str.toString());
 
     for(int i = 0, e = 0; i < t.length; ++i) {
       if(t[i] != '%' || e == ext.length) {

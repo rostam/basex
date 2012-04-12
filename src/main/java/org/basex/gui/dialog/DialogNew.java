@@ -2,22 +2,16 @@ package org.basex.gui.dialog;
 
 import static org.basex.core.Text.*;
 
-import java.awt.BorderLayout;
+import java.awt.*;
 
-import org.basex.core.Prop;
+import org.basex.core.*;
 import org.basex.core.cmd.List;
-import org.basex.data.MetaData;
-import org.basex.gui.GUI;
+import org.basex.data.*;
+import org.basex.gui.*;
 import org.basex.gui.GUIConstants.Msg;
-import org.basex.gui.GUIProp;
-import org.basex.gui.layout.BaseXBack;
-import org.basex.gui.layout.BaseXCheckBox;
-import org.basex.gui.layout.BaseXLabel;
-import org.basex.gui.layout.BaseXTabs;
-import org.basex.gui.layout.BaseXTextField;
-import org.basex.gui.layout.TableLayout;
-import org.basex.util.Util;
-import org.basex.util.list.StringList;
+import org.basex.gui.layout.*;
+import org.basex.util.*;
+import org.basex.util.list.*;
 
 /**
  * Dialog window for specifying options for creating a new database.
@@ -125,7 +119,7 @@ public final class DialogNew extends Dialog {
     final String nm = target.getText().trim();
     ok = valid && !nm.isEmpty();
 
-    String inf = !valid ? FILE_NOT_FOUND : !ok ? ENTER_DB_NAME : null;
+    String inf = !valid ? RESOURCE_NOT_FOUND : !ok ? ENTER_DB_NAME : null;
     Msg icon = Msg.ERROR;
     if(ok) {
       ok = MetaData.validName(nm, false);

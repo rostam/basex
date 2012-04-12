@@ -36,7 +36,7 @@ public class Where extends GFLWOR.Clause {
     return new Eval() {
       @Override
       public boolean next(final QueryContext ctx) throws QueryException {
-        while(sub.next(ctx)) if(pred.ebv(ctx, input).bool(input)) return true;
+        while(sub.next(ctx)) if(pred.ebv(ctx, info).bool(info)) return true;
         return false;
       }
     };

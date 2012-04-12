@@ -55,7 +55,7 @@ public final class Let extends ForLet {
     expr = checkUp(expr, ctx).comp(ctx, scp);
     type = SeqType.ITEM;
     size = var.size = expr.size();
-    var.refineType(score ? SeqType.DBL : expr.type(), input);
+    var.refineType(score ? SeqType.DBL : expr.type(), info);
     return this;
   }
 
@@ -82,7 +82,7 @@ public final class Let extends ForLet {
           } else {
             v = ctx.value(expr);
           }
-          ctx.set(var, v, input);
+          ctx.set(var, v, info);
           more = true;
           return Bln.TRUE;
         }

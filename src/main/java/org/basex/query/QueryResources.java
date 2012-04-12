@@ -2,26 +2,17 @@ package org.basex.query;
 
 import static org.basex.query.util.Err.*;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Arrays;
-import org.basex.core.User;
-import org.basex.core.Commands.CmdPerm;
-import org.basex.core.cmd.Check;
-import org.basex.core.cmd.Close;
-import org.basex.core.cmd.Open;
-import org.basex.data.Data;
-import org.basex.data.Nodes;
-import org.basex.io.IO;
-import org.basex.query.item.DBNode;
-import org.basex.query.item.DBNodeSeq;
-import org.basex.query.item.Empty;
-import org.basex.query.item.Seq;
-import org.basex.query.item.Value;
-import org.basex.util.Array;
-import org.basex.util.InputInfo;
-import org.basex.util.Util;
-import org.basex.util.list.IntList;
+import java.io.*;
+import java.util.*;
+import java.util.regex.*;
+
+import org.basex.core.*;
+import org.basex.core.cmd.*;
+import org.basex.data.*;
+import org.basex.io.*;
+import org.basex.query.item.*;
+import org.basex.util.*;
+import org.basex.util.list.*;
 
 /**
  * This class provides access to resources used by an XQuery expression.
@@ -29,6 +20,8 @@ import org.basex.util.list.IntList;
  * @author BaseX Team 2005-12, BSD License
  */
 public final class QueryResources {
+  /** Slash pattern. */
+  private static final Pattern SLASHES = Pattern.compile("^/+|/+$");
   /** Database context. */
   private final QueryContext ctx;
 
@@ -59,7 +52,7 @@ public final class QueryResources {
    */
   void compile(final Nodes nodes) throws QueryException {
     final Data d = nodes.data;
-    if(!ctx.context.perm(User.READ, d.meta)) PERMNO.thrw(null, CmdPerm.READ);
+    if(!ctx.context.perm(Perm.READ, d.meta)) PERMNO.thrw(null, Perm.READ);
 
     // assign initial context value
     // (if database only contains an empty root node, assign empty sequence)
@@ -76,18 +69,12 @@ public final class QueryResources {
 
   /**
    * Closes the opened data references.
-   * @throws QueryException query exception
    */
-  void close() throws QueryException {
-    try {
-      for(int d = ctx.nodes != null ? 1 : 0; d < datas; ++d) {
-        Close.close(data[d], ctx.context);
-      }
-    } catch(final IOException ex) {
-      throw DBCLOSE.thrw(null);
-    } finally {
-      datas = 0;
+  void close() {
+    for(int d = ctx.nodes != null ? 1 : 0; d < datas; ++d) {
+      Close.close(data[d], ctx.context);
     }
+    datas = 0;
   }
 
   /**
@@ -117,12 +104,13 @@ public final class QueryResources {
    * Creates a new data reference for the specified input, or returns a
    * reference to an already opened file or database.
    * @param input file path or name of database
-   * @param col collection flag
+   * @param path optional path to the addressed sub-directory. Set to {@code null}
+   *        if a single document is addressed
    * @param ii input info
    * @return data reference
    * @throws QueryException query exception
    */
-  public Data data(final String input, final boolean col, final InputInfo ii)
+  public Data data(final String input, final String path, final InputInfo ii)
       throws QueryException {
 
     // check if an opened database with the same name exists
@@ -140,15 +128,15 @@ public final class QueryResources {
     Data d = null;
     try {
       // try to retrieve data reference
-      d = Check.check(ctx.context, input);
+      d = Check.check(ctx.context, input, path);
     } catch(final IOException e) {
       ex = e;
       // try to retrieve data reference relative to base uri
       final IO base = ctx.sc.baseIO();
       if(base != null) {
         try {
-          final String path = base.merge(input).path();
-          if(!path.equals(input)) d = Check.check(ctx.context, path);
+          final String p = base.merge(input).path();
+          if(!p.equals(input)) d = Check.check(ctx.context, p, path);
         } catch(final IOException exc) { /* ignore exception */ }
       }
     }
@@ -156,7 +144,6 @@ public final class QueryResources {
     if(d == null) {
       // handle first exception
       Util.debug(ex);
-      if(col) NOCOLL.thrw(ii, ex);
       if(ex instanceof FileNotFoundException) RESFNF.thrw(ii, input);
       IOERR.thrw(ii, ex);
     }
@@ -181,7 +168,7 @@ public final class QueryResources {
       if(colls == 0) NODEFCOLL.thrw(ii);
     } else {
       // invalid collection reference
-      if(input.contains("<") || input.contains("\\")) COLLINV.thrw(ii, input);
+      if(input.contains("<") || input.contains("\\")) INVCOLL.thrw(ii, input);
 
       // find specified collection
       while(c < colls && !collName[c].equals(input)) ++c;
@@ -197,14 +184,17 @@ public final class QueryResources {
 
       // add new collection if not found
       if(c == colls) {
-        String root = input.replaceFirst("^/+|/+$", "");
+        String root = SLASHES.matcher(input).replaceFirst("");
         String path = "";
         final int s = root.indexOf('/');
-        if(s != -1) {
+        if(s > 0 && root.indexOf(':') == -1) {
           path = root.substring(s + 1);
           root = root.substring(0, s);
         }
-        addCollection(data(root, true, ii), path);
+        final Data d = data(root, path, ii);
+        final String p = d instanceof MemData ? "" : path;
+        addCollection(DBNodeSeq.get(d.resources.docs(p), d, true,
+            path.isEmpty()), d.meta.name);
       }
     }
     return coll[c];
@@ -218,9 +208,8 @@ public final class QueryResources {
    * @param path documents path
    * @throws QueryException query exception
    */
-  public void addDoc(final String name, final String path)
-      throws QueryException {
-    final Data d = data(path, false, null);
+  public void addDoc(final String name, final String path) throws QueryException {
+    final Data d = data(path, null, null);
     if(name != null) d.meta.name = name;
   }
 
@@ -231,27 +220,17 @@ public final class QueryResources {
    * @throws QueryException query exception
    */
   public void addCollection(final String name, final String[] paths)
-      throws QueryException {
+     throws QueryException {
 
     final int ns = paths.length;
     final DBNode[] nodes = new DBNode[ns];
     for(int n = 0; n < ns; n++) {
-      nodes[n] = new DBNode(data(paths[n], true, null), 0, Data.DOC);
+      nodes[n] = new DBNode(data(paths[n], null, null), 0, Data.DOC);
     }
     addCollection(Seq.get(nodes, ns), name);
   }
 
   // PRIVATE METHODS ==========================================================
-
-  /**
-   * Adds documents of the specified data reference as a collection.
-   * @param d data reference
-   * @param path inner collection path
-   */
-  private void addCollection(final Data d, final String path) {
-    addCollection(DBNodeSeq.get(d.resources.docs(path), d, true,
-        path.isEmpty()), d.meta.name);
-  }
 
   /**
    * Adds a data reference to the global list.

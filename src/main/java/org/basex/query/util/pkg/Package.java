@@ -28,7 +28,8 @@ public final class Package {
   byte[] spec;
 
   /**
-   * Returns unique package name consisting of package uri and package version.
+   * Returns a unique package name, consisting of the package URI and its version,
+   * separated by a hyphen.
    * @return result
    */
   byte[] uniqueName() {
@@ -37,22 +38,22 @@ public final class Package {
 
   /**
    * Extracts the package name from a unique package name.
-   * @param pkgName unique package name: name-version
+   * @param pkg unique package name: name-version
    * @return package name
    */
-  public static byte[] name(final byte[] pkgName) {
-    final int idx = lastIndexOf(pkgName, '-');
-    return idx == -1 ? pkgName : subtoken(pkgName, 0, idx);
+  public static byte[] name(final byte[] pkg) {
+    final int idx = lastIndexOf(pkg, '-');
+    return idx == -1 ? pkg : subtoken(pkg, 0, idx);
   }
 
   /**
    * Extracts the package version from a unique package name.
-   * @param pkgName unique package name: name-version
+   * @param pkg unique package name: name-version
    * @return package version
    */
-  public static byte[] version(final byte[] pkgName) {
-    final int idx = lastIndexOf(pkgName, '-');
-    return subtoken(pkgName, idx + 1, pkgName.length);
+  public static byte[] version(final byte[] pkg) {
+    final int idx = lastIndexOf(pkg, '-');
+    return subtoken(pkg, idx + 1, pkg.length);
   }
 
   /**
@@ -60,9 +61,9 @@ public final class Package {
    * @author BaseX Team 2005-12, BSD License
    * @author Rositsa Shadura
    */
-  public static final class Dependency {
+  static final class Dependency {
     /** Name of package a package depends on. */
-    public byte[] pkg;
+    byte[] pkg;
     /** Name of processor a package depends on. */
     byte[] processor;
     /** Set of acceptable version. */
@@ -80,7 +81,7 @@ public final class Package {
      * @param version version
      * @return unique name
      */
-    public byte[] name(final byte[] version) {
+    byte[] name(final byte[] version) {
       return new TokenBuilder().add(pkg).add('-').add(version).finish();
     }
   }
@@ -90,11 +91,11 @@ public final class Package {
    * @author BaseX Team 2005-12, BSD License
    * @author Rositsa Shadura
    */
-  public static final class Component {
+  static final class Component {
     /** Namespace URI. */
-    public byte[] uri;
+    byte[] uri;
     /** Component file. */
-    public byte[] file;
+    byte[] file;
 
     /**
      * Extracts component's file name from component's path.

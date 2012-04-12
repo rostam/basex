@@ -3,12 +3,10 @@ package org.basex.test;
 import static org.basex.util.Token.*;
 import static org.junit.Assert.*;
 
-import java.io.IOException;
+import java.io.*;
 
 import org.basex.core.*;
-import org.basex.core.cmd.CreateDB;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.*;
 
 /**
  * Tests the command-line arguments of the starter class.
@@ -17,10 +15,14 @@ import org.junit.Test;
  * @author Christian Gruen
  */
 public abstract class BaseXTest extends MainTest {
-  /** Delete the test files. */
+  /**
+   * Deletes the test files.
+   * @throws IOException I/O exception
+   */
   @After
-  public void clean() {
-    assertTrue("Could not delete input file.", !IN.exists() || IN.delete());
+  public void clean() throws IOException {
+    assertTrue("Could not delete input file.", !INPUT.exists() || INPUT.delete());
+    run("-cdrop db " + NAME);
   }
 
   /**
@@ -30,8 +32,8 @@ public abstract class BaseXTest extends MainTest {
   @Test
   public void queryFile() throws IOException {
     final String query = "1";
-    IN.write(token(query));
-    equals(query, IN.path());
+    INPUT.write(token(query));
+    equals(query, INPUT.path());
   }
 
   /**
@@ -43,8 +45,8 @@ public abstract class BaseXTest extends MainTest {
     equals("1", "-ba=1", "-q$a");
     equals("2", "-ba=1", "-bb=1", "-q$a+$b");
     equals("3", "-ba=1", "-bb=2", "-q$a+$b");
-    IN.write(token("$a"));
-    equals("4", "-ba=4", IN.toString());
+    INPUT.write(token("$a"));
+    equals("4", "-ba=4", INPUT.toString());
     equals("5,6;7'", "-ba=5,6;7'", "-q$a");
     // bind quote (to be checked in client/server mode)
     //equals("\"", "-ba=\"", "-q$a");
@@ -70,7 +72,7 @@ public abstract class BaseXTest extends MainTest {
    */
   @Test(expected = BaseXException.class)
   public void bindNSErr() throws IOException {
-    run("X'\"", "-b{URI}ln=X'\"", IN.toString());
+    run("X'\"", "-b{URI}ln=X'\"", INPUT.toString());
   }
 
   /**
@@ -79,11 +81,9 @@ public abstract class BaseXTest extends MainTest {
    */
   @Test
   public void input() throws IOException {
-    final String in = "<a/>";
-    final Context ctx = new Context();
-    new CreateDB(NAME, in).execute(ctx);
-    equals(in, "-i" + NAME, "-q.");
-    ctx.close();
+    final String in = "<X/>";
+    INPUT.write(token(in));
+    equals(in, "-i" + INPUT, "-q.");
   }
 
   /**
@@ -110,8 +110,8 @@ public abstract class BaseXTest extends MainTest {
    */
   @Test
   public void commands() throws IOException {
-    IN.write(token("xquery 1" + Prop.NL + "xquery 2" + Prop.NL));
-    equals("12", "-C" + IN.path());
+    INPUT.write(token("xquery 1" + Prop.NL + "xquery 2" + Prop.NL));
+    equals("12", "-C" + INPUT.path());
   }
 
   /**
@@ -195,9 +195,9 @@ public abstract class BaseXTest extends MainTest {
    */
   @Test
   public void chop() throws IOException {
-    final String in = "<a> X </a>";
-    IN.write(token(in));
-    equals(in, "-w", "-i" + IN, "-q.");
+    final String in = "<a> CHOP </a>";
+    INPUT.write(token(in));
+    equals(in, "-w", "-i" + INPUT, "-q.");
   }
 
   /**

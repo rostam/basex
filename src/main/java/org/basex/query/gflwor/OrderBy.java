@@ -64,7 +64,7 @@ public class OrderBy extends GFLWOR.Clause {
         final Value[] tuple = tpls[p];
         // free the space occupied by the tuple
         tpls[p] = null;
-        for(int i = 0; i < tvars.length; i++) ctx.set(tvars[i].var, tuple[i], input);
+        for(int i = 0; i < tvars.length; i++) ctx.set(tvars[i].var, tuple[i], info);
         return true;
       }
 
@@ -79,7 +79,7 @@ public class OrderBy extends GFLWOR.Clause {
         while(sub.next(ctx)) {
           final Item[] key = new Item[keys.length];
           for(int i = 0; i < keys.length; i++)
-            key[i] = keys[i].expr.item(ctx, keys[i].input);
+            key[i] = keys[i].expr.item(ctx, keys[i].info);
           tuples.add(key);
 
           final Value[] vals = new Value[tvars.length];
@@ -177,7 +177,7 @@ public class OrderBy extends GFLWOR.Clause {
           final Item m = a[k] == Dbl.NAN || a[k] == Flt.NAN ? null : a[k],
               n = b[k] == Dbl.NAN || b[k] == Flt.NAN ? null : b[k];
           final int c = m == null ? n == null ? 0 : or.least ? -1 : 1 :
-            n == null ? or.least ? 1 : -1 : m.diff(or.input, n);
+            n == null ? or.least ? 1 : -1 : m.diff(or.info, n);
           if(c != 0) return or.desc ? -c : c;
         }
 

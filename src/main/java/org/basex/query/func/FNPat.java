@@ -3,6 +3,7 @@ package org.basex.query.func;
 import static org.basex.query.util.Err.*;
 import static org.basex.query.QueryText.*;
 import static org.basex.util.Token.*;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.basex.query.QueryContext;
@@ -16,8 +17,8 @@ import org.basex.query.item.Item;
 import org.basex.query.item.QNm;
 import org.basex.query.item.Str;
 import org.basex.query.iter.Iter;
-import org.basex.query.iter.ItemCache;
-import org.basex.query.util.RegEx;
+import org.basex.query.iter.ValueBuilder;
+import org.basex.query.regex.parse.*;
 import org.basex.util.Atts;
 import org.basex.util.InputInfo;
 
@@ -28,6 +29,11 @@ import org.basex.util.InputInfo;
  * @author Christian Gruen
  */
 public final class FNPat extends StandardFunc {
+  /** Slash pattern. */
+  private static final Pattern SLASH = Pattern.compile("\\$");
+  /** Slash pattern. */
+  private static final Pattern BSLASH = Pattern.compile("\\\\");
+
   /** Root element for the analyze-string-result function. */
   private static final QNm ANALYZE = new QNm("fn:analyze-string-result", FNURI);
   /** Element for the analyze-string-result function. */
@@ -73,7 +79,7 @@ public final class FNPat extends StandardFunc {
    * @param val input value
    * @param ctx query context
    * @return function result
-   * @throws QueryException query exception
+   * @throws org.basex.query.QueryException query exception
    */
   private Item matches(final byte[] val, final QueryContext ctx)
       throws QueryException {
@@ -87,13 +93,13 @@ public final class FNPat extends StandardFunc {
    * @param val input value
    * @param ctx query context
    * @return function result
-   * @throws QueryException query exception
+   * @throws org.basex.query.QueryException query exception
    */
   private Item analyzeString(final byte[] val, final QueryContext ctx)
       throws QueryException {
 
     final Pattern p = pattern(expr[1], expr.length == 3 ? expr[2] : null, ctx);
-    if(p.matcher("").matches()) REGROUP.thrw(input);
+    if(p.matcher("").matches()) REGROUP.thrw(info);
     final String str = string(val);
     final Matcher m = p.matcher(str);
 
@@ -155,7 +161,7 @@ public final class FNPat extends StandardFunc {
    * @param val input value
    * @param ctx query context
    * @return function result
-   * @throws QueryException query exception
+   * @throws org.basex.query.QueryException query exception
    */
   private Item replace(final byte[] val, final QueryContext ctx)
       throws QueryException {
@@ -164,7 +170,7 @@ public final class FNPat extends StandardFunc {
     for(int i = 0; i < rep.length; ++i) {
       if(rep[i] == '\\') {
         if(i + 1 == rep.length || rep[i + 1] != '\\' && rep[i + 1] != '$')
-          FUNREGREP.thrw(input);
+          FUNREGREP.thrw(info);
         ++i;
       }
     }
@@ -172,15 +178,16 @@ public final class FNPat extends StandardFunc {
     final Pattern p = pattern(expr[1], expr.length == 4 ? expr[3] : null, ctx);
     String r = string(rep);
     if((p.flags() & Pattern.LITERAL) != 0) {
-      r = r.replaceAll("\\\\", "\\\\\\\\").replaceAll("\\$", "\\\\\\$");
+      r = SLASH.matcher(BSLASH.matcher(r).replaceAll("\\\\\\\\")).
+        replaceAll("\\\\\\$");
     }
 
     try {
       return Str.get(p.matcher(string(val)).replaceAll(r));
     } catch(final Exception ex) {
       final String m = ex.getMessage();
-      if(m.contains("No group")) REGROUP.thrw(input);
-      throw REGERR.thrw(input, m);
+      if(m.contains("No group")) REGROUP.thrw(info);
+      throw REGERR.thrw(info, m);
     }
   }
 
@@ -189,26 +196,26 @@ public final class FNPat extends StandardFunc {
    * @param val input value
    * @param ctx query context
    * @return function result
-   * @throws QueryException query exception
+   * @throws org.basex.query.QueryException query exception
    */
   private Iter tokenize(final byte[] val, final QueryContext ctx)
       throws QueryException {
 
     final Pattern p = pattern(expr[1], expr.length == 3 ? expr[2] : null, ctx);
-    if(p.matcher("").matches()) REGROUP.thrw(input);
+    if(p.matcher("").matches()) REGROUP.thrw(info);
 
-    final ItemCache ic = new ItemCache();
+    final ValueBuilder vb = new ValueBuilder();
     final String str = string(val);
     if(!str.isEmpty()) {
       final Matcher m = p.matcher(str);
       int s = 0;
       while(m.find()) {
-        ic.add(Str.get(str.substring(s, m.start())));
+        vb.add(Str.get(str.substring(s, m.start())));
         s = m.end();
       }
-      ic.add(Str.get(str.substring(s, str.length())));
+      vb.add(Str.get(str.substring(s, str.length())));
     }
-    return ic;
+    return vb;
   }
 
   /**
@@ -217,13 +224,12 @@ public final class FNPat extends StandardFunc {
    * @param mod modifier item
    * @param ctx query context
    * @return modified pattern
-   * @throws QueryException query exception
+   * @throws org.basex.query.QueryException query exception
    */
   private Pattern pattern(final Expr pattern, final Expr mod,
       final QueryContext ctx) throws QueryException {
-
-    return new RegEx(string(checkStr(pattern, ctx)), input).pattern(
-        mod != null ? checkStr(mod, ctx) : null, ctx.xquery3);
+    return RegExParser.parse(checkStr(pattern, ctx),
+        mod != null ? checkStr(mod, ctx) : null, ctx.xquery3, info);
   }
 
   @Override

@@ -26,7 +26,7 @@ public final class DropUser extends AUser {
   }
 
   /**
-   * Default constructor.
+   * Constructor, specifying a database.
    * @param name name of user
    * @param db database
    */
@@ -53,24 +53,26 @@ public final class DropUser extends AUser {
       return info(USER_DROPPED_X, user);
     }
 
-    // drop local user
+    final Data data;
     try {
-      final Data data = Open.open(db, context);
-      if(data.pinned()) return !info(DB_PINNED_X, db);
-
-      if(data.meta.users.drop(data.meta.users.get(user))) {
-        info(USER_DROPPED_X_X, user, db);
-        data.meta.dirty = true;
-        data.flush();
-      }
-      Close.close(data, context);
-      return true;
-
+      data = Open.open(db, context);
     } catch(final IOException ex) {
       Util.debug(ex);
       final String msg = ex.getMessage();
       return !info(msg.isEmpty() ? DB_NOT_OPENED_X : msg, db);
     }
+
+    // try to lock database
+    if(!data.startUpdate()) return !info(DB_PINNED_X, data.meta.name);
+
+    // drop local user
+    if(data.meta.users.drop(data.meta.users.get(user))) {
+      info(USER_DROPPED_X_X, user, db);
+      data.meta.dirty = true;
+    }
+    data.finishUpdate();
+    Close.close(data, context);
+    return true;
   }
 
   @Override

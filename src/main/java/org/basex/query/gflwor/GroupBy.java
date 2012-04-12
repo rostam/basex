@@ -79,8 +79,8 @@ public class GroupBy extends GFLWOR.Clause {
         groups[pos++] = null;
 
         for(int i = 0; i < by.length; i++)
-          ctx.set(by[i].var, curr.key[i] == null ? Empty.SEQ : curr.key[i], input);
-        for(int i = 0; i < post.length; i++) ctx.set(post[i], curr.ngv[i].value(), input);
+          ctx.set(by[i].var, curr.key[i] == null ? Empty.SEQ : curr.key[i], info);
+        for(int i = 0; i < post.length; i++) ctx.set(post[i], curr.ngv[i].value(), info);
         return true;
       }
 
@@ -96,9 +96,9 @@ public class GroupBy extends GFLWOR.Clause {
           final Item[] key = new Item[by.length];
           int hash = 1;
           for(int i = 0; i < by.length; i++) {
-            final Item ki = by[i].item(ctx, input);
-            key[i] = ki == null ? null : StandardFunc.atom(ki, input);
-            hash = 31 * hash + (key[i] == null ? 0 : key[i].hash(input));
+            final Item ki = by[i].item(ctx, info);
+            key[i] = ki == null ? null : StandardFunc.atom(ki, info);
+            hash = 31 * hash + (key[i] == null ? 0 : key[i].hash(info));
           }
 
           // find the group for this key
@@ -113,8 +113,8 @@ public class GroupBy extends GFLWOR.Clause {
 
           if(grp == null) {
             // new group, add it to the list
-            final ItemCache[] ngs = new ItemCache[pre.length];
-            for(int i = 0; i < ngs.length; i++) ngs[i] = new ItemCache();
+            final ValueBuilder[] ngs = new ValueBuilder[pre.length];
+            for(int i = 0; i < ngs.length; i++) ngs[i] = new ValueBuilder();
             grp = new Group(key, ngs);
             grps.add(grp);
 
@@ -147,7 +147,7 @@ public class GroupBy extends GFLWOR.Clause {
   final boolean eq(final Item[] as, final Item[] bs) throws QueryException {
     for(int i = 0; i < as.length; i++) {
       final Item a = as[i], b = bs[i];
-      if(a == null ^ b == null || a != null && !a.equiv(input, b)) return false;
+      if(a == null ^ b == null || a != null && !a.equiv(info, b)) return false;
     }
     return true;
   }
@@ -180,7 +180,7 @@ public class GroupBy extends GFLWOR.Clause {
       final Var inv = pre[i].var, outv = post[i];
       final SeqType it = inv.type();
       outv.refineType(SeqType.get(it.type, it.mayBeZero() ? Occ.ZERO_MORE : Occ.ONE_MORE),
-          input);
+          info);
     }
     return this;
   }
@@ -255,7 +255,7 @@ public class GroupBy extends GFLWOR.Clause {
     @Override
     public Item item(final QueryContext ctx, final InputInfo ii) throws QueryException {
       final Value val = expr.value(ctx);
-      if(val.size() > 1) throw Err.XGRP.thrw(input);
+      if(val.size() > 1) throw Err.XGRP.thrw(info);
       return val.isItem() ? (Item) val : null;
     }
 
@@ -275,7 +275,7 @@ public class GroupBy extends GFLWOR.Clause {
     /** Grouping key, may contain {@code null} values. */
     final Item[] key;
     /** Non-grouping variables. */
-    final ItemCache[] ngv;
+    final ValueBuilder[] ngv;
     /** Overflow list. */
     Group next;
 
@@ -284,7 +284,7 @@ public class GroupBy extends GFLWOR.Clause {
      * @param k grouping key
      * @param ng non-grouping variables
      */
-    Group(final Item[] k, final ItemCache[] ng) {
+    Group(final Item[] k, final ValueBuilder[] ng) {
       key = k;
       ngv = ng;
     }

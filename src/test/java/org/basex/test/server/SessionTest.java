@@ -5,19 +5,17 @@ import static org.basex.query.func.Function.*;
 import static org.basex.util.Token.*;
 import static org.junit.Assert.*;
 
-import java.io.IOException;
+import java.io.*;
 
 import org.basex.core.*;
 import org.basex.core.cmd.*;
-import org.basex.io.*;
-import org.basex.io.in.ArrayInput;
-import org.basex.io.out.ArrayOutput;
+import org.basex.io.in.*;
+import org.basex.io.out.*;
 import org.basex.io.serial.*;
-import org.basex.server.Query;
-import org.basex.server.Session;
-import org.basex.util.Util;
-import org.junit.After;
-import org.junit.Test;
+import org.basex.server.*;
+import org.basex.test.*;
+import org.basex.util.*;
+import org.junit.*;
 
 /**
  * This class tests the client/server query API.
@@ -25,9 +23,7 @@ import org.junit.Test;
  * @author BaseX Team 2005-12, BSD License
  * @author Christian Gruen
  */
-public abstract class SessionTest {
-  /** Test database name. */
-  private static final String DB = Util.name(SessionTest.class);
+public abstract class SessionTest extends SandboxTest {
   /** Raw output method. */
   private static final String RAW = "declare option output:method 'raw';";
   /** Output stream. */
@@ -43,7 +39,7 @@ public abstract class SessionTest {
   @After
   public final void stopSession() {
     try {
-      session.execute(new DropDB(DB));
+      session.execute(new DropDB(NAME));
       session.close();
     } catch(final IOException ex) {
       fail(Util.message(ex));
@@ -73,7 +69,7 @@ public abstract class SessionTest {
   @Test
   public final void commandSerial2() throws IOException {
     check("<db:results xmlns:db=\"ns\">" +
-          "  <db:result>1</db:result>" +
+          "<db:result>1</db:result>" +
           "</db:results>",
           session.execute("xquery " + WRAPPER + '1'));
   }
@@ -100,10 +96,10 @@ public abstract class SessionTest {
    */
   @Test
   public final void create() throws IOException {
-    session.create(DB, new ArrayInput(""));
-    check("", session.query("doc('" + DB + "')").execute());
-    session.create(DB, new ArrayInput("<X/>"));
-    check("<X/>", session.query("doc('" + DB + "')").execute());
+    session.create(NAME, new ArrayInput(""));
+    check("", session.query("doc('" + NAME + "')").execute());
+    session.create(NAME, new ArrayInput("<X/>"));
+    check("<X/>", session.query("doc('" + NAME + "')").execute());
   }
 
   /**
@@ -112,7 +108,7 @@ public abstract class SessionTest {
    */
   @Test(expected = BaseXException.class)
   public final void createErr() throws IOException {
-    session.create(DB, new ArrayInput("<"));
+    session.create(NAME, new ArrayInput("<"));
   }
 
   /**
@@ -130,11 +126,11 @@ public abstract class SessionTest {
    */
   @Test
   public final void add() throws IOException {
-    session.execute("create db " + DB);
-    session.add(DB, new ArrayInput("<X/>"));
-    check("1", session.query("count(" + _DB_OPEN.args(DB) + ')').execute());
-    for(int i = 0; i < 9; i++) session.add(DB, new ArrayInput("<X/>"));
-    check("10", session.query("count(" + _DB_OPEN.args(DB) + ')').execute());
+    session.execute("create db " + NAME);
+    session.add(NAME, new ArrayInput("<X/>"));
+    check("1", session.query("count(" + _DB_OPEN.args(NAME) + ')').execute());
+    for(int i = 0; i < 9; i++) session.add(NAME, new ArrayInput("<X/>"));
+    check("10", session.query("count(" + _DB_OPEN.args(NAME) + ')').execute());
   }
 
   /**
@@ -143,7 +139,7 @@ public abstract class SessionTest {
    */
   @Test(expected = BaseXException.class)
   public final void addNameErr() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.add("", new ArrayInput("<X/>"));
   }
 
@@ -153,7 +149,7 @@ public abstract class SessionTest {
    */
   @Test(expected = BaseXException.class)
   public final void addNoInput() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.add("", new ArrayInput(""));
   }
 
@@ -162,15 +158,16 @@ public abstract class SessionTest {
    * @throws IOException I/O exception
    */
   @Test
+  @Ignore("OverlappingLocking")
   public final void replace() throws IOException {
-    session.execute("create db " + DB);
-    check("0", session.query("count(" + _DB_OPEN.args(DB) + ')').execute());
-    session.replace(DB, new ArrayInput("<X/>"));
-    check("1", session.query("count(" + _DB_OPEN.args(DB) + ')').execute());
-    session.replace(DB + '2', new ArrayInput("<X/>"));
-    check("2", session.query("count(" + _DB_OPEN.args(DB) + ')').execute());
-    session.replace(DB + '2', new ArrayInput("<X/>"));
-    check("2", session.query("count(" + _DB_OPEN.args(DB) + ')').execute());
+    session.execute("create db " + NAME);
+    check("0", session.query("count(" + _DB_OPEN.args(NAME) + ')').execute());
+    session.replace(NAME, new ArrayInput("<X/>"));
+    check("1", session.query("count(" + _DB_OPEN.args(NAME) + ')').execute());
+    session.replace(NAME + '2', new ArrayInput("<X/>"));
+    check("2", session.query("count(" + _DB_OPEN.args(NAME) + ')').execute());
+    session.replace(NAME + '2', new ArrayInput("<X/>"));
+    check("2", session.query("count(" + _DB_OPEN.args(NAME) + ')').execute());
   }
 
   /**
@@ -179,7 +176,7 @@ public abstract class SessionTest {
    */
   @Test(expected = BaseXException.class)
   public final void replaceNameErr() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.replace("", new ArrayInput("<X/>"));
   }
 
@@ -189,7 +186,7 @@ public abstract class SessionTest {
    */
   @Test(expected = BaseXException.class)
   public final void replaceNoInput() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.replace("", new ArrayInput(""));
   }
 
@@ -199,25 +196,25 @@ public abstract class SessionTest {
    */
   @Test
   public final void store() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.store("X", new ArrayInput("!"));
-    check("true", session.query(_DB_IS_RAW.args(DB, "X")).execute());
+    check("true", session.query(_DB_IS_RAW.args(NAME, "X")).execute());
     session.store("X", new ArrayInput(""));
-    check("", session.query(_DB_RETRIEVE.args(DB, "X")).execute());
+    check("", session.query(_DB_RETRIEVE.args(NAME, "X")).execute());
     session.store("X", new ArrayInput(new byte[] { 0, 1, -1 }));
     check("0001FF", session.query(
-        "xs:hexBinary(" + _DB_RETRIEVE.args(DB, "X") + ')').execute());
-    session.execute("drop db " + DB);
+        "xs:hexBinary(" + _DB_RETRIEVE.args(NAME, "X") + ')').execute());
+    session.execute("drop db " + NAME);
   }
 
   /** Stores binary content.
    * @throws IOException I/O exception */
   @Test
   public void storeBinary() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.store("X", new ArrayInput(new byte[] { -128, -2, -1, 0, 1, 127 }));
     check("-128 -2 -1 0 1 127", session.query(
-        _UTIL_TO_BYTES.args(_DB_RETRIEVE.args(DB, "X"))).execute());
+        _UTIL_TO_BYTES.args(_DB_RETRIEVE.args(NAME, "X"))).execute());
   }
 
   /**
@@ -235,7 +232,7 @@ public abstract class SessionTest {
    */
   @Test(expected = BaseXException.class)
   public final void storeInvalid() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.store("..", new ArrayInput("!"));
   }
 
@@ -243,7 +240,7 @@ public abstract class SessionTest {
    * @throws IOException I/O exception */
   @Test
   public void retrieveBinary() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.store("X", new ArrayInput("\0"));
     check("\0", session.execute("retrieve X"));
   }
@@ -252,7 +249,7 @@ public abstract class SessionTest {
    * @throws IOException I/O exception */
   @Test
   public void retrieveEmpty() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.store("X", new ArrayInput(""));
     check("", session.execute("retrieve X"));
   }
@@ -314,11 +311,11 @@ public abstract class SessionTest {
    * @throws IOException I/O exception */
   @Test
   public void queryNullBinary() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.store("X", new ArrayInput("\0"));
-    check("\0", session.execute("xquery " + RAW + _DB_RETRIEVE.args(DB, "X")));
-    check("\0", session.query(RAW + _DB_RETRIEVE.args(DB, "X")).execute());
-    final Query q = session.query(RAW + _DB_RETRIEVE.args(DB, "X"));
+    check("\0", session.execute("xquery " + RAW + _DB_RETRIEVE.args(NAME, "X")));
+    check("\0", session.query(RAW + _DB_RETRIEVE.args(NAME, "X")).execute());
+    final Query q = session.query(RAW + _DB_RETRIEVE.args(NAME, "X"));
     assertTrue(q.more());
     check("\0", q.next());
     assertFalse(q.more());
@@ -329,11 +326,11 @@ public abstract class SessionTest {
    * @throws IOException I/O exception */
   @Test
   public void queryEmptyBinary() throws IOException {
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     session.store("X", new ArrayInput(""));
-    check("", session.execute("xquery " + RAW + _DB_RETRIEVE.args(DB, "X")));
-    check("", session.query(RAW + _DB_RETRIEVE.args(DB, "X")).execute());
-    final Query q = session.query(RAW + _DB_RETRIEVE.args(DB, "X"));
+    check("", session.execute("xquery " + RAW + _DB_RETRIEVE.args(NAME, "X")));
+    check("", session.query(RAW + _DB_RETRIEVE.args(NAME, "X")).execute());
+    final Query q = session.query(RAW + _DB_RETRIEVE.args(NAME, "X"));
     assertTrue(q.more());
     check("", q.next());
     assertNull(q.next());
@@ -356,10 +353,10 @@ public abstract class SessionTest {
   @Test
   public void queryBinary() throws IOException {
     if(out == null) return;
-    session.execute("create db " + DB);
+    session.execute("create db " + NAME);
     final byte[] tmp = { 0, 1, 2, 127, 0, -1, -2, -128 };
     session.store("X", new ArrayInput(tmp));
-    final String retr = _DB_RETRIEVE.args(DB, "X");
+    final String retr = _DB_RETRIEVE.args(NAME, "X");
     // check command
     session.execute("xquery " + RAW + retr + ',' + retr);
     assertTrue(eq(out.toArray(), concat(tmp, tmp)));
@@ -406,8 +403,8 @@ public abstract class SessionTest {
   public void querySerial2() throws IOException {
     final Query query = session.query(WRAPPER + "1 to 2");
     assertTrue("Result expected.", query.more());
-    check("<db:results xmlns:db=\"ns\">  <db:result>1</db:result>" +
-        "  <db:result>2</db:result></db:results>", query.next());
+    check("<db:results xmlns:db=\"ns\"><db:result>1</db:result>" +
+        "<db:result>2</db:result></db:results>", query.next());
   }
 
   /** Runs a query with an external variable declaration.
@@ -609,13 +606,5 @@ public abstract class SessionTest {
     final String result = (out != null ? out : ret).toString();
     if(out != null) out.reset();
     assertEquals(exp.toString(), result.replaceAll("\\r|\\n", ""));
-  }
-
-  /**
-   * Returns the temporary database path.
-   * @return database path
-   */
-  protected static IOFile sandbox() {
-    return new IOFile(Prop.TMP, DB);
   }
 }

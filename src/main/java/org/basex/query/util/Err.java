@@ -18,6 +18,8 @@ import org.basex.util.Token;
  * @author Christian Gruen
  */
 public enum Err {
+  /** BASX0000: Evaluation exception. */
+  JAVACALL(BASX, 0, "%"),
   /** BASX0001: Evaluation exception. */
   NOINDEX(BASX, 1, "Database '%' has no % index."),
   /** BASX0001: Evaluation exception. */
@@ -30,8 +32,6 @@ public enum Err {
   IDINVALID(BASX, 4, "%: value '%' out of range."),
   /** BASX0005: Evaluation exception. */
   PERMNO(BASX, 5, Text.PERM_NEEDED_X),
-  /** BASX0006: Evaluation exception. */
-  DBCLOSE(BASX, 6, "Not all databases properly closed."),
   /** BASX0007: Evaluation exception. */
   QUERYNODES(BASX, 7, Text.NO_DB_NODES),
   /** BASX0008: Evaluation exception. */
@@ -61,11 +61,7 @@ public enum Err {
   /** BASX0019: Evaluation exception. */
   INVFLAG(BASX, 19, "Unknown flag: %."),
   /** BASX0020: Evaluation exception. */
-  OPENED(BASX, 20, "Database '%' is opened by another process."),
-  /** BASX0020: Evaluation exception. */
-  LOCK(BASX, 20, "Database '%' cannot be marked as 'updating'."),
-  /** BASX0020: Evaluation exception. */
-  UNLOCK(BASX, 20, "The 'updating' flag of '%' could not be removed."),
+  PINNED(BASX, 20, "Database '%' is opened by another process."),
   /** BASX0021: Evaluation exception. */
   XPSTACK(BASX, 21, "Stack Overflow: Try tail recursion?"),
 
@@ -95,15 +91,13 @@ public enum Err {
   /** FODC0002: Evaluation exception. */
   UNDOC(FODC, 2, "Document node could not be created (%)."),
   /** FODC0002: Evaluation exception. */
-  COLLINV(FODC, 2, "Invalid collection '%'."),
-  /** FODC0002: Evaluation exception. */
   NODEFCOLL(FODC, 2, "No default collection available."),
   /** FODC0002: Evaluation exception. */
   IOERR(FODC, 2, "%"),
   /** FODC0002: Evaluation exception. */
   RESFNF(FODC, 2, "Resource '%' does not exist."),
   /** FODC0004: Evaluation exception. */
-  NOCOLL(FODC, 4, "%"),
+  INVCOLL(FODC, 4, "Invalid collection '%'."),
   /** FODC0006: Evaluation exception. */
   SAXERR(FODC, 6, "SAX: %."),
   /** FODC0007: Evaluation exception. */
@@ -175,9 +169,9 @@ public enum Err {
   /** PACK0001: Evaluation exception. */
   PKGNOTEXIST(PACK, 1, "Package '%' does not exist."),
   /** PACK0002: Evaluation exception. */
-  PKGINST(PACK, 2, "Package '%' is already installed."),
+  INSTERR(PACK, 2, "Namespace URI is invalid: '%'."),
   /** PACK0003: Evaluation exception. */
-  NECPKGNOTINST(PACK, 3, "Required package '%' is not installed."),
+  PKGNOTINST(PACK, 3, "Required package '%' is not installed."),
   /** PACK0004: Evaluation exception. */
   PKGDESCINV(PACK, 4, "Package descriptor: %."),
   /** PACK0004: Evaluation exception. */
@@ -187,7 +181,7 @@ public enum Err {
   /** PACK0006: Evaluation exception. */
   PKGREADFNF(PACK, 6, "Package '%' could not be parsed: '%' not found."),
   /** PACK0007: Evaluation exception. */
-  CANNOTDELPKG(PACK, 7, "Package cannot be deleted."),
+  PKGDEL(PACK, 7, "File '%' could not be deleted."),
   /** PACK0008: Evaluation exception. */
   PKGDEP(PACK, 8, "Package '%' depends on package '%'."),
   /** PACK0009: Evaluation exception. */
@@ -232,15 +226,15 @@ public enum Err {
   /** FORG0006: Evaluation exception. */
   TYPECMP(FORG, 6, "% is not comparable."),
   /** FORG0006: Evaluation exception. */
-  JAVAFUN(FORG, 6, "Invalid arguments: %(%) found."),
+  JAVAFUN(FORG, 6, "Invalid call of Java function: %(%)."),
   /** FORG0006: Evaluation exception. */
-  JAVAMOD(FORG, 6, "Invalid arguments:\n% expected, % found."),
+  JAVAMOD(FORG, 6, "Invalid arguments: % expected, % found."),
   /** FORG0006: Evaluation exception. */
   INVBASE(FORG, 6, "Unsupported base: %."),
   /** FORG0006: Evaluation exception. */
   INVDIG(FORG, 6, "Invalid digit for base %: %."),
   /** FORG0006: Evaluation exception. */
-  JAVAERR(FORG, 6, "Java call failed: %."),
+  JAVAERR(FORG, 6, "Java function call failed: %."),
   /** FORG0006: Evaluation exception. */
   ERRFORM(FORG, 6, "%: %."),
   /** FORG0008: Function exception. */
@@ -447,8 +441,6 @@ public enum Err {
   /** XPST0003: Parsing exception. */
   PRAGMAINV(XPST, 3, "Invalid pragma expression."),
   /** XPST0003: Parsing exception. */
-  TESTINCOMPLETE(XPST, 3, "Incomplete node test."),
-  /** XPST0003: Parsing exception. */
   CALCEXPR(XPST, 3, "Calculation is incomplete."),
   /** XPST0003: Parsing exception. */
   INVMAPKEY(XPST, 3, "Invalid key, simple expression expected."),
@@ -493,8 +485,6 @@ public enum Err {
   /** XPST0003: Parsing exception. */
   PIXML(XPST, 3, "Processing instruction has illegal name: '%'."),
   /** XPST0003: Parsing exception. */
-  TESTINVALID(XPST, 3, "Invalid % test: %."),
-  /** XPST0003: Parsing exception. */
   QNAMEINV(XPST, 3, "Expecting QName, '%' found."),
   /** XPST0003: Parsing exception. */
   PROLOGORDER(XPST, 3, "Default declarations must be declared first."),
@@ -514,8 +504,6 @@ public enum Err {
   NOANN(XPST, 3, "No annotation allowed here."),
   /** XPST0003: Parsing exception. */
   NOCATCH(XPST, 3, "Expecting catch clause."),
-  /** XPST0003: Parsing exception. */
-  WHICHANN(XPST, 3, "Annotation % is unknown."),
   /** XPST0003: Parsing exception. */
   ANNVALUE(XPST, 3, "Literal expected after annotation."),
   /** XPST0003: Parsing exception. */
@@ -547,6 +535,8 @@ public enum Err {
   FUNCUNKNOWN(XPST, 17, "Unknown function '%(...)'."),
   /** XPST0017: Parsing exception. */
   WHICHJAVA(XPST, 17, "Unknown Java function '%(...)'."),
+  /** XPST0017: Parsing exception. */
+  INITJAVA(XPST, 17, "Class cannot be initialized: %."),
 
   /** XPST0051: Parsing exception. */
   TYPEUNKNOWN(XPST, 51, "Unknown type %."),
@@ -566,8 +556,6 @@ public enum Err {
   XPINVCAST(XPTY, 4, "Invalid cast from % to %: %."),
   /** XPTY0004: Promoting exception. */
   XPINVPROM(XPTY, 4, "Cannot treat % as %: %."),
-  /** XPTY0004: Typing exception. */
-  XPCAST(XPTY, 4, "Invalid %(%) cast."),
   /** XPTY0004: Typing Exception. */
   XPTYPE(XPTY, 4, "%: % expected, % found."),
   /** XPTY0004: Typing Exception. */
@@ -588,8 +576,6 @@ public enum Err {
   XPTYPECMP(XPTY, 4, "% and % cannot be compared."),
   /** XPTY0004: Typing exception. */
   XPTYPENUM(XPTY, 4, "%: number expected, % found."),
-  /** XPTY0004: Typing exception. */
-  XPINVNAME(XPTY, 4, "Invalid name: '%'."),
   /** XPTY0004: Typing exception. */
   XPNAME(XPTY, 4, "Expecting name."),
   /** XPTY0004: Typing exception. */
@@ -678,11 +664,11 @@ public enum Err {
   /** XQST0057: Parsing exception. */
   NSEMPTY(XQST, 57, "Namespace URI cannot be empty."),
   /** XQST0059: Parsing exception. */
-  NOCONS(XQST, 59, "% must inhert %."),
+  NOINST(XQST, 59, "Could not instantiate module '%'."),
   /** XQST0059: Parsing exception. */
-  NOINV(XQST, 59, "Could not instantiate Java class '%'."),
+  NOMODULE(XQST, 59, "Module \"%\" not found."),
   /** XQST0059: Parsing exception. */
-  NOMODULE(XQST, 59, "No module found for namespace '%'."),
+  MODINIT(XQST, 59, "Module '%' not initialized."),
   /** XQST0059: Parsing exception. */
   NOMODULEFILE(XQST, 59, "Could not retrieve module '%'."),
   /** XQST0059: Parsing exception. */
@@ -708,7 +694,7 @@ public enum Err {
   /** XQST0075: Parsing exception. */
   IMPLVAL(XQST, 75, "Validation not supported yet."),
   /** XQST0076: Parsing exception. */
-  INVCOLL(XQST, 76, "Unknown collation '%'."),
+  WHICHCOLL(XQST, 76, "Unknown collation '%'."),
   /** XQST0079: Parsing exception. */
   NOPRAGMA(XQST, 79, "Expecting pragma expression."),
   /** XQST0085: Parsing exception. */
@@ -860,18 +846,8 @@ public enum Err {
   CRYPTOXPINV(FOCX, 4, "XPath expression is invalid."),
   /** FOCX03: Crypto Exception. */
   CRYPTOINVNM(FOCX, 5, "Invalid name for $digital-certificate root."),
-  /* FOCX03: Crypto Exception.
-  CRYPTOINVCH(FOCX, 6, "Invalid child element of $digital-certificate."), */
   /** FOCX03: Crypto Exception. */
   CRYPTOKSNULL(FOCX, 7, "Key store is null."),
-  /* FOCX03: Crypto Exception.
-  CRYPTOIOERR(FOCX, 8, "I/O error while reading keystore."), */
-  /* FOCX03: Crypto Exception.
-  CRYPTOPERMDEN(FOCX, 9, "Permission denied to read keystore."), */
-  /* FOCX03: Crypto Exception.
-  CRYPTOKSURLINV(FOCX, 10, "Keystore URL is invalid."), */
-  /* FOCX03: Crypto Exception.
-  CRYPTOKSTYPE(FOCX, 11, "Keystore type is not supported."), */
   /** FOCX03: Crypto Exception. */
   CRYPTONOKEY(FOCX, 12, "Cannot find key for alias in given keystore."),
   /** FOCX13: Crypto Exception. */
@@ -1011,7 +987,7 @@ public enum Err {
     URIS.put(BASX,  BASEXURI);
     URIS.put(FOCX,  CRYPTOURI);
     URIS.put(PACK,  PKGURI);
-    URIS.put(REXQ,  REXQURI);
+    URIS.put(REXQ,  RESTXQURI);
     URIS.put(FOZP,  ZIPURI);
   }
 
@@ -1065,20 +1041,6 @@ public enum Err {
 
   /**
    * Throws a type exception.
-   * @param ii input info
-   * @param inf expression info
-   * @param t expected type
-   * @param it found item
-   * @return query exception (indicates that an error is raised)
-   * @throws QueryException query exception
-   */
-  public static QueryException type(final InputInfo ii, final String inf, final Type t,
-      final Item it) throws QueryException {
-    throw XPTYPE.thrw(ii, inf, t, it.type);
-  }
-
-  /**
-   * Throws a type exception.
    * @param e parsing expression
    * @param t expected type
    * @param it found item
@@ -1087,7 +1049,7 @@ public enum Err {
    */
   public static QueryException type(final ParseExpr e, final Type t, final Item it)
       throws QueryException {
-    throw type(e.input, e.description(), t, it);
+    throw XPTYPE.thrw(e.info, e.description(), t, it.type);
   }
 
   /**
@@ -1099,7 +1061,7 @@ public enum Err {
    */
   public static QueryException number(final ParseExpr e, final Item it)
       throws QueryException {
-    throw XPTYPENUM.thrw(e.input, e.description(), it.type);
+    throw XPTYPENUM.thrw(e.info, e.description(), it.type);
   }
 
   /**

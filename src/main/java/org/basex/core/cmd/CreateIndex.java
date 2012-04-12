@@ -1,18 +1,17 @@
 package org.basex.core.cmd;
 
 import static org.basex.core.Text.*;
-import java.io.IOException;
-import org.basex.core.CommandBuilder;
-import org.basex.core.Prop;
-import org.basex.core.User;
+
+import java.io.*;
+
+import org.basex.core.*;
 import org.basex.core.Commands.Cmd;
 import org.basex.core.Commands.CmdCreate;
 import org.basex.core.Commands.CmdIndex;
-import org.basex.data.Data;
-import org.basex.data.MemData;
+import org.basex.data.*;
 import org.basex.index.IndexToken.IndexType;
-import org.basex.util.Util;
-import org.basex.util.ft.Language;
+import org.basex.util.*;
+import org.basex.util.ft.*;
 
 /**
  * Evaluates the 'create db' command and creates a new index.
@@ -26,7 +25,7 @@ public final class CreateIndex extends ACreate {
    * @param type index type, defined in {@link CmdIndex}
    */
   public CreateIndex(final Object type) {
-    super(DATAREF | User.WRITE, type != null ? type.toString() : null);
+    super(Perm.WRITE, true, type != null ? type.toString() : null);
   }
 
   @Override
@@ -34,38 +33,40 @@ public final class CreateIndex extends ACreate {
     final Data data = context.data();
     if(data instanceof MemData) return error(NO_MAINMEM);
 
-    try {
-      final IndexType index;
-      final CmdIndex ci = getOption(CmdIndex.class);
-      switch(ci) {
-        case TEXT:
-          data.meta.createtext = true;
-          index = IndexType.TEXT;
-          break;
-        case ATTRIBUTE:
-          data.meta.createattr = true;
-          index = IndexType.ATTRIBUTE;
-          break;
-        case FULLTEXT:
-          data.meta.createftxt = true;
-          data.meta.wildcards = prop.is(Prop.WILDCARDS);
-          data.meta.stemming = prop.is(Prop.STEMMING);
-          data.meta.casesens = prop.is(Prop.CASESENS);
-          data.meta.diacritics = prop.is(Prop.DIACRITICS);
-          data.meta.scoring = prop.num(Prop.SCORING);
-          data.meta.language = Language.get(prop);
-          index = IndexType.FULLTEXT;
-          break;
-        default:
-          return error(UNKNOWN_CMD_X, this);
-      }
-      create(index, data, this);
-      data.flush();
+    final IndexType index;
+    final CmdIndex ci = getOption(CmdIndex.class);
+    switch(ci) {
+      case TEXT:
+        data.meta.createtext = true;
+        index = IndexType.TEXT;
+        break;
+      case ATTRIBUTE:
+        data.meta.createattr = true;
+        index = IndexType.ATTRIBUTE;
+        break;
+      case FULLTEXT:
+        data.meta.createftxt = true;
+        data.meta.wildcards = prop.is(Prop.WILDCARDS);
+        data.meta.stemming = prop.is(Prop.STEMMING);
+        data.meta.casesens = prop.is(Prop.CASESENS);
+        data.meta.diacritics = prop.is(Prop.DIACRITICS);
+        data.meta.scoring = prop.num(Prop.SCORING);
+        data.meta.language = Language.get(prop);
+        index = IndexType.FULLTEXT;
+        break;
+      default:
+        return error(UNKNOWN_CMD_X, this);
+    }
 
+    if(!data.startUpdate()) return error(DB_PINNED_X, data.meta.name);
+    try {
+      create(index, data, this);
       return info(INDEX_CREATED_X_X, index, perf);
     } catch(final IOException ex) {
       Util.debug(ex);
       return error(ex.getMessage());
+    } finally {
+      data.finishUpdate();
     }
   }
 

@@ -28,7 +28,7 @@ import org.basex.util.list.*;
  */
 public final class HTTPResponse {
   /** Input information. */
-  private final InputInfo input;
+  private final InputInfo info;
   /** Database properties. */
   private final Prop prop;
 
@@ -38,7 +38,7 @@ public final class HTTPResponse {
    * @param pr database properties
    */
   public HTTPResponse(final InputInfo ii, final Prop pr) {
-    input = ii;
+    info = ii;
     prop = pr;
   }
 
@@ -59,9 +59,9 @@ public final class HTTPResponse {
     final NodeCache hdrs = extractHdrs(conn);
     final String cType = mediaTypeOvr == null ?
         extractContentType(conn.getContentType()) : string(mediaTypeOvr);
-    final ItemCache payloads = new ItemCache();
+    final ValueBuilder payloads = new ValueBuilder();
     final FNode body;
-    final boolean s = status != null && Bln.parse(status, input);
+    final boolean s = status != null && Bln.parse(status, info);
 
     // multipart response
     if(cType.startsWith(MULTIPART)) {
@@ -84,7 +84,7 @@ public final class HTTPResponse {
     responseEl.add(body);
 
     // result
-    final ItemCache result = new ItemCache();
+    final ValueBuilder result = new ValueBuilder();
     result.add(responseEl);
     result.add(payloads.value());
     return result;
@@ -153,7 +153,7 @@ public final class HTTPResponse {
       // In case of XML, HTML or text content type, use supplied character set
       if(MimeTypes.isXML(c) || c.equals(MimeTypes.TEXT_HTML) ||
           c.startsWith(MimeTypes.MIME_TEXT_PREFIX))
-        return new NewlineInput(new IOContent(bl.toArray()), ce).content();
+        return new NewlineInput(new IOContent(bl.toArray())).encoding(ce).content();
 
       // In case of binary data, do not encode anything
       return bl.toArray();
@@ -192,8 +192,7 @@ public final class HTTPResponse {
    * @throws QueryException query exception
    */
   private NodeCache extractParts(final InputStream io, final boolean status,
-      final ItemCache payloads, final byte[] sep)
-          throws IOException, QueryException {
+      final ValueBuilder payloads, final byte[] sep) throws IOException, QueryException {
 
     try {
       // read first line of multipart content
@@ -201,7 +200,7 @@ public final class HTTPResponse {
       // RFC 1341: Preamble shall be ignored -> read till 1st boundary
       while(next != null && !eq(sep, next))
         next = readLine(io);
-      if(next == null) REQINV.thrw(input, "No body specified for http:part");
+      if(next == null) REQINV.thrw(info, "No body specified for http:part");
 
       final byte[] end = concat(sep, token("--"));
       FElem nextPart = extractNextPart(io, status, payloads, sep, end);
@@ -227,7 +226,8 @@ public final class HTTPResponse {
    * @throws IOException I/O Exception
    */
   private FElem extractNextPart(final InputStream io, final boolean status,
-      final ItemCache payloads, final byte[] sep, final byte[] end) throws IOException {
+      final ValueBuilder payloads, final byte[] sep, final byte[] end)
+          throws IOException {
 
     // content type of part payload - if not defined by header 'Content-Type',
     // it is equal to 'text/plain' (RFC 1341)
@@ -319,8 +319,8 @@ public final class HTTPResponse {
    * @return payload part content
    * @throws IOException I/O Exception
    */
-  private static byte[] extractPartPayload(final InputStream io,
-      final byte[] sep, final byte[] end, final String ce) throws IOException {
+  private static byte[] extractPartPayload(final InputStream io, final byte[] sep,
+      final byte[] end, final String ce) throws IOException {
 
     final ByteList bl = new ByteList();
     while(true) {
@@ -333,7 +333,7 @@ public final class HTTPResponse {
       }
       bl.add(next).add('\n');
     }
-    return new NewlineInput(new IOContent(bl.toArray()), ce).content();
+    return new NewlineInput(new IOContent(bl.toArray())).encoding(ce).content();
   }
 
   /**
@@ -355,7 +355,7 @@ public final class HTTPResponse {
    */
   private byte[] extractBoundary(final String c) throws QueryException {
     int index = c.toLowerCase(Locale.ENGLISH).lastIndexOf("boundary=");
-    if(index == -1) REQINV.thrw(input, "No separation boundary specified");
+    if(index == -1) REQINV.thrw(info, "No separation boundary specified");
     String b = c.substring(index + 9); // 9 for "boundary="
     if(b.charAt(0) == '"') {
       // if the boundary is enclosed in quotes, strip them

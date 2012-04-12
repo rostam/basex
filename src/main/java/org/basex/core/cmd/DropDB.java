@@ -5,10 +5,9 @@ import static org.basex.core.Text.*;
 import org.basex.core.*;
 import org.basex.core.Commands.Cmd;
 import org.basex.core.Commands.CmdDrop;
-import org.basex.core.Context;
 import org.basex.data.*;
-import org.basex.util.list.StringList;
-import org.basex.io.IOFile;
+import org.basex.io.*;
+import org.basex.util.list.*;
 
 /**
  * Evaluates the 'drop database' command and deletes a database.
@@ -39,7 +38,7 @@ public final class DropDB extends ACreate {
       // close database if it's currently opened
       close(context, db);
       // check if database is still pinned
-      if(context.pinned(db) || pinned(context, db)) {
+      if(context.pinned(db)) {
         info(DB_PINNED_X, db);
         ok = false;
       } else if(!drop(db, context)) {
@@ -53,11 +52,6 @@ public final class DropDB extends ACreate {
     return ok;
   }
 
-  @Override
-  public String pinned(final Context ctx) {
-    return null;
-  }
-
   /**
    * Deletes the specified database.
    * @param db name of the database
@@ -66,24 +60,28 @@ public final class DropDB extends ACreate {
    */
   public static synchronized boolean drop(final String db, final Context ctx) {
     final IOFile dbpath = ctx.mprop.dbpath(db);
-    return dbpath.exists() && drop(dbpath, null) && ctx.databases().delete(db);
+    return dbpath.exists() && drop(dbpath) && ctx.databases().delete(db);
   }
 
   /**
    * Drops a database directory.
    * @param path database path
+   * @return success of operation
+   */
+  public static synchronized boolean drop(final IOFile path) {
+    return path.exists() && path.delete();
+  }
+
+  /**
+   * Recursively drops files in database directory with the specified pattern.
+   * @param path database path
    * @param pat file pattern
    * @return success of operation
    */
   public static synchronized boolean drop(final IOFile path, final String pat) {
-    boolean ok = path.exists();
-    // try to delete all files
-    for(final IOFile sub : path.children()) {
-      ok &= sub.isDir() ? drop(sub, pat) :
-        pat != null && !sub.name().matches(pat) || sub.delete();
-    }
-    // only delete directory if no pattern was specified
-    return (pat != null || path.delete()) && ok;
+    boolean ok = true;
+    for(final IOFile f : path.children()) ok &= !f.name().matches(pat) || f.delete();
+    return ok;
   }
 
   @Override

@@ -13,7 +13,7 @@ import org.basex.query.item.QNm;
 import org.basex.query.item.AtomType;
 import org.basex.query.item.Str;
 import org.basex.query.item.Uri;
-import org.basex.query.iter.ItemCache;
+import org.basex.query.iter.ValueBuilder;
 import org.basex.query.iter.Iter;
 import org.basex.query.util.Err;
 import org.basex.util.Atts;
@@ -50,8 +50,8 @@ public final class FNQName extends StandardFunc {
       throws QueryException {
 
     // functions have 1 or 2 arguments...
-    final Item it = expr[0].item(ctx, input);
-    final Item it2 = expr.length == 2 ? expr[1].item(ctx, input) : null;
+    final Item it = expr[0].item(ctx, info);
+    final Item it2 = expr.length == 2 ? expr[1].item(ctx, info) : null;
     switch(sig) {
       case RESOLVE_QNAME:            return resolveQName(ctx, it, it2);
       case QNAME:                    return qName(it, it2);
@@ -70,17 +70,17 @@ public final class FNQName extends StandardFunc {
    * @throws QueryException query exception
    */
   private Iter inscope(final QueryContext ctx) throws QueryException {
-    final ANode node = (ANode) checkType(expr[0].item(ctx, input),
+    final ANode node = (ANode) checkType(expr[0].item(ctx, info),
         NodeType.ELM);
 
     final Atts ns = node.nsScope().add(XML, XMLURI);
     final int as = ns.size();
-    final ItemCache ic = new ItemCache(as);
+    final ValueBuilder vb = new ValueBuilder(as);
     for(int a = 0; a < as; ++a) {
       final byte[] key = ns.name(a);
-      if(key.length + ns.string(a).length != 0) ic.add(Str.get(key));
+      if(key.length + ns.string(a).length != 0) vb.add(Str.get(key));
     }
-    return ic;
+    return vb;
   }
 
   /**
@@ -95,10 +95,10 @@ public final class FNQName extends StandardFunc {
     final byte[] name = checkEStr(it2);
     final byte[] str = !contains(name, ':') && eq(uri, XMLURI) ?
         concat(XMLC, name) : name;
-    if(!XMLToken.isQName(str)) Err.value(input, AtomType.QNM, Str.get(name));
+    if(!XMLToken.isQName(str)) Err.value(info, AtomType.QNM, Str.get(name));
     final QNm nm = new QNm(str, uri);
     if(nm.hasPrefix() && uri.length == 0)
-      Err.value(input, AtomType.URI, Str.get(nm.uri()));
+      Err.value(info, AtomType.URI, Str.get(nm.uri()));
     return nm;
   }
 
@@ -114,7 +114,7 @@ public final class FNQName extends StandardFunc {
 
     if(it == null) return null;
     final QNm nm = (QNm) checkType(it, AtomType.QNM);
-    return AtomType.NCN.cast(Str.get(nm.local()), ctx, input);
+    return AtomType.NCN.cast(Str.get(nm.local()), ctx, info);
   }
 
   /**
@@ -130,7 +130,7 @@ public final class FNQName extends StandardFunc {
     if(it == null) return null;
     final QNm nm = (QNm) checkType(it, AtomType.QNM);
     return nm.hasPrefix() ?
-        AtomType.NCN.cast(Str.get(nm.prefix()), ctx, input) : null;
+        AtomType.NCN.cast(Str.get(nm.prefix()), ctx, info) : null;
   }
 
   /**
@@ -148,12 +148,12 @@ public final class FNQName extends StandardFunc {
     if(it == null) return null;
 
     final byte[] name = checkEStr(it);
-    if(!XMLToken.isQName(name)) Err.value(input, AtomType.QNM, it);
+    if(!XMLToken.isQName(name)) Err.value(info, AtomType.QNM, it);
 
     final QNm nm = new QNm(name);
     final byte[] pref = nm.prefix();
     final byte[] uri = base.uri(pref, ctx);
-    if(uri == null) NSDECL.thrw(input, pref);
+    if(uri == null) NSDECL.thrw(info, pref);
     nm.uri(uri);
     return nm;
   }
@@ -188,11 +188,11 @@ public final class FNQName extends StandardFunc {
       throws QueryException {
     if(it == null) return null;
     final Uri rel = Uri.uri(checkEStr(it));
-    if(!rel.isValid()) URIINV.thrw(input, it);
+    if(!rel.isValid()) URIINV.thrw(info, it);
     if(rel.isAbsolute()) return rel;
     final Uri base = it2 == null ? ctx.sc.baseURI() : Uri.uri(checkEStr(it2));
-    if(!base.isValid()) URIINV.thrw(input, base);
-    if(!base.isAbsolute()) URIABS.thrw(input, base);
+    if(!base.isValid()) URIINV.thrw(info, base);
+    if(!base.isAbsolute()) URIABS.thrw(info, base);
     return base.resolve(rel);
   }
 }

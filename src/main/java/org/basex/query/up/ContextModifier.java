@@ -1,12 +1,10 @@
 package org.basex.query.up;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-import org.basex.data.Data;
-import org.basex.query.QueryContext;
-import org.basex.query.QueryException;
-import org.basex.query.up.primitives.UpdatePrimitive;
+import org.basex.data.*;
+import org.basex.query.*;
+import org.basex.query.up.primitives.*;
 
 /**
  * Base class for the different context modifiers. A context modifier aggregates
@@ -51,11 +49,31 @@ public abstract class ContextModifier {
    * no constraints are hurt.
    * @throws QueryException query exception
    */
-  final void applyUpdates() throws QueryException {
-    // constraints are checked first. no updates are applied if any problems
-    // are found
-    for(final DatabaseUpdates c : pendingUpdates.values()) c.check();
-    for(final DatabaseUpdates c : pendingUpdates.values()) c.apply();
+  final void apply() throws QueryException {
+    // checked constraints
+    final Collection<DatabaseUpdates> updates = pendingUpdates.values();
+    for(final DatabaseUpdates c : updates) c.check();
+
+    int i = 0;
+    try {
+      // mark disk database instances as updating
+      for(final DatabaseUpdates c : updates) {
+        c.startUpdate();
+        i++;
+      }
+
+      // apply updates
+      for(final DatabaseUpdates c : updates) c.apply();
+
+    } catch(final QueryException ex) {
+      throw ex;
+    } finally {
+      // remove write locks and updating files
+      for(final DatabaseUpdates c : updates) {
+        if(i-- == 0) break;
+        c.finishUpdate();
+      }
+    }
   }
 
   /**

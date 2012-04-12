@@ -1,6 +1,6 @@
 package org.basex.test.query.ast;
 
-import org.junit.Test;
+import org.junit.*;
 
 /**
  * Tests for rewritings of FLWOR-expressions.
@@ -73,6 +73,20 @@ public final class FlworOptimizeTest extends QueryPlanTest {
 
         "3 4 3 4",
         "//For[Var/@name = '$a'] << //Let and //Let << //For[Var/@name = '$b']"
+    );
+  }
+
+  /** Tests the relocation of a static let clause. */
+  @Ignore
+  @Test public void moveForTest() {
+    check("let $x := <x/> " +
+        "for $a in 1 to 2 " +
+        "for $b in $x " +
+        "return $b",
+
+        "<x/><x/>",
+        "//For[@var eq '$b'] << //For[@var eq '$a']",
+        "every $for in //For satisfies exactly-one(//Let) << $for"
     );
   }
 

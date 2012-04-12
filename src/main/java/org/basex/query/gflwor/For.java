@@ -66,15 +66,15 @@ public class For extends GFLWOR.Clause {
           if(it != null) {
             // there's another item to serve
             ++p;
-            ctx.set(var, it, input);
-            if(pos != null) ctx.set(pos, Int.get(p), input);
-            if(score != null) ctx.set(score, Dbl.get(it.score()), input);
+            ctx.set(var, it, info);
+            if(pos != null) ctx.set(pos, Int.get(p), info);
+            if(score != null) ctx.set(score, Dbl.get(it.score()), info);
             return true;
           } else if(empty && iter != null && p == 0) {
             // expression yields no items, bind the empty sequence instead
-            ctx.set(var, Empty.SEQ, input);
-            if(pos != null) ctx.set(pos, Int.get(p), input);
-            if(score != null) ctx.set(score, Dbl.get(0), input);
+            ctx.set(var, Empty.SEQ, info);
+            if(pos != null) ctx.set(pos, Int.get(p), info);
+            if(score != null) ctx.set(score, Dbl.get(0), info);
             iter = null;
             return true;
           } else if(!sub.next(ctx)) {
@@ -131,7 +131,7 @@ public class For extends GFLWOR.Clause {
     final SeqType tp = expr.type();
     final boolean emp = empty && tp.mayBeZero();
     type = SeqType.get(tp.type, emp ? Occ.ZERO_ONE : Occ.ONE);
-    var.refineType(type, input);
+    var.refineType(type, info);
     size = emp ? -1 : 1;
     return this;
   }

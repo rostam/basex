@@ -48,11 +48,12 @@ abstract class AQuery extends Command {
 
   /**
    * Protected constructor.
-   * @param flags command flags
+   * @param p required permission
+   * @param d requires opened database
    * @param arg arguments
    */
-  AQuery(final int flags, final String... arg) {
-    super(flags, arg);
+  AQuery(final Perm p, final boolean d, final String... arg) {
+    super(p, d, arg);
   }
 
   /**
@@ -136,12 +137,12 @@ abstract class AQuery extends Command {
         err = XPSTACK.desc;
       } finally {
         // close processor after exceptions
-        if(qp != null) try { qp.close(); } catch(final QueryException ex) { }
+        if(qp != null) qp.close();
       }
     }
 
     error(err);
-    if(Util.debug || err.startsWith(INTERRUPTED)) {
+    if(Prop.debug || err.startsWith(INTERRUPTED)) {
       info(NL);
       info(QUERY_CC + query);
       info(qp.info());
@@ -167,19 +168,14 @@ abstract class AQuery extends Command {
     } catch(final QueryException ex) {
       Util.debug(ex);
       qe = ex;
-      if(qp != null) try { qp.close(); } catch(final QueryException e) { }
+      if(qp != null) qp.close();
       return false;
     }
   }
 
   @Override
   public boolean updating(final Context ctx) {
-    return super.updating(ctx) || updating(ctx, args[0]);
-  }
-
-  @Override
-  public String pinned(final Context ctx) {
-    return null;
+    return super.updating(ctx) || args[0] != null && updating(ctx, args[0]);
   }
 
   @Override

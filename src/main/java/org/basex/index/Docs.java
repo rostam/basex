@@ -169,7 +169,7 @@ final class Docs {
     int i = docs.sortedIndexOf(pre);
     final boolean found = i >= 0;
     if(i < 0) i = -i - 1;
-    else docs.delete(i);
+    else docs.deleteAt(i);
     docs.move(-size, i);
 
     if(!found) return;
@@ -261,8 +261,7 @@ final class Docs {
     if(sort) {
       final int[] order = order();
       final int p = find(exct);
-      return p > -1 && p < ts && eq(paths.get(order[p]), exct) ?
-          docs.get(order[p]) : -1;
+      return p > -1 && p < ts && eq(paths.get(order[p]), exct) ? docs.get(order[p]) : -1;
     }
     for(int t = 0; t < ts; t++) {
       if(eq(paths.get(t), exct)) return docs.get(t);

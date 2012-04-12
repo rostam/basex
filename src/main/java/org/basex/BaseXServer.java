@@ -2,17 +2,15 @@ package org.basex;
 
 import static org.basex.core.Text.*;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
+
 import org.basex.core.BaseXException;
 import org.basex.core.Context;
 import org.basex.core.Main;
 import org.basex.core.MainProp;
 import org.basex.core.Prop;
+import org.basex.io.*;
 import org.basex.io.in.BufferInput;
 import org.basex.server.ClientListener;
 import org.basex.server.ClientSession;
@@ -41,7 +39,7 @@ public final class BaseXServer extends Main implements Runnable {
   /** Event server socket. */
   ServerSocket esocket;
   /** Stop file. */
-  File stop;
+  IOFile stop;
   /** Log. */
   Log log;
 
@@ -136,7 +134,7 @@ public final class BaseXServer extends Main implements Runnable {
         @Override
         public void run() {
           log.write(SRV_STOPPED);
-          log.close();
+          log = null;
           Util.outln(SRV_STOPPED);
         }
       });
@@ -176,10 +174,11 @@ public final class BaseXServer extends Main implements Runnable {
           }
           new ClientListener(s, context, log, this).start();
         }
+      } catch(final SocketException ex) {
+        break;
       } catch(final Throwable ex) {
-        // socket was closed..
+        // socket may have been unexpectedly closed
         if(log != null) log.error(ex);
-        // socket was closed..
         break;
       }
     }
@@ -190,8 +189,8 @@ public final class BaseXServer extends Main implements Runnable {
    * @param port server port
    * @return stop file
    */
-  private static File stopFile(final int port) {
-    return new File(Prop.TMP, Util.name(BaseXServer.class) + port);
+  private static IOFile stopFile(final int port) {
+    return new IOFile(Prop.TMP, Util.name(BaseXServer.class) + port);
   }
 
   @Override
@@ -323,9 +322,9 @@ public final class BaseXServer extends Main implements Runnable {
    * @throws IOException I/O exception
    */
   public static void stop(final int port, final int eport) throws IOException {
-    final File stop = stopFile(port);
+    final IOFile stop = stopFile(port);
     try {
-      stop.createNewFile();
+      stop.touch();
       new Socket(LOCALHOST, eport).close();
       new Socket(LOCALHOST, port).close();
       // check if server was really stopped

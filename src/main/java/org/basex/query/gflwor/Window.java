@@ -113,7 +113,8 @@ public class Window extends GFLWOR.Clause {
 
           // find end item
           if(fst != null) {
-            final ItemCache window = new ItemCache(new Item[] {fst, null, null, null}, 1);
+            final ValueBuilder window = new ValueBuilder(
+                new Item[] {fst, null, null, null}, 1);
             final Item[] st = vals == null ? new Item[] { curr, prev, next } : vals;
             final long ps = vals == null ? p : spos;
             vals = null;
@@ -128,7 +129,7 @@ public class Window extends GFLWOR.Clause {
               window.add(curr);
             }
 
-            ctx.set(var, window.value(), input);
+            ctx.set(var, window.value(), info);
             return true;
           }
 
@@ -152,7 +153,7 @@ public class Window extends GFLWOR.Clause {
         while(true) {
           if(findStart(ctx)) {
             // find end item
-            final ItemCache window = new ItemCache();
+            final ValueBuilder window = new ValueBuilder();
             boolean found = false;
             do {
               window.add(curr);
@@ -164,7 +165,7 @@ public class Window extends GFLWOR.Clause {
 
             // don't return dangling items if the {@code only} flag was specified
             if(found || !only) {
-              ctx.set(var, window.value(), input);
+              ctx.set(var, window.value(), info);
               return true;
             }
           }
@@ -197,7 +198,7 @@ public class Window extends GFLWOR.Clause {
           }
 
           if(curr != null) {
-            final ItemCache cache = new ItemCache();
+            final ValueBuilder cache = new ValueBuilder();
             final Iterator<Item> qiter = queue.iterator();
             // the first element is already the {@code next} one
             if(qiter.hasNext()) qiter.next();
@@ -220,7 +221,7 @@ public class Window extends GFLWOR.Clause {
             if(!(it == null && only)) {
               start.bind(ctx, curr, p, prev, next);
               prev = curr;
-              ctx.set(var, cache.value(), input);
+              ctx.set(var, cache.value(), info);
               return true;
             }
           }
@@ -396,7 +397,7 @@ public class Window extends GFLWOR.Clause {
       bind(ctx, it, p, pr, nx);
 
       // evaluate as effective boolean value
-      return expr.ebv(ctx, input).bool(input);
+      return expr.ebv(ctx, info).bool(info);
     }
 
     /**
@@ -410,10 +411,10 @@ public class Window extends GFLWOR.Clause {
      */
     void bind(final QueryContext ctx, final Item it, final long p, final Item pr,
         final Item nx) throws QueryException {
-      if(item != null) ctx.set(item, it == null ? Empty.SEQ : it, input);
-      if(pos  != null) ctx.set(pos,  Int.get(p),                  input);
-      if(prev != null) ctx.set(prev, pr == null ? Empty.SEQ : pr, input);
-      if(next != null) ctx.set(next, nx == null ? Empty.SEQ : nx, input);
+      if(item != null) ctx.set(item, it == null ? Empty.SEQ : it, info);
+      if(pos  != null) ctx.set(pos,  Int.get(p),                  info);
+      if(prev != null) ctx.set(prev, pr == null ? Empty.SEQ : pr, info);
+      if(next != null) ctx.set(next, nx == null ? Empty.SEQ : nx, info);
     }
 
     @Override

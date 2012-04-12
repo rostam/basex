@@ -47,11 +47,11 @@ public final class Quantifier extends ParseExpr {
 
   @Override
   public Expr comp(final QueryContext ctx, final VarScope scp) throws QueryException {
-    final GFLWOR flwor = new GFLWOR(input, new ArrayList<Clause>(Arrays.asList(fl)),
-        BOOLEAN.get(input, sat));
+    final GFLWOR flwor = new GFLWOR(info, new ArrayList<Clause>(Arrays.asList(fl)),
+        BOOLEAN.get(info, sat));
 
     // return pre-evaluated result
-    return (every ? _UTIL_ALL : _UTIL_ANY).get(input, checkUp(flwor, ctx)).comp(ctx, scp);
+    return (every ? _UTIL_ALL : _UTIL_ANY).get(info, checkUp(flwor, ctx)).comp(ctx, scp);
   }
 
   @Override

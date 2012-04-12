@@ -53,7 +53,7 @@ public final class BaseFuncCall extends UserFuncCall {
     Value[] args = args(ctx);
     do {
       // cache arguments, evaluate function and reset variable scope
-      final Value[] sf = addArgs(ctx, input, fun.scope, fun.args, args);
+      final Value[] sf = addArgs(ctx, info, fun.scope, fun.args, args);
       ctx.tailCalls = 0;
       try {
         return ctx.value(fun);
@@ -74,6 +74,6 @@ public final class BaseFuncCall extends UserFuncCall {
 
   @Override
   public Expr markTailCalls() {
-    return new TailFuncCall(input, name, func, expr);
+    return new TailFuncCall(info, name, func, expr);
   }
 }

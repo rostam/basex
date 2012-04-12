@@ -95,7 +95,7 @@ public final class LocalVarRef extends VarRef {
 
   @Override
   public Expr remove(final Var v) {
-    return var.is(v) ? new Context(input) : this;
+    return var.is(v) ? new Context(info) : this;
   }
 
   @Override

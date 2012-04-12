@@ -1,5 +1,6 @@
 package org.basex.query.func;
 
+import static org.basex.query.QueryText.*;
 import static org.basex.query.util.Err.*;
 import static org.basex.util.Token.*;
 
@@ -11,27 +12,19 @@ import org.basex.io.IO;
 import org.basex.io.IOContent;
 import org.basex.io.in.NewlineInput;
 import org.basex.io.out.ArrayOutput;
-import org.basex.io.serial.Serializer;
-import org.basex.io.serial.SerializerException;
+import org.basex.io.serial.*;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.expr.Expr;
-import org.basex.query.item.ANode;
-import org.basex.query.item.AtomType;
-import org.basex.query.item.Bln;
-import org.basex.query.item.DBNode;
-import org.basex.query.item.Item;
-import org.basex.query.item.NodeType;
-import org.basex.query.item.SeqType;
-import org.basex.query.item.Str;
-import org.basex.query.item.StrStream;
-import org.basex.query.item.Uri;
-import org.basex.query.item.Value;
+import org.basex.query.item.*;
+import org.basex.query.item.map.*;
 import org.basex.query.iter.Iter;
+import org.basex.query.path.*;
 import org.basex.query.up.primitives.Put;
 import org.basex.query.util.Err;
 import org.basex.query.util.Err.ErrType;
-import org.basex.util.InputInfo;
+import org.basex.util.*;
+import org.basex.util.hash.*;
 import org.basex.util.list.ByteList;
 
 /**
@@ -41,6 +34,13 @@ import org.basex.util.list.ByteList;
  * @author Christian Gruen
  */
 public final class FNGen extends StandardFunc {
+  /** Element: output:serialization-parameters. */
+  private static final QNm Q_SPARAM = new QNm("serialization-parameters", OUTPUTURI);
+  /** Attribute: value. */
+  private static final QNm A_VALUE = new QNm("value");
+  /** Response node test. */
+  public static final ExtTest OUTPUT_SERIAL = new ExtTest(NodeType.ELM, Q_SPARAM);
+
   /**
    * Constructor.
    * @param ii input info
@@ -105,8 +105,8 @@ public final class FNGen extends StandardFunc {
       public Item next() throws QueryException {
         final Item it = ir.next();
         if(it == null) return null;
-        if(it.type.isFunction()) FNATM.thrw(input, FNGen.this);
-        return atom(it, input);
+        if(it.type.isFunction()) FNATM.thrw(info, FNGen.this);
+        return atom(it, info);
       }
     };
   }
@@ -118,9 +118,8 @@ public final class FNGen extends StandardFunc {
    * @throws QueryException query exception
    */
   private Value collection(final QueryContext ctx) throws QueryException {
-    final Item it = expr.length != 0 ? expr[0].item(ctx, input) : null;
-    return ctx.resource.collection(
-        it != null ? string(checkEStr(it)) : null, input);
+    final Item it = expr.length != 0 ? expr[0].item(ctx, info) : null;
+    return ctx.resource.collection(it != null ? string(checkEStr(it)) : null, info);
   }
 
   /**
@@ -150,15 +149,15 @@ public final class FNGen extends StandardFunc {
   private Item put(final QueryContext ctx) throws QueryException {
     checkCreate(ctx);
     final byte[] file = checkEStr(expr[1], ctx);
-    final ANode nd = checkNode(checkNoEmpty(expr[0].item(ctx, input)));
+    final ANode nd = checkNode(checkNoEmpty(expr[0].item(ctx, info)));
 
     if(nd == null || nd.type != NodeType.DOC && nd.type != NodeType.ELM)
-      UPFOTYPE.thrw(input, expr[0]);
+      UPFOTYPE.thrw(info, expr[0]);
 
     final Uri u = Uri.uri(file);
-    if(u == Uri.EMPTY || !u.isValid()) UPFOURI.thrw(input, file);
+    if(u == Uri.EMPTY || !u.isValid()) UPFOURI.thrw(info, file);
     final DBNode target = ctx.updates.determineDataRef(nd, ctx);
-    ctx.updates.add(new Put(input, target.pre, target.data, u, ctx), ctx);
+    ctx.updates.add(new Put(info, target.pre, target.data, u, ctx), ctx);
 
     return null;
   }
@@ -170,12 +169,12 @@ public final class FNGen extends StandardFunc {
    * @throws QueryException query exception
    */
   private ANode doc(final QueryContext ctx) throws QueryException {
-    final Item it = expr[0].item(ctx, input);
+    final Item it = expr[0].item(ctx, info);
     if(it == null) return null;
 
     final String in = string(checkEStr(it));
-    final Data d = ctx.resource.data(in, false, input);
-    if(!d.single()) EXPSINGLE.thrw(input, in);
+    final Data d = ctx.resource.data(in, null, info);
+    if(!d.single()) EXPSINGLE.thrw(info, in);
     return new DBNode(d, 0, Data.DOC);
   }
 
@@ -205,7 +204,7 @@ public final class FNGen extends StandardFunc {
   private StrStream unparsedText(final QueryContext ctx) throws QueryException {
     final IO io = checkIO(expr[0], ctx);
     final String enc = expr.length < 2 ? null : string(checkStr(expr[1], ctx));
-    if(enc != null && !Charset.isSupported(enc)) WHICHENC.thrw(input, enc);
+    if(enc != null && !Charset.isSupported(enc)) WHICHENC.thrw(info, enc);
     return new StrStream(io, enc, WRONGINPUT);
   }
 
@@ -216,7 +215,7 @@ public final class FNGen extends StandardFunc {
    * @throws QueryException query exception
    */
   Iter unparsedTextLines(final QueryContext ctx) throws QueryException {
-    return textIter(unparsedText(ctx), input);
+    return textIter(unparsedText(ctx), info);
   }
 
   /**
@@ -226,9 +225,7 @@ public final class FNGen extends StandardFunc {
    * @return result
    * @throws QueryException query exception
    */
-  static Iter textIter(final StrStream si, final InputInfo ii)
-      throws QueryException {
-
+  static Iter textIter(final StrStream si, final InputInfo ii) throws QueryException {
     final byte[] str = si.string(ii);
     return new Iter() {
       int p = -1;
@@ -248,13 +245,11 @@ public final class FNGen extends StandardFunc {
    * @return result
    * @throws QueryException query exception
    */
-  private Bln unparsedTextAvailable(final QueryContext ctx)
-      throws QueryException {
-
+  private Bln unparsedTextAvailable(final QueryContext ctx) throws QueryException {
     final IO io = checkIO(expr[0], ctx);
     final String enc = expr.length < 2 ? null : string(checkEStr(expr[1], ctx));
     try {
-      final NewlineInput nli = new NewlineInput(io, enc);
+      final NewlineInput nli = new NewlineInput(io).encoding(enc);
       try {
         while(nli.read() != -1);
       } finally {
@@ -277,14 +272,14 @@ public final class FNGen extends StandardFunc {
     Uri base = ctx.sc.baseURI();
     if(expr.length == 2) {
       base = Uri.uri(checkEStr(expr[1], ctx));
-      if(!base.isValid()) BASEINV.thrw(input, base);
+      if(!base.isValid()) BASEINV.thrw(info, base);
     }
 
     final IO io = new IOContent(cont, string(base.string()));
     try {
       return new DBNode(io, ctx.context.prop);
     } catch(final IOException ex) {
-      throw SAXERR.thrw(input, ex);
+      throw SAXERR.thrw(info, ex);
     }
   }
 
@@ -303,9 +298,9 @@ public final class FNGen extends StandardFunc {
       for(Item it; (it = ir.next()) != null;) it.serialize(ser);
       ser.close();
     } catch(final SerializerException ex) {
-      throw ex.getCause(input);
+      throw ex.getCause(info);
     } catch(final IOException ex) {
-      SERANY.thrw(input, ex);
+      SERANY.thrw(info, ex);
     }
     return Str.get(delete(ao.toArray(), '\r'));
   }
@@ -329,5 +324,76 @@ public final class FNGen extends StandardFunc {
   public boolean iterable() {
     // collections will never yield duplicates
     return sig == Function.COLLECTION || super.iterable();
+  }
+
+  /**
+   * Creates serialization properties from the specified function argument.
+   * @param fun calling function
+   * @param arg argument with parameters
+   * @param ctx query context
+   * @return serialization parameters
+   * @throws SerializerException serializer exception
+   * @throws QueryException query exception
+   */
+  static SerializerProp serialPar(final StandardFunc fun, final int arg,
+      final QueryContext ctx) throws SerializerException, QueryException {
+
+    // check if enough arguments are available
+    String params = "";
+    if(arg < fun.expr.length) {
+      // retrieve parameters
+      final Item it = fun.expr[arg].item(ctx, fun.info);
+      if(it != null) {
+        if(it instanceof Map) {
+          params = convert(((Map) it).tokenJavaMap(fun.info));
+        } else {
+          // check root node
+          final ANode nd = (ANode) fun.checkType(it, NodeType.ELM);
+          if(!OUTPUT_SERIAL.eq(nd)) SERUNKNOWN.thrw(fun.info, nd.qname());
+          // retrieve query parameters
+          params = parameters(nd, fun.info);
+        }
+      }
+    }
+    // use default parameters if no parameters have been assigned
+    return params.isEmpty() ? ctx.serParams(true) : new SerializerProp(params);
+  }
+
+  /**
+   * Returns all serialization options defined by a serialization element.
+   * @param nd root node
+   * @param ii input info
+   * @return serialization tokens
+   * @throws QueryException query exception
+   */
+  public static String parameters(final ANode nd, final InputInfo ii)
+      throws QueryException {
+
+    // interpret query parameters
+    final TokenObjMap<Object> tm = new TokenObjMap<Object>();
+    for(final ANode n : nd.children()) {
+      final QNm qn = n.qname();
+      if(!eq(qn.uri(), OUTPUTURI)) SERUNKNOWN.thrw(ii, qn);
+      final byte[] val = n.attribute(A_VALUE);
+      if(val == null) SERNOVAL.thrw(ii);
+      tm.add(qn.local(), val);
+    }
+    return convert(tm);
+  }
+
+  /**
+   * Converts a token map to a serialization string.
+   * @param map map with serialization options
+   * @return serialization string
+   */
+  private static String convert(final TokenObjMap<Object> map) {
+    final TokenBuilder tb = new TokenBuilder();
+    if(map != null) {
+      for(final byte[] key : map) {
+        if(!tb.isEmpty()) tb.add(',');
+        tb.add(key).add('=').addExt(map.get(key));
+      }
+    }
+    return tb.toString();
   }
 }

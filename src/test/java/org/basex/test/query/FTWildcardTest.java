@@ -3,9 +3,9 @@ package org.basex.test.query;
 import static org.basex.util.Token.*;
 import static org.junit.Assert.*;
 
-import org.basex.query.QueryException;
-import org.basex.query.ft.FTWildcard;
-import org.junit.Test;
+import org.basex.query.*;
+import org.basex.query.ft.*;
+import org.junit.*;
 
 /**
  * Wild-card parsing and matching tests.
@@ -59,7 +59,6 @@ public class FTWildcardTest {
       try {
         new FTWildcard(token(wc), null);
       } catch(final Exception ex) {
-        ex.printStackTrace();
         fail("Parsing failed: " + wc);
       }
 
@@ -69,7 +68,6 @@ public class FTWildcardTest {
         fail("Parsing did NOT fail: " + wc);
       } catch(final QueryException ex) {
       } catch(final Exception ex) {
-        ex.printStackTrace();
         fail("Error while parsing: " + wc);
       }
   }

@@ -1,18 +1,13 @@
 package org.basex.test.data;
 
 import static org.junit.Assert.*;
-import org.basex.core.BaseXException;
-import org.basex.core.Context;
-import org.basex.core.cmd.Close;
-import org.basex.core.cmd.CreateDB;
-import org.basex.core.cmd.DropDB;
-import org.basex.core.cmd.XQuery;
-import org.basex.data.DataText;
-import org.basex.io.IOFile;
-import org.basex.util.Util;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.basex.core.*;
+import org.basex.core.cmd.*;
+import org.basex.data.*;
+import org.basex.io.*;
+import org.basex.test.*;
+import org.junit.*;
 
 /**
  * This class tests the stability of the data storage.
@@ -20,9 +15,7 @@ import org.junit.Test;
  * @author BaseX Team 2005-12, BSD License
  * @author Dimitar Popov
  */
-public final class TableTest {
-  /** Database name. */
-  private static final String DB = Util.name(TableTest.class);
+public final class TableTest extends SandboxTest {
   /** Database XML file. */
   private static final String DBFILE = "src/test/resources/factbook.zip";
   /** Select Germany. */
@@ -33,8 +26,6 @@ public final class TableTest {
   private static final String INSERT = "insert node %1$s "
       + "after //country[@name='France']";
 
-  /** Context. */
-  private Context ctx;
   /** Table file. */
   private IOFile tbl;
 
@@ -44,9 +35,8 @@ public final class TableTest {
    */
   @Before
   public void setUp() throws BaseXException {
-    ctx = new Context();
-    new CreateDB(DB, DBFILE).execute(ctx);
-    tbl = ctx.data().meta.dbfile(DataText.DATATBL);
+    new CreateDB(NAME, DBFILE).execute(context);
+    tbl = context.data().meta.dbfile(DataText.DATATBL);
   }
 
   /**
@@ -55,7 +45,7 @@ public final class TableTest {
    */
   @After
   public void tearDown() throws BaseXException {
-    new DropDB(DB).execute(ctx);
+    new DropDB(NAME).execute(context);
   }
 
   /**
@@ -67,10 +57,10 @@ public final class TableTest {
   public void tableSize() throws BaseXException {
     final long s = tbl.length();
 
-    final String n = new XQuery(SELECT).execute(ctx);
-    new XQuery(DELETE).execute(ctx);
-    new XQuery(String.format(INSERT, n)).execute(ctx);
-    new Close().execute(ctx);
+    final String n = new XQuery(SELECT).execute(context);
+    new XQuery(DELETE).execute(context);
+    new XQuery(String.format(INSERT, n)).execute(context);
+    new Close().execute(context);
 
     assertEquals("Database size changed: ", s, tbl.length());
   }

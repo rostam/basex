@@ -23,7 +23,7 @@ import org.basex.util.list.*;
  */
 final class GroupPartition {
   /** Input information. */
-  private final InputInfo input;
+  private final InputInfo info;
   /** Order by specifier. */
   private final Order order;
 
@@ -35,7 +35,7 @@ final class GroupPartition {
   /** Group partitioning. */
   private final ArrayList<GroupNode> part = new ArrayList<GroupNode>();
   /** Resulting sequence for non-grouping variables. */
-  private final ArrayList<ItemCache[]> items;
+  private final ArrayList<ValueBuilder[]> items;
   /** HashValue, position (with overflow bucket). */
   private final IntMap<IntList> hashes = new IntMap<IntList>();
 
@@ -52,8 +52,8 @@ final class GroupPartition {
     gv = groupby;
     ngv = ng;
     order = ob;
-    items = ngv[0].length != 0 ? new ArrayList<ItemCache[]>() : null;
-    input = ii;
+    items = ngv[0].length != 0 ? new ArrayList<ValueBuilder[]>() : null;
+    info = ii;
   }
 
   /**
@@ -72,11 +72,11 @@ final class GroupPartition {
     final Value[] vals = new Value[gl];
     for(int i = 0; i < gl; i++) {
       final Value val = ctx.get(gv[i].grp);
-      if(val.size() > 1) XGRP.thrw(input);
+      if(val.size() > 1) XGRP.thrw(info);
       vals[i] = val;
     }
 
-    final GroupNode gn = new GroupNode(input, vals);
+    final GroupNode gn = new GroupNode(info, vals);
     final int h = gn.hash();
     final IntList ps = hashes.get(h);
     int p = -1;
@@ -107,17 +107,17 @@ final class GroupPartition {
     if(ngl == 0) return;
 
     // adds the current non-grouping variable bindings to the p-th partition.
-    if(p == items.size()) items.add(new ItemCache[ngl]);
-    final ItemCache[] sq = items.get(p);
+    if(p == items.size()) items.add(new ValueBuilder[ngl]);
+    final ValueBuilder[] sq = items.get(p);
 
     for(int i = 0; i < ngl; ++i) {
-      ItemCache ic = sq[i];
+      ValueBuilder vb = sq[i];
       final Value result = ctx.get(ngv[0][i]);
-      if(ic == null) {
-        ic = new ItemCache();
-        sq[i] = ic;
+      if(vb == null) {
+        vb = new ValueBuilder();
+        sq[i] = vb;
       }
-      ic.add(result);
+      vb.add(result);
     }
   }
 
@@ -132,20 +132,20 @@ final class GroupPartition {
    */
   Iter ret(final QueryContext ctx, final Expr ret, final ArrayList<Item[]> ks,
       final ValueList vs) throws QueryException {
-    final ItemCache ic = new ItemCache();
+    final ValueBuilder vb = new ValueBuilder();
 
     for(int i = 0; i < part.size(); ++i) {
       final GroupNode gn = part.get(i);
-      for(int j = 0; j < gv.length; ++j) ctx.set(gv[j].grp, gn.vals[j], input);
+      for(int j = 0; j < gv.length; ++j) ctx.set(gv[j].grp, gn.vals[j], info);
 
       if(items != null) {
-        final ItemCache[] ii = items.get(i);
-        for(int j = 0; j < ii.length; ++j) ctx.set(ngv[1][j], ii[j].value(), input);
+        final ValueBuilder[] ii = items.get(i);
+        for(int j = 0; j < ii.length; ++j) ctx.set(ngv[1][j], ii[j].value(), info);
       }
       if(order != null) {
         order.add(ctx, ret, ks, vs);
-      } else ic.add(ctx.value(ret));
+      } else vb.add(ctx.value(ret));
     }
-    return order != null ? ctx.iter(order.set(ks, vs)) : ic;
+    return order != null ? ctx.iter(order.set(ks, vs)) : vb;
   }
 }

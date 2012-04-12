@@ -1,9 +1,8 @@
 package org.basex.core;
 
-import java.util.Random;
+import java.util.*;
 
-import org.basex.io.IOFile;
-import org.basex.util.Util;
+import org.basex.io.*;
 
 /**
  * This class assembles admin properties which are used all around the project.
@@ -13,7 +12,7 @@ import org.basex.util.Util;
  * @author Christian Gruen
  */
 public final class MainProp extends AProp {
-  /** Home path for project directories. */
+  /** Indicates if the user's home directory has been chosen as home directory. */
   private static final boolean USERHOME = Prop.HOME.equals(Prop.USERHOME);
 
   /** Database path. */
@@ -27,7 +26,7 @@ public final class MainProp extends AProp {
     Prop.HOME + (USERHOME ? Prop.NAME + "Repo" : "repo") };
 
   /** Language name. */
-  public static final Object[] LANG = { "LANG", Prop.LANG };
+  public static final Object[] LANG = { "LANG", Prop.language };
   /** Flag to include key names in the language strings. */
   public static final Object[] LANGKEYS = { "LANGKEYS", false };
 
@@ -54,7 +53,7 @@ public final class MainProp extends AProp {
   /** Server: non-proxy host. */
   public static final Object[] NONPROXYHOSTS = { "NONPROXYHOSTS", "" };
 
-  /** Timeout for processing client requests; deactivated if set to 0. */
+  /** Timeout (seconds) for processing client requests; deactivated if set to 0. */
   public static final Object[] TIMEOUT = { "TIMEOUT", 0 };
   /** Keep alive time of clients; deactivated if set to 0. */
   public static final Object[] KEEPALIVE = { "KEEPALIVE", 0 };
@@ -64,10 +63,21 @@ public final class MainProp extends AProp {
   public static final Object[] PARALLEL = { "PARALLEL", 8 };
 
   /**
-   * Constructor.
+   * Constructor, reading properties from disk.
    */
-  public MainProp() {
-    super("");
+  MainProp() {
+    read("");
+    finish();
+  }
+
+  /**
+   * Constructor, assigning the specified properties.
+   * @param map initial properties
+   */
+  MainProp(final HashMap<String, String> map) {
+    for(final Map.Entry<String, String> entry : map.entrySet()) {
+      set(entry.getKey(), entry.getValue());
+    }
     finish();
   }
 
@@ -113,9 +123,9 @@ public final class MainProp extends AProp {
   @Override
   protected void finish() {
     // set some static properties
-    Util.language = get(LANG);
-    Util.langkeys = is(LANGKEYS);
-    Util.debug = is(DEBUG);
+    Prop.language = get(LANG);
+    Prop.langkeys = is(LANGKEYS);
+    Prop.debug = is(DEBUG);
     System.setProperty("http.proxyHost", get(PROXYHOST));
     System.setProperty("http.proxyPort", Integer.toString(num(PROXYPORT)));
     System.setProperty("http.nonProxyHosts", get(NONPROXYHOSTS));

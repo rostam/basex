@@ -33,6 +33,8 @@ public abstract class Serializer {
   protected byte[] tag;
   /** Declare namespaces flag. */
   protected boolean undecl;
+  /** Indicates the currently output node is untyped. */
+  protected boolean untyped;
 
   /** Currently available namespaces. */
   private final Atts ns = new Atts(XML, XMLURI).add(EMPTY, EMPTY);
@@ -64,6 +66,7 @@ public abstract class Serializer {
     if(props == null) return get(os);
     final String m = props.check(S_METHOD, METHODS);
     if(M_XHTML.equals(m))  return new XHTMLSerializer(os, props);
+    if(M_HTML5.equals(m))  return new HTML5Serializer(os, props);
     if(M_HTML.equals(m))   return new HTMLSerializer(os, props);
     if(M_TEXT.equals(m))   return new TextSerializer(os, props);
     if(M_JSON.equals(m))   return new JSONSerializer(os, props);
@@ -186,6 +189,7 @@ public abstract class Serializer {
   public final void node(final Data data, final int pre, final FTPosData ft)
       throws IOException {
 
+    untyped = data.meta.chop;
     boolean doc = false;
     final TokenList nsp = data.nspaces.size() != 0 ? new TokenList() : null;
     final IntList pars = new IntList();
@@ -266,6 +270,7 @@ public abstract class Serializer {
     // process remaining elements...
     while(--l >= 0) closeElement();
     if(doc) closeDoc();
+    untyped = false;
   }
 
   /**
@@ -292,6 +297,21 @@ public abstract class Serializer {
   }
 
   // OVERWRITABLE PUBLIC METHODS ==============================================
+
+  /**
+   * Opens a document.
+   * @param n name
+   * @throws IOException I/O exception
+   */
+  @SuppressWarnings("unused")
+  public void openDoc(final byte[] n) throws IOException { }
+
+  /**
+   * Closes a document.
+   * @throws IOException I/O exception
+   */
+  @SuppressWarnings("unused")
+  public void closeDoc() throws IOException { }
 
   /**
    * Starts a result.
@@ -400,8 +420,7 @@ public abstract class Serializer {
    * @param v value
    * @throws IOException I/O exception
    */
-  protected abstract void finishPi(final byte[] n, final byte[] v)
-      throws IOException;
+  protected abstract void finishPi(final byte[] n, final byte[] v) throws IOException;
 
   /**
    * Serializes an item.
@@ -417,25 +436,9 @@ public abstract class Serializer {
    * @throws IOException I/O exception
    */
   @SuppressWarnings("unused")
-  void finishText(final byte[] v, final FTPos ftp)
-      throws IOException {
+  void finishText(final byte[] v, final FTPos ftp) throws IOException {
     text(v);
   }
-
-  /**
-   * Opens a document.
-   * @param n name
-   * @throws IOException I/O exception
-   */
-  @SuppressWarnings("unused")
-  void openDoc(final byte[] n) throws IOException { }
-
-  /**
-   * Closes a document.
-   * @throws IOException I/O exception
-   */
-  @SuppressWarnings("unused")
-  void closeDoc() throws IOException { }
 
   /**
    * Returns the name of the specified expression.

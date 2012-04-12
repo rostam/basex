@@ -64,9 +64,6 @@ final class DatabaseUpdates {
    * @throws QueryException query exception
    */
   void check() throws QueryException {
-    // check if database is locked by another process
-    if(data.pinned()) OPENED.thrw(null, data.meta.name);
-
     // get and sort keys (pre/id values)
     final int s = updatePrimitives.size();
     nodes = new IntList(s);
@@ -81,7 +78,7 @@ final class DatabaseUpdates {
         /* check if the identity of all target nodes of fn:put operations is
            still available after the execution of updates. that includes parent
            nodes as well */
-        if(p.type == PUT && ancestorDeleted(nodes.get(i))) UPFOTYPE.thrw(p.input, p);
+        if(p.type == PUT && ancestorDeleted(nodes.get(i))) UPFOTYPE.thrw(p.info, p);
       }
     }
 
@@ -114,14 +111,26 @@ final class DatabaseUpdates {
   }
 
   /**
+   * Locks the database for write operations.
+   * @throws QueryException query exception
+   */
+  void startUpdate() throws QueryException {
+    if(!data.startUpdate()) PINNED.thrw(null, data.meta.name);
+  }
+
+  /**
+   * Locks the database for write operations.
+   */
+  void finishUpdate() {
+    data.finishUpdate();
+  }
+
+  /**
    * Applies all updates for this specific database.
    * @throws QueryException query exception
    */
   void apply() throws QueryException {
     optimize();
-
-    // mark disk database instances as updating
-    if(!data.update(true)) LOCK.thrw(null, data.meta.name);
 
     /*
      * For each target node, the update primitives in the corresponding
@@ -135,27 +144,20 @@ final class DatabaseUpdates {
      * and resolve text adjacency issues after the next container on the
      * preceding axis has been executed.
      */
-    try {
-      NodeUpdates recent = null;
-      // apply updates from the highest to the lowest pre value
-      for(int i = nodes.size() - 1; i >= 0; i--) {
-        final NodeUpdates current = updatePrimitives.get(nodes.get(i));
-        // first run, no recent container
-        if(recent == null)
-          current.makePrimitivesEffective();
-        else
-          recent.resolveExternalTextNodeAdjacency(
-              current.makePrimitivesEffective());
-
-        recent = current;
+    NodeUpdates recent = null;
+    // apply updates from the highest to the lowest pre value
+    for(int i = nodes.size() - 1; i >= 0; i--) {
+      final NodeUpdates current = updatePrimitives.get(nodes.get(i));
+      // first run, no recent container
+      if(recent == null) {
+        current.makePrimitivesEffective();
+      } else {
+        recent.resolveExternalTextNodeAdjacency(current.makePrimitivesEffective());
       }
-      // resolve text adjacency issues of the last container
-      recent.resolveExternalTextNodeAdjacency(0);
-    } finally {
-      data.flush();
-      // mark disk database instances as updating
-      if(!data.update(false)) UNLOCK.thrw(null, data.meta.name);
+      recent = current;
     }
+    // resolve text adjacency issues of the last container
+    recent.resolveExternalTextNodeAdjacency(0);
 
     if(data.meta.prop.is(Prop.WRITEBACK) && !data.meta.original.isEmpty()) {
       try {

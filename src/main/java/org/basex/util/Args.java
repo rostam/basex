@@ -34,9 +34,7 @@ public final class Args {
    * @param u usage info
    * @param h header
    */
-  public Args(final String[] a, final Object o, final String u,
-      final String h) {
-
+  public Args(final String[] a, final Object o, final String u, final String h) {
     args = a;
     usage = u;
     obj = o;
@@ -113,8 +111,7 @@ public final class Args {
       final StringBuilder sb = new StringBuilder();
       while(p < a.length()) sb.append(a.charAt(p++));
       final String str = sb.toString();
-      return str.equals("-") ?
-          new Scanner(System.in).useDelimiter("\0").next() : str;
+      return str.equals("-") ? new Scanner(System.in).useDelimiter("\0").next() : str;
     }
     return "";
   }

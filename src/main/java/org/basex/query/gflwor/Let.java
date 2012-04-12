@@ -48,7 +48,7 @@ public class Let extends GFLWOR.Clause {
       @Override
       public boolean next(final QueryContext ctx) throws QueryException {
         if(!sub.next(ctx)) return false;
-        ctx.set(var, score ? score(expr.iter(ctx)) : ctx.value(expr), input);
+        ctx.set(var, score ? score(expr.iter(ctx)) : ctx.value(expr), info);
         return true;
       }
     };
@@ -90,7 +90,7 @@ public class Let extends GFLWOR.Clause {
   public Let comp(final QueryContext ctx, final VarScope scp) throws QueryException {
     expr = expr.comp(ctx, scp);
     type = score ? SeqType.DBL : expr.type();
-    var.refineType(type, input);
+    var.refineType(type, info);
     size = score ? 1 : expr.size();
     return this;
   }
@@ -101,7 +101,7 @@ public class Let extends GFLWOR.Clause {
    * @throws QueryException evaluation exception
    */
   void bindConst(final QueryContext ctx) throws QueryException {
-    if(expr.isValue()) ctx.set(var, score ? score(expr.iter(ctx)) : (Value) expr, input);
+    if(expr.isValue()) ctx.set(var, score ? score(expr.iter(ctx)) : (Value) expr, info);
   }
 
   @Override

@@ -74,8 +74,6 @@ public interface DataText {
   String DBPERM = "PERM";
   /** Documents. */
   String DBDOCS = "DOCS";
-  /** Path indexing. */
-  String DBCRTPTH = "CRTPTH";
   /** Text indexing. */
   String DBCRTTXT = "CRTTXT";
   /** Attribute indexing. */
@@ -110,8 +108,6 @@ public interface DataText {
   String DATASWL = "swl";
   /** Database - Updating flag. */
   String DATAUPD = "upd";
-  /** Database - Pin flag. */
-  String DATAPIN = "pin-";
 
   // XML SERIALIZATION ========================================================
 
@@ -146,6 +142,8 @@ public interface DataText {
   /** Method. */
   String M_HTML = "html";
   /** Method. */
+  String M_HTML5 = "html5";
+  /** Method. */
   String M_TEXT = "text";
   /** Method. */
   String M_JSON = "json";
@@ -155,7 +153,7 @@ public interface DataText {
   String M_RAW = "raw";
   /** Methods. */
   String[] METHODS = {
-    M_XML, M_XHTML, M_HTML, M_TEXT, M_JSON, M_JSONML, M_RAW
+    M_XML, M_XHTML, M_HTML, M_HTML5, M_TEXT, M_JSON, M_JSONML, M_RAW
   };
 
   /** Normalization. */
@@ -176,15 +174,6 @@ public interface DataText {
   String SYSTEM = "SYSTEM";
   /** Doctype public keyword. */
   String PUBLIC = "PUBLIC";
-
-  /** Content-Type. */
-  String CONTENT_TYPE = "Content-Type";
-  /** WWW-Authentication string. */
-  String WWW_AUTHENTICATE = "WWW-Authenticate";
-  /** HTTP header: Authorization. */
-  String AUTHORIZATION = "Authorization";
-  /** HTTP basic authentication. */
-  String BASIC = "Basic";
 
   /** Ampersand entity. */
   byte[] E_AMP = token("&amp;");

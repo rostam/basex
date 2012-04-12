@@ -2,14 +2,13 @@ package org.basex.core.cmd;
 
 import static org.basex.core.Text.*;
 
-import java.io.IOException;
+import java.io.*;
 
-import org.basex.core.User;
-import org.basex.data.Data;
-import org.basex.data.MetaData;
+import org.basex.core.*;
+import org.basex.data.*;
 import org.basex.index.IndexToken.IndexType;
-import org.basex.util.Util;
-import org.basex.util.list.IntList;
+import org.basex.util.*;
+import org.basex.util.list.*;
 
 /**
  * Evaluates the 'optimize' command and optimizes the data structures of
@@ -29,7 +28,7 @@ public final class Optimize extends ACreate {
    * Default constructor.
    */
   public Optimize() {
-    super(DATAREF | User.WRITE);
+    super(Perm.WRITE, true);
   }
 
   @Override
@@ -38,18 +37,15 @@ public final class Optimize extends ACreate {
     final MetaData m = data.meta;
     size = m.size;
 
-    // set updating flag
-    if(!startUpdate(data)) return false;
-
-    boolean ok = true;
+    if(!data.startUpdate()) return error(DB_PINNED_X, data.meta.name);
     try {
       optimize(data, this);
+      return info(DB_OPTIMIZED_X, m.name, perf);
     } catch(final IOException ex) {
-      ok = error(Util.message(ex));
+      return error(Util.message(ex));
+    } finally {
+      data.finishUpdate();
     }
-
-    // remove updating flag and return error or info message
-    return stopUpdate(data) && ok && info(DB_OPTIMIZED_X, m.name, perf);
   }
 
   @Override
@@ -122,14 +118,10 @@ public final class Optimize extends ACreate {
       md.uptodate = true;
     }
 
-    try {
-      // rebuild value indexes
-      optimize(IndexType.ATTRIBUTE, data, md.createattr, md.attrindex, c);
-      optimize(IndexType.TEXT,      data, md.createtext, md.textindex, c);
-      optimize(IndexType.FULLTEXT,  data, md.createftxt, md.ftxtindex, c);
-    } finally {
-      data.flush();
-    }
+    // rebuild value indexes
+    optimize(IndexType.ATTRIBUTE, data, md.createattr, md.attrindex, c);
+    optimize(IndexType.TEXT,      data, md.createtext, md.textindex, c);
+    optimize(IndexType.FULLTEXT,  data, md.createftxt, md.ftxtindex, c);
   }
 
   /**
@@ -145,8 +137,9 @@ public final class Optimize extends ACreate {
   private static void optimize(final IndexType type, final Data d,
       final boolean create, final boolean old, final Optimize c) throws IOException {
 
-    // check if flags are already consistent
+    // check if flags are nothing has changed
     if(create == old) return;
+
     // create or drop index
     if(create) create(type, d, c);
     else drop(type, d);

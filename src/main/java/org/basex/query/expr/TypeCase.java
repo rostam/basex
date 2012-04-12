@@ -54,7 +54,7 @@ public final class TypeCase extends Single {
    */
   TypeCase comp(final QueryContext ctx, final VarScope scp, final Value v)
       throws QueryException {
-    if(var != null && v != null) ctx.set(var, v, input);
+    if(var != null && v != null) ctx.set(var, v, info);
     super.comp(ctx, scp);
     type = expr.type();
     return this;
@@ -87,7 +87,7 @@ public final class TypeCase extends Single {
     if(!matches(seq)) return null;
 
     if(var == null) return ctx.iter(expr);
-    ctx.set(var, seq, input);
+    ctx.set(var, seq, info);
     return ctx.value(expr).iter();
   }
 
@@ -97,9 +97,12 @@ public final class TypeCase extends Single {
     if(types.length == 0) {
       ser.attribute(Token.token(DEFAULT), Token.TRUE);
     } else {
+      final byte[] or = new byte[] { ' ', '|', ' ' };
       final ByteList bl = new ByteList();
-      for(final SeqType t : types) bl.add(Token.token(t + " | "));
-      bl.size(bl.size() - 3);
+      for(final SeqType t : types) {
+        if(bl.size() > 0) bl.add(or);
+        bl.add(Token.token(t.toString()));
+      }
       ser.attribute(Token.token(TYPE), bl.toArray());
     }
     if(var != null) ser.attribute(VAR, Token.token(var.toString()));

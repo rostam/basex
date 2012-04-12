@@ -29,9 +29,8 @@ public final class ServerCommandTest extends CommandTest {
    */
   @BeforeClass
   public static void start() throws IOException {
-    CONTEXT.mprop.set(MainProp.DBPATH, sandbox().path());
-    server = new BaseXServer(CONTEXT, "-z", "-p9999", "-e9998");
-    session = new ClientSession(LOCALHOST, 9999, ADMIN, ADMIN);
+    server = createServer();
+    session = createClient();
     cleanUp();
   }
 
@@ -48,9 +47,6 @@ public final class ServerCommandTest extends CommandTest {
     }
     // stop server instance
     if(server != null) server.stop();
-
-    assertTrue(sandbox().delete());
-    CONTEXT.close();
   }
 
   /**
@@ -62,8 +58,8 @@ public final class ServerCommandTest extends CommandTest {
     ok(new Kill(ADMIN));
     ok(new Kill(ADMIN + '2'));
     ok(new Kill(Prop.NAME + '*'));
-    ok(new CreateUser(NAME2, Token.md5("test")));
-    final ClientSession cs = new ClientSession(LOCALHOST, 9999, NAME2, "test");
+    ok(new CreateUser(NAME2, Token.md5(NAME2)));
+    final ClientSession cs = createClient(NAME2, NAME2);
     ok(new Kill(NAME2));
     ok(new Kill(NAME2 + '?'));
     cs.close();

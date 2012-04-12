@@ -40,7 +40,7 @@ public class Count extends GFLWOR.Clause {
       @Override
       public boolean next(final QueryContext ctx) throws QueryException {
         if(!sub.next(ctx)) return false;
-        ctx.set(count, Int.get(i++), input);
+        ctx.set(count, Int.get(i++), info);
         return true;
       }
     };
@@ -65,7 +65,7 @@ public class Count extends GFLWOR.Clause {
 
   @Override
   public Count comp(final QueryContext ctx, final VarScope scp) throws QueryException {
-    count.refineType(SeqType.ITR, input);
+    count.refineType(SeqType.ITR, info);
     return this;
   }
 

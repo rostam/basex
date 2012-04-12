@@ -1,12 +1,12 @@
 package org.basex.io;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.io.*;
+import java.text.*;
+import java.util.*;
 
-import org.basex.data.Data;
-import org.basex.io.in.BufferInput;
-import org.basex.util.Token;
-import org.xml.sax.InputSource;
+import org.basex.data.*;
+import org.basex.util.*;
+import org.xml.sax.*;
 
 /**
  * Generic representation for inputs and outputs. The underlying source can
@@ -31,6 +31,8 @@ public abstract class IO {
   public static final String CSVSUFFIX = ".csv";
   /** JSON file suffix. */
   public static final String JSONSUFFIX = ".json";
+  /** JAR file suffix. */
+  public static final String JARSUFFIX = ".jar";
   /** GZIP file suffix. */
   public static final String GZSUFFIX = ".gz";
   /** XAR file suffix. */
@@ -97,8 +99,7 @@ public abstract class IO {
     path = p;
     final String n = p.substring(p.lastIndexOf('/') + 1);
     // use current time if no name is given
-    name = n.isEmpty() ? Long.toString(System.currentTimeMillis()) +
-        XMLSUFFIX : n;
+    name = n.isEmpty() ? Long.toString(System.currentTimeMillis()) + XMLSUFFIX : n;
   }
 
   /**
@@ -152,6 +153,19 @@ public abstract class IO {
   }
 
   /**
+   * Tests if the file suffix matches the specified suffixes.
+   * @param suffixes suffixes to compare with
+   * @return result of check
+   */
+  public boolean hasSuffix(final String... suffixes) {
+    final int i = path.lastIndexOf('.');
+    if(i == -1) return false;
+    final String suf = path.substring(i).toLowerCase(Locale.ENGLISH);
+    for(final String z : suffixes) if(suf.equals(z)) return true;
+    return false;
+  }
+
+  /**
    * Returns the modification date of this file.
    * @return modification date
    */
@@ -183,11 +197,11 @@ public abstract class IO {
   public abstract InputSource inputSource();
 
   /**
-   * Returns a buffered input stream.
+   * Returns an input stream.
    * @return input stream
    * @throws IOException I/O exception
    */
-  public abstract BufferInput inputStream() throws IOException;
+  public abstract InputStream inputStream() throws IOException;
 
   /**
    * Merges two filenames.
@@ -200,16 +214,16 @@ public abstract class IO {
    * Checks if this file is an archive.
    * @return result of check
    */
-  public boolean isArchive() {
-    return false;
+  public final boolean isArchive() {
+    return hasSuffix(ZIPSUFFIXES);
   }
 
   /**
    * Checks if this file contains XML.
    * @return result of check
    */
-  public boolean isXML() {
-    return false;
+  public final boolean isXML() {
+    return hasSuffix(XMLSUFFIXES);
   }
 
   /**
@@ -277,5 +291,17 @@ public abstract class IO {
   @Override
   public String toString() {
     return path;
+  }
+
+  /**
+   * Returns the suffix of the specified path. An empty string is returned if the last
+   * path segment has no suffix.
+   * @param path path to be checked
+   * @return mime-type
+   */
+  public static String suffix(final String path) {
+    final int s = path.lastIndexOf('/');
+    final int d = path.lastIndexOf('.');
+    return d <= s ? "" : path.substring(d + 1);
   }
 }

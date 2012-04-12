@@ -1,18 +1,15 @@
 package org.basex.test.server;
 
-import static org.basex.core.Text.*;
 import static org.junit.Assert.*;
-import java.io.IOException;
-import java.util.HashSet;
-import org.basex.BaseXServer;
-import org.basex.server.ClientSession;
-import org.basex.server.EventNotifier;
-import org.basex.util.Util;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import java.io.*;
+import java.util.*;
+
+import org.basex.*;
+import org.basex.server.*;
+import org.basex.test.*;
+import org.basex.util.*;
+import org.junit.*;
 
 /**
  * This class tests the event API.
@@ -21,10 +18,7 @@ import org.junit.Test;
  * @author Roman Raedle
  * @author Andreas Weiler
  */
-public final class EventTest {
-  /** Event name. */
-  static final String NAME = Util.name(EventTest.class);
-
+public final class EventTest extends SandboxTest {
   /** Return value of function db:event. */
   private static final String RETURN = "ABCDEFGHIJKLMNOP";
   /** Event count. */
@@ -45,7 +39,7 @@ public final class EventTest {
    */
   @BeforeClass
   public static void start() throws IOException {
-    server = new BaseXServer("-z", "-p9999", "-e9998");
+    server = createServer();
   }
 
   /**
@@ -54,13 +48,13 @@ public final class EventTest {
    */
   @Before
   public void startSessions() throws IOException {
-    session = newSession();
+    session = createClient();
     // drop event, if not done yet
     try {
       session.execute("drop event " + NAME);
     } catch(final IOException ex) { }
 
-    for(int i = 0; i < sessions.length; i++) sessions[i] = newSession();
+    for(int i = 0; i < sessions.length; i++) sessions[i] = createClient();
   }
 
   /**
@@ -234,15 +228,6 @@ public final class EventTest {
     session.execute("drop event " + NAME + 1);
   }
 
-  /**
-   * Returns a session instance.
-   * @return session
-   * @throws IOException exception
-   */
-  static ClientSession newSession() throws IOException {
-    return new ClientSession(LOCALHOST, 9999, ADMIN, ADMIN);
-  }
-
   /** Single client. */
   static final class Client extends Thread {
     /** Client session. */
@@ -259,7 +244,7 @@ public final class EventTest {
      * @throws IOException I/O exception
      */
     public Client(final boolean f, final String v) throws IOException {
-      cs = newSession();
+      cs = createClient();
       first = f;
       value = v;
     }
@@ -272,7 +257,7 @@ public final class EventTest {
         cs.query("db:event('" + name + "', '" + value + "')").execute();
         cs.close();
       } catch(final Exception ex) {
-        ex.printStackTrace();
+        Util.stack(ex);
       }
     }
   }

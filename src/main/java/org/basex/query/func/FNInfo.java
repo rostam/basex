@@ -2,8 +2,8 @@ package org.basex.query.func;
 
 import static org.basex.core.Text.*;
 import static org.basex.query.util.Err.*;
-import org.basex.core.Prop;
-import org.basex.core.User;
+
+import org.basex.core.*;
 import org.basex.query.QueryContext;
 import org.basex.query.QueryException;
 import org.basex.query.expr.Expr;
@@ -13,7 +13,7 @@ import org.basex.query.item.AtomType;
 import org.basex.query.item.Str;
 import org.basex.query.item.Value;
 import org.basex.query.iter.Iter;
-import org.basex.query.iter.ItemCache;
+import org.basex.query.iter.ValueBuilder;
 import org.basex.util.InputInfo;
 import org.basex.util.Token;
 import org.basex.util.TokenBuilder;
@@ -41,20 +41,20 @@ public final class FNInfo extends StandardFunc {
     switch(sig) {
       case ERROR:
         final int al = expr.length;
-        if(al == 0) FUNERR1.thrw(input);
+        if(al == 0) FUNERR1.thrw(info);
 
         QNm name = FUNERR1.qname();
         String msg = FUNERR1.desc;
 
-        final Item it = expr[0].item(ctx, input);
+        final Item it = expr[0].item(ctx, info);
         if(it == null) {
-          if(al == 1) XPEMPTY.thrw(input, description());
+          if(al == 1) XPEMPTY.thrw(info, description());
         } else {
           name = (QNm) checkType(it, AtomType.QNM);
         }
         if(al > 1) msg = Token.string(checkEStr(expr[1], ctx));
         final Value val = al > 2 ? ctx.value(expr[2]) : null;
-        throw new QueryException(input, name, msg).value(val);
+        throw new QueryException(info, name, msg).value(val);
       case TRACE:
         return new Iter() {
           final Iter ir = expr[0].iter(ctx);
@@ -67,11 +67,11 @@ public final class FNInfo extends StandardFunc {
           }
         };
       case AVAILABLE_ENVIRONMENT_VARIABLES:
-        final ItemCache ic = new ItemCache();
+        final ValueBuilder vb = new ValueBuilder();
         for(final Object k : System.getenv().keySet().toArray()) {
-          ic.add(Str.get(k));
+          vb.add(Str.get(k));
         }
-        return ic;
+        return vb;
       default:
         return super.iter(ctx);
     }
@@ -120,7 +120,7 @@ public final class FNInfo extends StandardFunc {
     tb.add(value);
 
     // if GUI is used, or if user is no admin, trace info is cached
-    if(Prop.gui || !ctx.context.user.perm(User.ADMIN)) {
+    if(Prop.gui || !ctx.context.user.has(Perm.ADMIN)) {
       ctx.evalInfo(tb.finish());
     } else {
       Util.errln(tb.toString());

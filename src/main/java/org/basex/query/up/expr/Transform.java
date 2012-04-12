@@ -53,7 +53,7 @@ public final class Transform extends Arr {
     for(final Let c : copies) c.expr = checkUp(c.expr, ctx).comp(ctx, scp);
     for(int e = 0; e != expr.length; ++e) expr[e] = expr[e].comp(ctx, scp);
 
-    if(!expr[0].uses(Use.UPD) && !expr[0].isVacuous()) UPEXPECTT.thrw(input);
+    if(!expr[0].uses(Use.UPD) && !expr[0].isVacuous()) UPEXPECTT.thrw(info);
     checkUp(expr[1], ctx);
     ctx.updating(u);
     return this;
@@ -71,14 +71,14 @@ public final class Transform extends Arr {
       final Iter ir = ctx.iter(fo.expr);
       final Item i = ir.next();
       if(i == null || !i.type.isNode() || ir.next() != null)
-        UPCOPYMULT.thrw(input);
+        UPCOPYMULT.thrw(info);
 
       // copy node to main memory data instance
       final MemData md = new MemData(ctx.context.prop);
       new DataBuilder(md).build((ANode) i);
 
       // add resulting node to variable
-      ctx.set(fo.var, new DBNode(md), input);
+      ctx.set(fo.var, new DBNode(md), info);
       pu.addData(md);
     }
 

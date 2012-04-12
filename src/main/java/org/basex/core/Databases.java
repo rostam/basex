@@ -21,6 +21,9 @@ public final class Databases {
   public static final Pattern ZIPPATTERN =
       Pattern.compile(IO.DATEPATTERN + IO.ZIPSUFFIX + '$');
 
+  /** Database path. */
+  final IOFile dbpath;
+
   /** Available databases. */
   private final TwoWayTokenMap databases = new TwoWayTokenMap();
   /** Available backups. */
@@ -31,7 +34,8 @@ public final class Databases {
    * @param c Database context
    */
   Databases(final Context c) {
-    for(final IOFile f : c.mprop.dbpath().children()) {
+    dbpath = c.mprop.dbpath();
+    for(final IOFile f : dbpath.children()) {
       final String name = f.name();
       if(name.endsWith(IO.ZIPSUFFIX)) {
         add(ZIPPATTERN.split(name)[0], true);
@@ -122,15 +126,6 @@ public final class Databases {
   }
 
   /**
-   * Lists all available backups.
-   * @param name backup name, glob patterns allowed
-   * @return backup list
-   */
-  public StringList listBackups(final String name) {
-    return list(false, true, name);
-  }
-
-  /**
    * Returns the sorted names of all available databases and, optionally, backups.
    * Filters for {@code name} if not null with glob support.
    * @param db return databases?
@@ -156,7 +151,7 @@ public final class Databases {
    * @param list list which contained databases are added to
    * @param pattern match pattern or {@code null}
    */
-  private void listAll(final TwoWayTokenMap dbs, final StringList list,
+  private static void listAll(final TwoWayTokenMap dbs, final StringList list,
       final Pattern pattern) {
     for(final byte[] database : dbs) {
       if(null == database) continue;

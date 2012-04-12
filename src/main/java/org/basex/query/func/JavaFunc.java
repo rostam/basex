@@ -3,21 +3,15 @@ package org.basex.query.func;
 import static org.basex.query.QueryText.*;
 import static org.basex.query.util.Err.*;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.io.*;
+import java.lang.reflect.*;
 
-import org.basex.io.serial.Serializer;
-import org.basex.query.QueryException;
-import org.basex.query.expr.Expr;
+import org.basex.io.serial.*;
+import org.basex.query.*;
+import org.basex.query.expr.*;
+import org.basex.query.item.*;
 import org.basex.query.item.Type;
-import org.basex.query.item.Value;
-import org.basex.util.InputInfo;
-import org.basex.util.Token;
-import org.basex.util.TokenBuilder;
+import org.basex.util.*;
 
 /**
  * Java function binding.
@@ -38,26 +32,24 @@ public final class JavaFunc extends JavaMapping {
    * @param m Java method/field
    * @param a arguments
    */
-  JavaFunc(final InputInfo ii, final Class<?> c, final String m,
-      final Expr[] a) {
+  JavaFunc(final InputInfo ii, final Class<?> c, final String m, final Expr[] a) {
     super(ii, a);
     cls = c;
     mth = m;
   }
 
   @Override
-  protected Object eval(final Value[] args) throws QueryException {
+  protected Object eval(final Value[] args, final QueryContext ctx)
+      throws QueryException {
+
     try {
-      return mth.equals(NEW) ? constructor(args) : method(args);
+      return mth.equals(NEW) ? constructor(args) : method(args, ctx);
     } catch(final InvocationTargetException ex) {
-      throw JAVAERR.thrw(input, ex.getCause());
+      final Throwable cause = ex.getCause();
+      throw cause instanceof QueryException ? ((QueryException) cause).info(info) :
+        JAVAERR.thrw(info, cause);
     } catch(final Throwable ex) {
-      final TokenBuilder found = new TokenBuilder();
-      for(final Value c : args) {
-        if(!found.isEmpty()) found.add(", ");
-        found.add(c.type.toString());
-      }
-      throw JAVAFUN.thrw(input, name(), found);
+      throw JAVAFUN.thrw(info, name(), foundArgs(args));
     }
   }
 
@@ -78,10 +70,11 @@ public final class JavaFunc extends JavaMapping {
   /**
    * Calls a method.
    * @param ar arguments
+   * @param ctx query context
    * @return resulting object
    * @throws Exception exception
    */
-  private Object method(final Value[] ar) throws Exception {
+  private Object method(final Value[] ar, final QueryContext ctx) throws Exception {
     // check if a field with the specified name exists
     try {
       final Field f = cls.getField(mth);
@@ -95,9 +88,15 @@ public final class JavaFunc extends JavaMapping {
       if(!meth.getName().equals(mth)) continue;
       final boolean st = Modifier.isStatic(meth.getModifiers());
       final Object[] arg = args(meth.getParameterTypes(), ar, st);
-      if(arg != null) return meth.invoke(st ? null : instObj(ar[0]), arg);
+      if(arg != null) {
+        Object inst = null;
+        if(!st) {
+          inst = instObj(ar[0]);
+          if(inst instanceof QueryModule) ((QueryModule) inst).context = ctx;
+        }
+        return meth.invoke(inst, arg);
+      }
     }
-
     throw new Exception();
   }
 
@@ -133,7 +132,6 @@ public final class JavaFunc extends JavaMapping {
 
     for(final Class<?> par : params) {
       final Value arg = args[s + a];
-
       final Object next;
       if(par.isInstance(arg)) {
         next = arg;
@@ -165,7 +163,7 @@ public final class JavaFunc extends JavaMapping {
    * @return string
    */
   private String name() {
-    return cls.getSimpleName() + '.' + mth;
+    return cls.getSimpleName() + ':' + mth;
   }
 
   @Override

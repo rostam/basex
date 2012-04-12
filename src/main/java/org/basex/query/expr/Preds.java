@@ -46,7 +46,7 @@ public abstract class Preds extends ParseExpr {
 
     for(int p = 0; p < preds.length; ++p) {
       Expr pr = preds[p].comp(ctx, scp).compEbv(ctx);
-      pr = Pos.get(OpV.EQ, pr, pr, input);
+      pr = Pos.get(OpV.EQ, pr, pr, info);
 
       // position() = last() -> last()
       if(pr instanceof CmpG || pr instanceof CmpV) {
@@ -62,7 +62,7 @@ public abstract class Preds extends ParseExpr {
       }
 
       if(pr.isValue()) {
-        if(!pr.ebv(ctx, input).bool(input)) {
+        if(!pr.ebv(ctx, info).bool(info)) {
           ctx.compInfo(OPTREMOVE, description(), pr);
           return Empty.SEQ;
         }
@@ -74,12 +74,12 @@ public abstract class Preds extends ParseExpr {
         final Expr[] and = ((And) pr).expr;
         final int m = and.length - 1;
         final ArrayList<Expr> tmp = new ArrayList<Expr>(preds.length + m);
-        for(int i = 0; i < p; i++) tmp.add(preds[i]);
+        tmp.addAll(Arrays.asList(preds).subList(0, p));
         for(final Expr a : and) {
           // wrap test with boolean() if the result is numeric
-          tmp.add(Function.BOOLEAN.get(input, a).compEbv(ctx));
+          tmp.add(Function.BOOLEAN.get(info, a).compEbv(ctx));
         }
-        for(int i = p + 1; i < preds.length; i++) tmp.add(preds[i]);
+        tmp.addAll(Arrays.asList(preds).subList(p + 1, preds.length));
         preds = tmp.toArray(new Expr[tmp.size()]);
       } else {
         preds[p] = pr;
@@ -126,7 +126,7 @@ public abstract class Preds extends ParseExpr {
     Item i = null;
     for(final Expr p : preds) {
       ctx.value = it;
-      i = p.test(ctx, input);
+      i = p.test(ctx, info);
       if(i == null) return false;
     }
     // item accepted.. adopt last scoring value

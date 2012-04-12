@@ -38,7 +38,7 @@ public final class Users {
     file = new IOFile(Prop.HOME, IO.BASEXSUFFIX + "perm");
     if(!file.exists()) {
       // define default admin user with all rights
-      list.add(new User(ADMIN, md5(ADMIN), User.ADMIN));
+      list.add(new User(ADMIN, md5(ADMIN), Perm.ADMIN));
     } else {
       DataInput in = null;
       try {
@@ -60,8 +60,8 @@ public final class Users {
   public synchronized void read(final DataInput in) throws IOException {
     final int s = in.readNum();
     for(int u = 0; u < s; ++u) {
-      final User user = new User(string(in.readToken()),
-        string(in.readToken()), in.readNum());
+      final User user = new User(string(in.readToken()), string(in.readToken()),
+          Perm.get(in.readNum()));
       list.add(user);
     }
   }
@@ -87,9 +87,8 @@ public final class Users {
    * @return success of operation
    */
   public synchronized boolean create(final String usern, final String pass) {
-    // check if user exists already
-    return get(usern) == null &&
-        create(new User(usern, pass, User.NONE));
+    // check if user already exists
+    return get(usern) == null && create(new User(usern, pass, Perm.NONE));
   }
 
   /**
@@ -110,7 +109,7 @@ public final class Users {
    * @return success of operation
    */
   public synchronized boolean alter(final String usern, final String pass) {
-    // check if user exists already
+    // check if user already exists
     final User user = get(usern);
     if(user == null) return false;
 
@@ -164,7 +163,7 @@ public final class Users {
     for(final User user : list) {
       out.writeToken(token(user.name));
       out.writeToken(token(user.password));
-      out.writeNum(user.perm);
+      out.writeNum(user.perm.num);
     }
   }
 
@@ -185,11 +184,11 @@ public final class Users {
 
       final TokenList tl = new TokenList();
       tl.add(user.name);
-      tl.add(user.perm(User.READ) ? "X" : "");
-      tl.add(user.perm(User.WRITE) ? "X" : "");
+      tl.add(user.has(Perm.READ) ? "X" : "");
+      tl.add(user.has(Perm.WRITE) ? "X" : "");
       if(sz == 5) {
-        tl.add(user.perm(User.CREATE) ? "X" : "");
-        tl.add(user.perm(User.ADMIN) ? "X" : "");
+        tl.add(user.has(Perm.CREATE) ? "X" : "");
+        tl.add(user.has(Perm.ADMIN) ? "X" : "");
       }
       table.contents.add(tl);
     }

@@ -241,23 +241,22 @@ public final class QueryProcessor extends Progress {
 
   /**
    * Closes the processor.
-   * @throws QueryException query exception
    */
-  public void close() throws QueryException {
+  public void close() {
     // close only once
     if(closed) return;
     closed = true;
 
     // reset database properties to initial value
     for(final Entry<String, Object> e : ctx.globalOpt.entrySet()) {
-      ctx.context.prop.set(e.getKey(), e.getValue());
+      ctx.context.prop.setObject(e.getKey(), e.getValue());
     }
     // close database connections
     ctx.resource.close();
     // close JDBC connections
     if(ctx.jdbc != null) ctx.jdbc.close();
     // close dynamically loaded JAR files
-    if(ctx.jars != null) ctx.jars.close();
+    ctx.modules.close();
   }
 
   /**

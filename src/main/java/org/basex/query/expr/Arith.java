@@ -46,23 +46,23 @@ public final class Arith extends Arr {
     }
 
     return optPre(oneIsEmpty() ? null : allAreValues() ?
-        item(ctx, input) : this, ctx);
+        item(ctx, info) : this, ctx);
   }
 
   @Override
   public Item item(final QueryContext ctx, final InputInfo ii)
       throws QueryException {
 
-    final Item a = expr[0].item(ctx, input);
+    final Item a = expr[0].item(ctx, info);
     if(a == null) return null;
-    final Item b = expr[1].item(ctx, input);
+    final Item b = expr[1].item(ctx, info);
     if(b == null) return null;
-    return calc.ev(input, a, b);
+    return calc.ev(info, a, b);
   }
 
   @Override
   public Value value(final QueryContext ctx) throws QueryException {
-    final Item it = item(ctx, input);
+    final Item it = item(ctx, info);
     return it == null ? Empty.SEQ : it;
   }
 
