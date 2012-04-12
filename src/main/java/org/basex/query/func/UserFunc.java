@@ -49,6 +49,8 @@ public class UserFunc extends Single implements Scope {
   /** Cast flag. */
   private boolean cast;
   /** Compilation flag. */
+  private boolean compiling;
+  /** Compilation flag. */
   private boolean compiled;
 
   /**
@@ -119,7 +121,9 @@ public class UserFunc extends Single implements Scope {
    */
   void cmp(final QueryContext ctx, final VarScope outer) throws QueryException {
     if(compiled) return;
-    compiled = true;
+
+    if(compiling) throw CIRCVAR.thrw(info, description());
+    compiling = true;
 
     // compile closure
     ArrayList<Entry<Var, Value>> propagate = null;
@@ -150,16 +154,20 @@ public class UserFunc extends Single implements Scope {
     // convert all function calls in tail position to proper tail calls
     if(tco()) expr = expr.markTailCalls();
 
-    if(ret == null) return;
-    // adopt expected return type
-    type = ret;
-    // remove redundant casts
-    if((ret.type == AtomType.BLN || ret.type == AtomType.FLT ||
-        ret.type == AtomType.DBL || ret.type == AtomType.QNM ||
-        ret.type == AtomType.URI) && ret.eq(expr.type())) {
-      ctx.compInfo(OPTCAST, ret);
-      cast = false;
+    if(ret != null) {
+      // adopt expected return type
+      type = ret;
+      // remove redundant casts
+      if((ret.type == AtomType.BLN || ret.type == AtomType.FLT ||
+          ret.type == AtomType.DBL || ret.type == AtomType.QNM ||
+          ret.type == AtomType.URI) && ret.eq(expr.type())) {
+        ctx.compInfo(OPTCAST, ret);
+        cast = false;
+      }
     }
+
+    compiling = false;
+    compiled = true;
   }
 
   @Override
