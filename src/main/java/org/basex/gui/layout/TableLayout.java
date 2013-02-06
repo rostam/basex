@@ -2,6 +2,8 @@ package org.basex.gui.layout;
 
 import java.awt.*;
 
+import org.basex.core.*;
+
 /**
  * This LayoutManager is similar to the GridLayout. The added components
  * keep their minimum size even when the parent container is resized.
@@ -74,7 +76,9 @@ public final class TableLayout implements LayoutManager {
         int h = 0;
 
         for(int j = 0; j < rows; ++j) {
-          final int n = j * cols + i;
+          int n = 0;
+          if (Prop.langright) n = j * cols + (cols - i - 1);
+          else n = j * cols + i;
           if(n >= nr) break;
 
           final Component c = parent.getComponent(n);
@@ -105,15 +109,32 @@ public final class TableLayout implements LayoutManager {
       final Insets in = p.getInsets();
       final int nr = p.getComponentCount();
       for(int j = 0; j < rows; ++j) {
-        for(int i = cols-1; i >= 0 ; --i) {
-          final int n = j * cols + i;
-          if(n >= nr) return;
-          final Dimension cs = p.getComponent(n).getPreferredSize();
-          final int x = in.left + posX[cols-i-1] + (cols-i) * insetX;
-          final int y = in.top + posY[j] + j * insetY;
-          final int w = cs.width > 0 ? cs.width : width - in.left - in.right;
-          final int h = cs.height > 0 ? cs.height : height - in.top - in.bottom;
-          p.getComponent(n).setBounds(x, y, w, h);
+        //for(int i = cols-1; i >= 0 ; --i) {
+        if(Prop.langright) {
+          for(int i = 0; i < cols; i++) {
+            final int n = j * cols + (cols - i - 1);
+            
+            if(n >= nr) return;
+            final Dimension cs = p.getComponent(n).getPreferredSize();
+            final int x = in.left + posX[i] + i * insetX;
+            final int y = in.top + posY[j] + j * insetY;
+            
+            final int w = cs.width > 0 ? cs.width : width - in.left - in.right;
+            final int h = cs.height > 0 ? cs.height : height - in.top - in.bottom;
+            p.getComponent(n).setBounds(x, y, w, h);
+          }
+        }
+        else {
+          for(int i=0;i<cols;i++) {
+            final int n = j * cols + i;
+            if(n >= nr) return;
+            final Dimension cs = p.getComponent(n).getPreferredSize();
+            final int x = in.left + posX[i] + i * insetX;
+            final int y = in.top + posY[j] + j * insetY;
+            final int w = cs.width > 0 ? cs.width : width - in.left - in.right;
+            final int h = cs.height > 0 ? cs.height : height - in.top - in.bottom;
+            p.getComponent(n).setBounds(x, y, w, h);
+          }
         }
       }
     }

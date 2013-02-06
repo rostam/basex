@@ -26,7 +26,7 @@ public final class DialogAbout extends BaseXDialog {
    */
   public DialogAbout(final GUI main) {
     super(main, ABOUT);
-
+    
     BaseXBack p = new BaseXBack(new BorderLayout(12, 0));
     p.setBackground(Color.white);
     p.setBorder(new CompoundBorder(new EtchedBorder(), new EmptyBorder(10, 10, 15, 22)));

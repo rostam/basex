@@ -5,6 +5,8 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import org.basex.core.*;
+
 /**
  * Project specific CheckBox implementation.
  *
@@ -20,6 +22,7 @@ public final class BaseXCheckBox extends JCheckBox {
    */
   public BaseXCheckBox(final String txt, final boolean sel, final Window win) {
     this(txt, sel, 1, win);
+    if (Prop.langright) this.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -33,6 +36,7 @@ public final class BaseXCheckBox extends JCheckBox {
       final Window win) {
 
     super(label, sel);
+    if (Prop.langright) this.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     setOpaque(false);
     setMargin(new Insets(0, 0, dist, 0));
     if(dist == 0) setFont(getFont().deriveFont(Font.BOLD));
