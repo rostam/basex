@@ -105,11 +105,11 @@ public final class TableLayout implements LayoutManager {
       final Insets in = p.getInsets();
       final int nr = p.getComponentCount();
       for(int j = 0; j < rows; ++j) {
-        for(int i = 0; i < cols; ++i) {
+        for(int i = cols-1; i >= 0 ; --i) {
           final int n = j * cols + i;
           if(n >= nr) return;
           final Dimension cs = p.getComponent(n).getPreferredSize();
-          final int x = in.left + posX[i] + i * insetX;
+          final int x = in.left + posX[cols-i-1] + (cols-i) * insetX;
           final int y = in.top + posY[j] + j * insetY;
           final int w = cs.width > 0 ? cs.width : width - in.left - in.right;
           final int h = cs.height > 0 ? cs.height : height - in.top - in.bottom;

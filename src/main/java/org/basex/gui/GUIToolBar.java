@@ -1,7 +1,10 @@
 package org.basex.gui;
 
+import java.awt.*;
+
 import javax.swing.*;
 
+import org.basex.core.*;
 import org.basex.gui.layout.*;
 
 /**
@@ -26,6 +29,8 @@ public final class GUIToolBar extends JToolBar {
     setFloatable(false);
     cmd = tb;
     gui = main;
+    if(Prop.langright)
+      setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 
     for(final GUICommand c : cmd) {
       if(c == null) {

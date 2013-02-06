@@ -7,6 +7,7 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import org.basex.core.*;
 import org.basex.gui.*;
 import org.basex.gui.layout.BaseXLayout.DropHandler;
 
@@ -32,6 +33,7 @@ public class BaseXTextField extends JTextField {
    */
   public BaseXTextField(final GUI gui) {
     this(null, gui, null);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -40,6 +42,7 @@ public class BaseXTextField extends JTextField {
    */
   public BaseXTextField(final BaseXDialog dialog) {
     this(null, dialog, dialog);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -49,6 +52,7 @@ public class BaseXTextField extends JTextField {
    */
   public BaseXTextField(final String txt, final BaseXDialog dialog) {
     this(txt, dialog, dialog);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -60,7 +64,8 @@ public class BaseXTextField extends JTextField {
   private BaseXTextField(final String txt, final Window win, final BaseXDialog dialog) {
     BaseXLayout.setWidth(this, DWIDTH);
     BaseXLayout.addInteraction(this, win);
-
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+    
     if(txt != null) setText(txt);
 
     addFocusListener(new FocusAdapter() {

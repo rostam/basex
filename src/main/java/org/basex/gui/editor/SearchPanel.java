@@ -6,6 +6,7 @@ import static org.basex.gui.layout.BaseXKeys.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import org.basex.core.*;
 import org.basex.gui.*;
 import org.basex.gui.GUIConstants.Fill;
 import org.basex.gui.editor.Editor.SearchDir;
@@ -146,23 +147,32 @@ public final class SearchPanel extends BaseXBack {
     if(editor == null || ed != editor.isEditable()) {
       removeAll();
       final BaseXBack wst = new BaseXBack(Fill.NONE).layout(new TableLayout(1, 4, 1, 0));
+      if (Prop.langright) wst.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
       wst.add(mcase);
       wst.add(word);
       wst.add(regex);
       wst.add(multi);
 
       final BaseXBack ctr = new BaseXBack(Fill.NONE).layout(new GridLayout(1, 2, 2, 0));
+      if (Prop.langright) ctr.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
       ctr.add(search);
       if(ed) ctr.add(replace);
 
       final BaseXBack est = new BaseXBack(Fill.NONE).layout(new TableLayout(1, 3, 1, 0));
+      if (Prop.langright) est.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
       if(ed) est.add(rplc);
       est.add(cls);
 
-      add(wst, BorderLayout.WEST);
-      add(ctr, BorderLayout.CENTER);
-      add(est, BorderLayout.EAST);
-    }
+      if (Prop.langright) {
+        add(wst, BorderLayout.EAST);
+        add(ctr, BorderLayout.CENTER);
+        add(est, BorderLayout.WEST);
+      } else {
+        add(wst, BorderLayout.WEST);
+        add(ctr, BorderLayout.CENTER);
+        add(est, BorderLayout.EAST);
+      }
+          }
 
     editor = e;
     refreshLayout();

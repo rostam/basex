@@ -80,6 +80,7 @@ public final class EditorView extends View {
    */
   public EditorView(final ViewNotifier man) {
     super(EDITORVIEW, man);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 
     border(6, 6, 6, 6).layout(new BorderLayout(0, 2)).setFocusable(false);
 
@@ -98,8 +99,13 @@ public final class EditorView extends View {
     buttons.add(hist);
 
     final BaseXBack b = new BaseXBack(Fill.NONE).layout(new BorderLayout(8, 0));
-    b.add(header, BorderLayout.CENTER);
-    b.add(buttons, BorderLayout.EAST);
+    if (Prop.langright) {
+      b.add(header, BorderLayout.EAST);
+      b.add(buttons, BorderLayout.WEST);
+    } else {
+      b.add(header, BorderLayout.CENTER);
+      b.add(buttons, BorderLayout.EAST);
+    }
     add(b, BorderLayout.NORTH);
 
     tabs = new BaseXTabs(gui);

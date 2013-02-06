@@ -66,7 +66,7 @@ public final class InfoView extends View {
     header = new BaseXLabel(QUERY_INFO);
     title.add(header, BorderLayout.NORTH);
     timer = new BaseXLabel(" ", true, false);
-    title.add(timer, BorderLayout.SOUTH);
+    title.add(timer, BorderLayout.CENTER);
 
     final BaseXButton srch = new BaseXButton(gui, "search", SEARCH);
     buttons = new BaseXBack(Fill.NONE);
@@ -74,8 +74,13 @@ public final class InfoView extends View {
     buttons.add(srch);
 
     final BaseXBack north = new BaseXBack(Fill.NONE).layout(new BorderLayout());
-    north.add(buttons, BorderLayout.EAST);
-    north.add(title, BorderLayout.CENTER);
+    if (Prop.langright) {
+      north.add(buttons, BorderLayout.WEST);
+      north.add(title, BorderLayout.EAST);
+    } else {
+      north.add(buttons, BorderLayout.EAST);
+      north.add(title, BorderLayout.CENTER);
+    }
     add(north, BorderLayout.NORTH);
 
     final BaseXBack center = new BaseXBack(Fill.NONE).layout(new BorderLayout(0, 2));

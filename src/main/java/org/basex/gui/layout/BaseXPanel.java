@@ -2,7 +2,7 @@ package org.basex.gui.layout;
 
 import java.awt.*;
 import java.awt.event.*;
-
+import org.basex.core.*;
 import org.basex.gui.*;
 
 /**
@@ -24,6 +24,7 @@ public abstract class BaseXPanel extends BaseXBack implements MouseListener,
   protected BaseXPanel(final Window win) {
     gui = win instanceof GUI ? (GUI) win : ((BaseXDialog) win).gui;
     BaseXLayout.addInteraction(this, win);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   @Override

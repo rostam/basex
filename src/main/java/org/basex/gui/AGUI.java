@@ -1,6 +1,7 @@
 package org.basex.gui;
 
 import static org.basex.gui.GUIConstants.*;
+//import org.pushingpixels.substance.api.skin.SubstanceOfficeSilver2007LookAndFeel;
 
 import java.awt.*;
 
@@ -31,6 +32,8 @@ public abstract class AGUI extends JFrame {
     setTitle(null);
     context = ctx;
     gprop = gprops;
+    if(Prop.langright)
+      applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   @Override

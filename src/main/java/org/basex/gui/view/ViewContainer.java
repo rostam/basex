@@ -65,6 +65,7 @@ public final class ViewContainer extends BaseXBack implements Runnable {
    * @param v view panels
    */
   public ViewContainer(final AGUI main, final View... v) {
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     layout(new BorderLayout()).mode(Fill.PLAIN);
     logo = BaseXLayout.image("logo");
     setBackground(Color.white);

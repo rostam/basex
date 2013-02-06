@@ -4,6 +4,8 @@ import java.awt.*;
 
 import javax.swing.*;
 
+import org.basex.core.*;
+
 /**
  * Project specific TabbedPane implementation.
  *
@@ -17,6 +19,7 @@ public final class BaseXTabs extends JTabbedPane {
    */
   public BaseXTabs(final Window win) {
     BaseXLayout.addInteraction(this, win);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**

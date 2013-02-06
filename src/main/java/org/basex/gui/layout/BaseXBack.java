@@ -6,6 +6,7 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import org.basex.core.*;
 import org.basex.gui.*;
 import org.basex.gui.GUIConstants.Fill;
 import org.basex.util.*;
@@ -30,6 +31,7 @@ public class BaseXBack extends JPanel {
    */
   public BaseXBack() {
     this(Fill.PLAIN);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -38,6 +40,7 @@ public class BaseXBack extends JPanel {
    */
   public BaseXBack(final Fill m) {
     mode(m);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -50,6 +53,7 @@ public class BaseXBack extends JPanel {
   public BaseXBack(final int t, final int l, final int b, final int r) {
     this();
     border(t, l, b, r);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -59,6 +63,7 @@ public class BaseXBack extends JPanel {
   public BaseXBack(final LayoutManager lm) {
     this();
     layout(lm);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**

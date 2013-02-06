@@ -136,7 +136,11 @@ public final class GUI extends AGUI {
 
     buttons = new BaseXBack(new BorderLayout());
     toolbar = new GUIToolBar(TOOLBAR, this);
-    buttons.add(toolbar, BorderLayout.WEST);
+    if(Prop.langright)
+      buttons.add(toolbar, BorderLayout.EAST);
+    else
+      buttons.add(toolbar, BorderLayout.WEST);
+
 
     hits = new BaseXLabel(" ");
     hits.setFont(hits.getFont().deriveFont(18f));
@@ -146,7 +150,10 @@ public final class GUI extends AGUI {
     BaseXBack b = new BaseXBack();
     b.add(hits);
 
-    buttons.add(b, BorderLayout.EAST);
+    if (Prop.langright)
+      buttons.add(b, BorderLayout.WEST);
+    else
+      buttons.add(b, BorderLayout.EAST);
     if(gprop.is(GUIProp.SHOWBUTTONS)) control.add(buttons, BorderLayout.CENTER);
 
     nav = new BaseXBack(new BorderLayout(5, 0)).border(2, 2, 0, 2);

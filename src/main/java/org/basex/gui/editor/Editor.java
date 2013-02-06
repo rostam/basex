@@ -71,6 +71,7 @@ public class Editor extends BaseXPanel {
    */
   public Editor(final boolean edit, final Window win) {
     this(edit, win, EMPTY);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -81,6 +82,7 @@ public class Editor extends BaseXPanel {
    */
   public Editor(final boolean edit, final Window win, final byte[] txt) {
     super(win);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     setFocusable(true);
     setFocusTraversalKeysEnabled(!edit);
     editable = edit;
@@ -109,7 +111,8 @@ public class Editor extends BaseXPanel {
     setFont(GUIConstants.dmfont);
 
     add(rend, BorderLayout.CENTER);
-    add(scroll, BorderLayout.EAST);
+    if (Prop.langright) add(scroll, BorderLayout.WEST);
+    else add(scroll, BorderLayout.EAST);
 
     setText(txt);
     hist = new History(edit ? text.text() : null);
