@@ -26,7 +26,7 @@ public final class DialogAbout extends BaseXDialog {
    */
   public DialogAbout(final GUI main) {
     super(main, ABOUT);
-    
+
     BaseXBack p = new BaseXBack(new BorderLayout(12, 0));
     p.setBackground(Color.white);
     p.setBorder(new CompoundBorder(new EtchedBorder(), new EmptyBorder(10, 10, 15, 22)));
@@ -35,8 +35,9 @@ public final class DialogAbout extends BaseXDialog {
     label.setIcon(BaseXLayout.icon("logo"));
     label.setVerticalAlignment(SwingConstants.TOP);
 
-    p.add(label, BorderLayout.WEST);
-
+    if (Prop.langright) p.add(label, BorderLayout.EAST);
+    else p.add(label, BorderLayout.WEST);
+    
     final BaseXBack pp = new BaseXBack(Fill.NONE).layout(new TableLayout(17, 1));
 
     pp.add(new BaseXLabel(TITLE, false, true));
@@ -63,12 +64,14 @@ public final class DialogAbout extends BaseXDialog {
     pp.add(Box.createVerticalStrut(7));
     final String lang = main.context.mprop.get(MainProp.LANG);
     pp.add(new BaseXLabel(TRANSLATION + " (" + lang + "): " + DialogPrefs.creds(lang)));
-    p.add(pp, BorderLayout.EAST);
+    if (Prop.langright) p.add(pp, BorderLayout.WEST);
+    else p.add(pp, BorderLayout.EAST);
     add(p, BorderLayout.NORTH);
 
     p = new BaseXBack();
     p.add(newButtons(B_OK));
-    add(p, BorderLayout.EAST);
+    if (Prop.langright) add(p, BorderLayout.WEST);
+    else add(p, BorderLayout.EAST);
 
     finish(null);
   }

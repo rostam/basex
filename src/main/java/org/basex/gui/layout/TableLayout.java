@@ -110,30 +110,38 @@ public final class TableLayout implements LayoutManager {
       final int nr = p.getComponentCount();
       for(int j = 0; j < rows; ++j) {
         //for(int i = cols-1; i >= 0 ; --i) {
-        if(Prop.langright) {
+        if (Prop.langright) {
+//          int wi = 0;
+//          for(int k = 0; k < cols; k++) {
+//            final int m = j * cols + cols - k - 1;
+//            final Dimension d = p.getComponent(m).getPreferredSize();
+//            final int wt = d.width > 0 ? d.width : width - in.left - in.right;
+//            wi = wi + wt;
+//          }
           for(int i = 0; i < cols; i++) {
             final int n = j * cols + (cols - i - 1);
-            
-            if(n >= nr) return;
+
+            if (n >= nr) return;
             final Dimension cs = p.getComponent(n).getPreferredSize();
             final int x = in.left + posX[i] + i * insetX;
             final int y = in.top + posY[j] + j * insetY;
-            
             final int w = cs.width > 0 ? cs.width : width - in.left - in.right;
             final int h = cs.height > 0 ? cs.height : height - in.top - in.bottom;
+//            final int newX = x + p.getWidth() - in.left - in.right -
+//                (cols - 1) * insetX - wi;
+//            p.getComponent(n).setBounds(newX, y, w, h);
             p.getComponent(n).setBounds(x, y, w, h);
           }
-        }
-        else {
-          for(int i=0;i<cols;i++) {
+        } else {
+          for(int i = 0; i < cols; i++) {
             final int n = j * cols + i;
-            if(n >= nr) return;
+            if (n >= nr) return;
             final Dimension cs = p.getComponent(n).getPreferredSize();
             final int x = in.left + posX[i] + i * insetX;
             final int y = in.top + posY[j] + j * insetY;
             final int w = cs.width > 0 ? cs.width : width - in.left - in.right;
             final int h = cs.height > 0 ? cs.height : height - in.top - in.bottom;
-            p.getComponent(n).setBounds(x, y, w, h);
+            p.getComponent(n).setBounds(x , y, w, h);
           }
         }
       }

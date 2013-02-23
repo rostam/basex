@@ -2,6 +2,7 @@ package org.basex.gui.dialog;
 
 import static org.basex.core.Text.*;
 
+import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
@@ -69,7 +70,7 @@ public final class DialogImport extends BaseXBack {
 
     layout(new TableLayout(10, 1));
     border(8);
-
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     // add options
     add(new BaseXLabel(FILE_OR_DIR + COL, true, true).border(0, 0, 6, 0));
 

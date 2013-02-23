@@ -98,6 +98,8 @@ public final class DialogExport extends BaseXDialog {
     params = new BaseXTextField(exporter, this);
 
     pp = new BaseXBack(new TableLayout(3, 2, 16, 6)).border(8, 0, 8, 0);
+    if (Prop.langright) p.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+    if (Prop.langright) pp.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     pp.add(new BaseXLabel(METHOD + COL, true, true));
     pp.add(method);
     pp.add(new BaseXLabel(ENCODING + COL, true, true));

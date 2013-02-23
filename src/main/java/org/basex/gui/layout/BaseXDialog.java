@@ -52,6 +52,7 @@ public abstract class BaseXDialog extends JDialog {
   public BaseXDialog(final BaseXDialog d, final String title) {
     super(d, title, true);
     init(d.gui);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -61,6 +62,7 @@ public abstract class BaseXDialog extends JDialog {
    */
   public BaseXDialog(final GUI main, final String title) {
     this(main, title, true);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -72,6 +74,7 @@ public abstract class BaseXDialog extends JDialog {
   public BaseXDialog(final GUI main, final String title, final boolean modal) {
     super(main, title, modal);
     init(main);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -194,7 +197,7 @@ public abstract class BaseXDialog extends JDialog {
     final BaseXBack but = new BaseXBack(Fill.NONE).layout(new BorderLayout());
     if(Prop.langright) but.add(pnl,BorderLayout.WEST);
     else but.add(pnl, BorderLayout.EAST);
-    
+
     return but;
   }
 
