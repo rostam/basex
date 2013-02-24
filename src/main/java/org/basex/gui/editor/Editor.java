@@ -69,6 +69,16 @@ public class Editor extends BaseXPanel {
    * @param edit editable flag
    * @param win parent window
    */
+  public Editor(final boolean edit, final Window win, boolean rtl) {
+    this(edit, win, EMPTY,rtl);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+  }
+  
+  /**
+   * Default constructor.
+   * @param edit editable flag
+   * @param win parent window
+   */
   public Editor(final boolean edit, final Window win) {
     this(edit, win, EMPTY);
     if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
@@ -108,6 +118,63 @@ public class Editor extends BaseXPanel {
     layout(new BorderLayout(4, 0));
     scroll = new BaseXBar(this);
     rend = new Renderer(text, scroll);
+    setFont(GUIConstants.dmfont);
+
+    add(rend, BorderLayout.CENTER);
+    if (Prop.langright) add(scroll, BorderLayout.WEST);
+    else add(scroll, BorderLayout.EAST);
+
+    setText(txt);
+    hist = new History(edit ? text.text() : null);
+
+    if(edit) {
+      setBackground(Color.white);
+      setBorder(new MatteBorder(1, 1, 0, 0, GUIConstants.color(6)));
+    } else {
+      mode(Fill.NONE);
+    }
+
+    new BaseXPopup(this, edit ?
+      new GUICommand[] { new UndoCmd(), new RedoCmd(), null, new CutCmd(),
+        new CopyCmd(), new PasteCmd(), new DelCmd(), null, new AllCmd() } :
+      new GUICommand[] { new CopyCmd(), null, new AllCmd() });
+  }
+
+  /**
+   * Default constructor.
+   * @param edit editable flag
+   * @param win parent window
+   * @param txt initial text
+   */
+  public Editor(final boolean edit, final Window win, final byte[] txt, final boolean rtl) {
+    super(win);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+    setFocusable(true);
+    setFocusTraversalKeysEnabled(!edit);
+    editable = edit;
+
+    addMouseMotionListener(this);
+    addMouseWheelListener(this);
+    addComponentListener(this);
+    addMouseListener(this);
+    addKeyListener(this);
+
+    addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(final FocusEvent e) {
+        if(isEnabled()) cursor(true);
+      }
+      @Override
+      public void focusLost(final FocusEvent e) {
+        cursor(false);
+        rend.cursor(false);
+      }
+    });
+
+    layout(new BorderLayout(4, 0));
+    scroll = new BaseXBar(this);
+    if(Prop.langright && rtl) rend = new RTLRenderer(text,scroll);
+    else rend = new Renderer(text, scroll);
     setFont(GUIConstants.dmfont);
 
     add(rend, BorderLayout.CENTER);

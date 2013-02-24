@@ -72,7 +72,7 @@ public final class DialogManage extends BaseXDialog {
     doc1 = new BaseXLabel(" ").large();
     doc1.setSize(420, doc1.getHeight());
 
-    detail = new Editor(false, this);
+    detail = new Editor(false, this, true);
     detail.border(5).setFont(panel.getFont());
 
     // database buttons
@@ -200,6 +200,7 @@ public final class DialogManage extends BaseXDialog {
           in = new DataInput(meta.dbfile(DATAINF));
           meta.read(in);
           detail.setText(Token.token(InfoDB.db(meta, true, true, true)));
+          
         } catch(final IOException ex) {
           detail.setText(Token.token(ex.getMessage()));
         } finally {

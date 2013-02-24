@@ -108,12 +108,23 @@ public final class DialogImport extends BaseXBack {
     skipCorrupt = new BaseXCheckBox(SKIP_CORRUPT_FILES, prop.is(Prop.SKIPCORRUPT), dial);
     archives = new BaseXCheckBox(PARSE_ARCHIVES, prop.is(Prop.ADDARCHIVES), dial);
 
-    final BaseXBack p = new BaseXBack(new TableLayout(2, 2, 20, 0));
-    p.add(new BaseXLabel(INPUT_FORMAT, false, true).border(0, 0, 6, 0));
-    p.add(new BaseXLabel(FILE_PATTERNS + COL, false, true).border(0, 0, 6, 0));
-    p.add(parser);
-    p.add(filter);
-    add(p);
+    if (Prop.langright) {
+      final BaseXBack p1 = new BaseXBack(new TableLayout(1, 2, 20, 0));
+      final BaseXBack p2 = new BaseXBack(new TableLayout(1, 2, 20, 0));
+      p1.add(new BaseXLabel(INPUT_FORMAT, false, true).border(0, 0, 6, 0));
+      p1.add(new BaseXLabel(FILE_PATTERNS + COL, false, true).border(0, 0, 6, 0));
+      p2.add(parser);
+      p2.add(filter);
+      add(p1);
+      add(p2);
+    } else {
+      final BaseXBack p = new BaseXBack(new TableLayout(2, 2, 20, 0));
+      p.add(new BaseXLabel(INPUT_FORMAT, false, true).border(0, 0, 6, 0));
+      p.add(new BaseXLabel(FILE_PATTERNS + COL, false, true).border(0, 0, 6, 0));
+      p.add(parser);
+      p.add(filter);
+      add(p);
+    }
     add(Box.createVerticalStrut(8));
     add(addRaw);
     add(skipCorrupt);

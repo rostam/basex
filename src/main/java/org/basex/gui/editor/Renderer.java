@@ -16,48 +16,48 @@ import org.basex.util.list.*;
  * @author BaseX Team 2005-12, BSD License
  * @author Christian Gruen
  */
-final class Renderer extends BaseXBack {
+class Renderer extends BaseXBack {
   /** Vertical start position. */
   private final BaseXBar bar;
 
   /** Font. */
-  private Font font;
+  protected Font font;
   /** Default font. */
   private Font dfont;
   /** Bold font. */
   private Font bfont;
   /** Font height. */
-  private int fontH;
+  protected int fontH;
   /** Character widths. */
-  private int[] fwidth = GUIConstants.mfwidth;
+  protected int[] fwidth = GUIConstants.mfwidth;
   /** Color. */
-  private Color color;
+  protected Color color;
   /** Color highlighting flag. */
-  private boolean high;
+  protected boolean high;
 
   /** Width of current word. */
-  private int wordW;
+  protected int wordW;
 
   /** Border offset. */
-  private int off;
+  protected int off;
   /** Current x coordinate. */
-  private int x;
+  protected int x;
   /** Current y coordinate. */
-  private int y;
+  protected int y;
   /** Current width. */
-  private int w;
+  protected int w;
   /** Current height. */
-  private int h;
+  protected int h;
 
   /** Current brackets. */
-  private final IntList pars = new IntList();
+  protected final IntList pars = new IntList();
 
   /** Text array to be written. */
-  private final EditorText text;
+  protected final EditorText text;
   /** Vertical start position. */
-  private transient Syntax syntax = Syntax.SIMPLE;
+  protected transient Syntax syntax = Syntax.SIMPLE;
   /** Visibility of cursor. */
-  private boolean cursor;
+  protected boolean cursor;
 
   /**
    * Constructor.
@@ -271,7 +271,7 @@ final class Renderer extends BaseXBack {
    * Finishes the current token.
    * @return true for new line
    */
-  private boolean next() {
+  protected boolean next() {
     final int ch = text.curr();
     if(ch == TokenBuilder.NLINE || ch == TokenBuilder.HLINE) {
       x = off;
@@ -286,7 +286,7 @@ final class Renderer extends BaseXBack {
    * Writes the current string to the graphics reference.
    * @param g graphics reference
    */
-  private void write(final Graphics g) {
+  protected void write(final Graphics g) {
     if(high) {
       high = false;
     } else {
@@ -386,7 +386,7 @@ final class Renderer extends BaseXBack {
    * @param g graphics reference
    * @param xx x position
    */
-  private void drawCursor(final Graphics g, final int xx) {
+  protected void drawCursor(final Graphics g, final int xx) {
     g.setColor(GUIConstants.DGRAY);
     g.fillRect(xx, y - fontH * 4 / 5, 2, fontH);
   }
@@ -395,7 +395,7 @@ final class Renderer extends BaseXBack {
    * Paints the error marker.
    * @param g graphics reference
    */
-  private void drawError(final Graphics g) {
+  protected void drawError(final Graphics g) {
     final int ww = wordW != 0 ? wordW : charW(g, ' ');
     final int s = Math.max(1, fontH / 8);
     g.setColor(GUIConstants.LRED);
@@ -460,7 +460,7 @@ final class Renderer extends BaseXBack {
    * @param cp character
    * @return width
    */
-  private int charW(final Graphics g, final int cp) {
+  protected int charW(final Graphics g, final int cp) {
     return cp < ' ' || g == null ?  cp == '\t' ?
       fwidth[' '] * EditorText.TAB : 0 : cp < 256 ? fwidth[cp] :
       cp >= 0xD800 && cp <= 0xDC00 ? 0 : g.getFontMetrics().charWidth(cp);
@@ -470,7 +470,7 @@ final class Renderer extends BaseXBack {
    * Returns the font height.
    * @return font height
    */
-  int fontH() {
+  protected int fontH() {
     return fontH;
   }
 
