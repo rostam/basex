@@ -73,7 +73,7 @@ public class Editor extends BaseXPanel {
     this(edit, win, EMPTY,rtl);
     if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
-  
+
   /**
    * Default constructor.
    * @param edit editable flag

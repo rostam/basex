@@ -72,7 +72,8 @@ public final class DialogManage extends BaseXDialog {
     doc1 = new BaseXLabel(" ").large();
     doc1.setSize(420, doc1.getHeight());
 
-    detail = new Editor(false, this, true);
+    if (Prop.langright) detail = new Editor(false, this, true);
+    else detail = new Editor(false, this, true);
     detail.border(5).setFont(panel.getFont());
 
     // database buttons
@@ -113,7 +114,8 @@ public final class DialogManage extends BaseXDialog {
     BaseXLayout.setWidth(doc1, 400);
     BaseXLayout.setWidth(doc2, 400);
     set(choice, BorderLayout.CENTER);
-    set(tabs, BorderLayout.EAST);
+    if (Prop.langright) set(tabs, BorderLayout.WEST);
+    else set(tabs, BorderLayout.EAST);
 
     action(null);
     if(!dbs.isEmpty()) finish(null);
@@ -200,7 +202,7 @@ public final class DialogManage extends BaseXDialog {
           in = new DataInput(meta.dbfile(DATAINF));
           meta.read(in);
           detail.setText(Token.token(InfoDB.db(meta, true, true, true)));
-          
+
         } catch(final IOException ex) {
           detail.setText(Token.token(ex.getMessage()));
         } finally {

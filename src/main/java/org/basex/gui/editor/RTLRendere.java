@@ -18,16 +18,16 @@ import org.basex.util.list.*;
  */
   class RTLRenderer extends Renderer {
 
-  /**
-   * @param t
-   * @param b
+  /** Default Constructor.
+   * @param t text to be drawn
+   * @param b scrollbar reference
    */
-  RTLRenderer(EditorText t, BaseXBar b) {
+  RTLRenderer(final EditorText t, final BaseXBar b) {
     super(t, b);
   }
-  
-   protected void write(final Graphics g) {
-    x = x + 100;
+
+   @Override
+  protected void write(final Graphics g) {
      if(high) {
       high = false;
     } else {
@@ -71,6 +71,7 @@ import org.basex.util.list.*;
       if(ch > ' ') {
         g.setColor(color);
         String n = text.nextString();
+        System.out.println(n);
         int ww = w - x;
         if(x + wordW > ww) {
           // shorten string if it cannot be completely shown (saves memory)
@@ -80,7 +81,7 @@ import org.basex.util.list.*;
           }
           n = n.substring(0, c);
         }
-        g.drawString(n, x, y);
+        g.drawString(n, ww - wordW, y);
       } else if(ch <= TokenBuilder.MARK) {
         g.setFont(font);
       }

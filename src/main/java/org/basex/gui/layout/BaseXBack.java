@@ -31,7 +31,6 @@ public class BaseXBack extends JPanel {
    */
   public BaseXBack() {
     this(Fill.PLAIN);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -40,7 +39,6 @@ public class BaseXBack extends JPanel {
    */
   public BaseXBack(final Fill m) {
     mode(m);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
