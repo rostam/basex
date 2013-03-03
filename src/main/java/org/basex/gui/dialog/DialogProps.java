@@ -147,7 +147,8 @@ public final class DialogProps extends BaseXDialog {
       }
     });
 
-    set(resources, BorderLayout.WEST);
+    if (Prop.langright) set(resources, BorderLayout.EAST);
+    else set(resources, BorderLayout.WEST);
     set(tabs, BorderLayout.CENTER);
 
     action(this);
