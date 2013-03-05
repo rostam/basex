@@ -63,7 +63,14 @@ public final class DialogAbout extends BaseXDialog {
     pp.add(new BaseXLabel(AND_OTHERS));
     pp.add(Box.createVerticalStrut(7));
     final String lang = main.context.mprop.get(MainProp.LANG);
-    pp.add(new BaseXLabel(TRANSLATION + " (" + lang + "): " + DialogPrefs.creds(lang)));
+    BaseXLabel tempLabel = null;
+    if(Prop.langright)
+       tempLabel = new BaseXLabel(TRANSLATION + " : " + lang + " - " + DialogPrefs.creds(lang)); 
+    else 
+      tempLabel = new BaseXLabel(TRANSLATION + " (" + lang + "): " + DialogPrefs.creds(lang)); 
+     
+    pp.add(tempLabel);
+    
     if (Prop.langright) p.add(pp, BorderLayout.WEST);
     else p.add(pp, BorderLayout.EAST);
     add(p, BorderLayout.NORTH);

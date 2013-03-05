@@ -22,7 +22,7 @@ import org.basex.util.*;
    * @param t text to be drawn
    * @param b scrollbar reference
    */
-  RTLRenderer(final RTLEditorText t, final BaseXBar b) {
+  RTLRenderer(final EditorText t, final BaseXBar b) {
     super(t, b);
   }
 
@@ -90,26 +90,37 @@ import org.basex.util.*;
         }
 
         if(test) {
-
-          if(line.contains(":")) {
+          if(line.contains(":") && !line.contains("://")) {
           line = line.trim();
           String tilDP = line.substring(0, line.indexOf(':'));
           String afterDP = line.substring(line.indexOf(':') + 1);
+          if(tilDP.charAt(0) == '-' 
+              && Character.toLowerCase(tilDP.charAt(2)) >= 'a' 
+              && Character.toLowerCase(tilDP.charAt(2)) <= 'z') 
+              tilDP = tilDP.substring(1) + " -";
           int lw = g.getFontMetrics().charsWidth(tilDP.toCharArray(), 0, tilDP.length());
           int alw = g.getFontMetrics().charsWidth(afterDP.toCharArray(), 0,
               afterDP.length());
           lw += 12;
           alw += 12;
+          
           g.drawString(tilDP, w - lw , y);
           g.drawString(":", w - lw - 6, y);
           g.drawString(afterDP, w - lw - alw, y);
          } else {
            int lw = g.getFontMetrics().charsWidth(line.toCharArray(), 0, line.length());
-           //lw += 8;
            Font ff = g.getFont();
-           if(line.length() > 3)
-             line = line.substring(1, line.length() - 1);
-           g.setFont(new Font(g.getFont().getName(), Font.BOLD, g.getFont().getSize()));
+           System.out.println(line);
+           if(line.length() >= 1) {
+             if(line.charAt(0) == 2) {
+               g.setFont(new Font(g.getFont().getName(), Font.BOLD, g.getFont().getSize()));
+               line = line.substring(1);
+             }
+             if(line.length() >= 1)
+             if(line.charAt(line.length()-1) == 3)
+               line = line.substring(0,line.length()-1);
+           }
+           
            g.drawString(line, w - lw - 8, y);
            g.setFont(ff);
          }

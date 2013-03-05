@@ -52,7 +52,7 @@ public class Editor extends BaseXPanel {
   }
 
   /** Text array to be written. */
-  protected final transient RTLEditorText text = new RTLEditorText(EMPTY);
+  protected final transient EditorText text = new EditorText(EMPTY);
 
   /** Undo history. */
   public transient History hist;
@@ -73,7 +73,6 @@ public class Editor extends BaseXPanel {
    */
   public Editor(final boolean edit, final Window win, final boolean rtl) {
     this(edit, win, EMPTY, rtl);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -83,7 +82,6 @@ public class Editor extends BaseXPanel {
    */
   public Editor(final boolean edit, final Window win) {
     this(edit, win, EMPTY);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**

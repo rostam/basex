@@ -72,8 +72,7 @@ public final class DialogManage extends BaseXDialog {
     doc1 = new BaseXLabel(" ").large();
     doc1.setSize(420, doc1.getHeight());
 
-    if (Prop.langright) detail = new Editor(false, this, true);
-    else detail = new Editor(false, this, true);
+    detail = new Editor(false, this, true);
     detail.border(5).setFont(panel.getFont());
 
     // database buttons

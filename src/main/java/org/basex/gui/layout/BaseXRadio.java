@@ -6,6 +6,8 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import org.basex.core.*;
+
 /**
  * Project specific RadioButton implementation.
  *
@@ -24,7 +26,7 @@ public final class BaseXRadio extends JRadioButton {
     setOpaque(false);
     setBorder(new EmptyBorder(0, 0, 0, 16));
     BaseXLayout.addInteraction(this, win);
-
+    if(Prop.langright) this.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     if(!(win instanceof BaseXDialog)) return;
     addActionListener(new ActionListener() {
       @Override

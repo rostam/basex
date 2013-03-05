@@ -51,6 +51,7 @@ public abstract class BaseXDialog extends JDialog {
    */
   public BaseXDialog(final BaseXDialog d, final String title) {
     super(d, title, true);
+    
     init(d.gui);
   }
 

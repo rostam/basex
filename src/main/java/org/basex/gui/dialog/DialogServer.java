@@ -136,9 +136,6 @@ public final class DialogServer extends BaseXDialog {
     pp = new BaseXBack(new TableLayout(5, 2, 8, 4));
     pp.add(new BaseXLabel(USERNAME + COLS));
     pp.add(admuser);
-//    int div = USERNAME.length() - PASSWORD.length() + 2;
-//    String test = "";
-//    for (int i=0; i < div; i++) test += " ";
     pp.add(new BaseXLabel(PASSWORD + COLS));
     pp.add(admpass);
     pp.add(new BaseXLabel(S_HOST + COLS));
