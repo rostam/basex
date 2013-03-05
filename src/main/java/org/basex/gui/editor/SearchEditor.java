@@ -4,7 +4,6 @@ import java.awt.*;
 
 import javax.swing.*;
 
-import org.basex.core.*;
 import org.basex.gui.*;
 import org.basex.gui.GUIConstants.Fill;
 import org.basex.gui.layout.*;
@@ -26,7 +25,6 @@ public final class SearchEditor extends BaseXBack {
    */
   public SearchEditor(final GUI gui, final Editor editor) {
     this(gui, editor, editor);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -37,7 +35,6 @@ public final class SearchEditor extends BaseXBack {
    */
   public SearchEditor(final GUI gui, final JComponent center, final Editor editor) {
     super(Fill.NONE);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     search = new SearchPanel(gui);
     layout(new BorderLayout(0, 2));
     add(center, BorderLayout.CENTER);

@@ -55,7 +55,7 @@ public final class DialogExport extends BaseXDialog {
     super(main, EXPORT);
 
     // create checkboxes
-    final BaseXBack p = new BaseXBack(new TableLayout(4, 1, 0, 0));
+    final BaseXBack p = new BaseXBack(new TableLayout(6, 1, 0, 0));
     p.add(new BaseXLabel(OUTPUT_DIR + COL, true, true).border(0, 0, 6, 0));
 
     // output label
@@ -97,13 +97,15 @@ public final class DialogExport extends BaseXDialog {
 
     params = new BaseXTextField(exporter, this);
 
-    pp = new BaseXBack(new TableLayout(3, 2, 16, 6)).border(8, 0, 8, 0);
-    if (Prop.langright) p.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-    if (Prop.langright) pp.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+    pp = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
     pp.add(new BaseXLabel(METHOD + COL, true, true));
     pp.add(method);
+    p.add(pp);
+    pp = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
     pp.add(new BaseXLabel(ENCODING + COL, true, true));
     pp.add(encoding);
+    p.add(pp);
+    pp = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
     pp.add(new BaseXLabel(PARAMETERS + COL, true, true));
     pp.add(params);
     p.add(pp);
@@ -116,7 +118,8 @@ public final class DialogExport extends BaseXDialog {
     // buttons
     pp = new BaseXBack(new BorderLayout());
     buttons = okCancel();
-    pp.add(buttons, BorderLayout.EAST);
+    if (Prop.langright) pp.add(buttons, BorderLayout.WEST);
+    else pp.add(buttons, BorderLayout.EAST);
     set(pp, BorderLayout.SOUTH);
 
     action(method);

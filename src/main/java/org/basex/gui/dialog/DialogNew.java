@@ -63,8 +63,6 @@ public final class DialogNew extends BaseXDialog {
     final BaseXTabs tabs = new BaseXTabs(this);
     final DialogParsing parsing = new DialogParsing(this, tabs);
     general = new DialogImport(this, pnl, parsing);
-    if (Prop.langright)
-      general.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 
     // index panel
     final BaseXBack indexes = new BaseXBack(new TableLayout(6, 1, 0, 0)).border(8);

@@ -121,7 +121,8 @@ public final class DialogServer extends BaseXDialog {
     BaseXBack pp = new BaseXBack(new TableLayout(2, 2, 8, 4)).border(0, 0, 0, 0);
     pp.add(new BaseXLabel(S_PORT + COLS));
     pp.add(ports);
-    pp.add(new BaseXLabel());
+    if (Prop.langright) pp.add(new BaseXLabel("        "));
+    else pp.add(new BaseXLabel());
     BaseXBack ppp = new BaseXBack(new TableLayout(1, 2, 5, 0));
     ppp.add(start);
     ppp.add(stop);
@@ -135,13 +136,17 @@ public final class DialogServer extends BaseXDialog {
     pp = new BaseXBack(new TableLayout(5, 2, 8, 4));
     pp.add(new BaseXLabel(USERNAME + COLS));
     pp.add(admuser);
+//    int div = USERNAME.length() - PASSWORD.length() + 2;
+//    String test = "";
+//    for (int i=0; i < div; i++) test += " ";
     pp.add(new BaseXLabel(PASSWORD + COLS));
     pp.add(admpass);
     pp.add(new BaseXLabel(S_HOST + COLS));
     pp.add(host);
     pp.add(new BaseXLabel(S_PORT + COLS));
     pp.add(portc);
-    pp.add(new BaseXLabel());
+    if (Prop.langright) pp.add(new BaseXLabel("        "));
+    else pp.add(new BaseXLabel());
     ppp = new BaseXBack(new TableLayout(1, 2, 5, 0));
     ppp.add(connect);
     ppp.add(disconnect);

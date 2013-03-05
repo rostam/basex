@@ -151,7 +151,7 @@ final class DialogParsing extends BaseXBack {
     tencoding = DialogExport.encoding(d, enc);
     jencoding = DialogExport.encoding(d, enc);
 
-    xmlopts  = new BaseXBack(new TableLayout(9, 1));
+    xmlopts  = new BaseXBack(new TableLayout(10, 1));
     htmlopts = new BaseXBack(new TableLayout(2, 1));
     jsonopts = new BaseXBack(new TableLayout(2, 1));
     csvopts  = new BaseXBack(new TableLayout(2, 1));
@@ -176,19 +176,35 @@ final class DialogParsing extends BaseXBack {
 
     // catalog resolver
     final boolean rsen = CatalogWrapper.available();
-    final BaseXBack fl = new BaseXBack(new TableLayout(2, 2, 8, 0));
-    usecat.setEnabled(rsen);
-    fl.add(usecat);
-    fl.add(new BaseXLabel());
-    cfile.setEnabled(rsen);
-    fl.add(cfile);
-    browsec.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(final ActionEvent e) { catchoose(); }
-    });
-    browsec.setEnabled(rsen);
-    fl.add(browsec);
-    xmlopts.add(fl);
+    if (Prop.langright) {
+      final BaseXBack fl = new BaseXBack(new TableLayout(1, 1));
+      usecat.setEnabled(rsen);
+      fl.add(usecat);
+      final BaseXBack f2 = new BaseXBack(new TableLayout(2, 1, 8, 0));
+      cfile.setEnabled(rsen);
+      f2.add(cfile);
+      browsec.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(final ActionEvent e) { catchoose(); }
+      });
+      browsec.setEnabled(rsen);
+      f2.add(browsec);
+      xmlopts.add(fl);
+      xmlopts.add(f2);
+    } else {
+        final BaseXBack fl = new BaseXBack(new TableLayout(2, 2, 8, 0));
+        usecat.setEnabled(rsen);
+        fl.add(usecat);
+        cfile.setEnabled(rsen);
+        fl.add(cfile);
+        browsec.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(final ActionEvent e) { catchoose(); }
+        });
+        browsec.setEnabled(rsen);
+        fl.add(browsec);
+        xmlopts.add(fl);
+    }
     if(!rsen) {
       final BaseXBack rs = new BaseXBack(new TableLayout(2, 1));
       rs.add(new BaseXLabel(HELP1_USE_CATALOG).color(GUIConstants.DGRAY));

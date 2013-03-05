@@ -109,15 +109,14 @@ public final class TableLayout implements LayoutManager {
       final Insets in = p.getInsets();
       final int nr = p.getComponentCount();
       for(int j = 0; j < rows; ++j) {
-        //for(int i = cols-1; i >= 0 ; --i) {
         if (Prop.langright) {
-          int wi = 0;
+          int wJ = 0;
           for(int k = 0; k < cols; k++) {
             final int m = j * cols + (cols - k - 1);
             if (m >= nr) return;
             final Dimension d = p.getComponent(m).getPreferredSize();
-            final int wt = d.width > 0 ? d.width : width - in.left - in.right;
-            wi = wi + wt;
+            final int wM = d.width > 0 ? d.width : width - in.left - in.right;
+            wJ += wM;
           }
           for(int i = 0; i < cols; i++) {
             final int n = j * cols + (cols - i - 1);
@@ -128,9 +127,9 @@ public final class TableLayout implements LayoutManager {
             final int y = in.top + posY[j] + j * insetY;
             final int w = cs.width > 0 ? cs.width : width - in.left - in.right;
             final int h = cs.height > 0 ? cs.height : height - in.top - in.bottom;
-            final int newX = x + p.getWidth() - in.left - in.right -
-                (cols - 1) * insetX - wi;
-            p.getComponent(n).setBounds(newX, y, w, h);
+            final int rtlX = x + p.getWidth() - in.left - in.right -
+                (cols - 1) * insetX - wJ;
+            p.getComponent(n).setBounds(rtlX, y, w, h);
   //          p.getComponent(n).setBounds(x, y, w, h);
           }
         } else {

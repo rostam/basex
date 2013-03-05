@@ -52,10 +52,11 @@ public class Editor extends BaseXPanel {
   }
 
   /** Text array to be written. */
-  protected final transient EditorText text = new EditorText(EMPTY);
+  protected final transient RTLEditorText text = new RTLEditorText(EMPTY);
+
   /** Undo history. */
   public transient History hist;
-  /** Renderer reference. */
+  /** RendereRenderer reference. */
   final Renderer rend;
   /** Scrollbar reference. */
   final BaseXBar scroll;
@@ -68,9 +69,10 @@ public class Editor extends BaseXPanel {
    * Default constructor.
    * @param edit editable flag
    * @param win parent window
+   * @param rtl orientation of the editor
    */
-  public Editor(final boolean edit, final Window win, boolean rtl) {
-    this(edit, win, EMPTY,rtl);
+  public Editor(final boolean edit, final Window win, final boolean rtl) {
+    this(edit, win, EMPTY, rtl);
     if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
@@ -92,7 +94,6 @@ public class Editor extends BaseXPanel {
    */
   public Editor(final boolean edit, final Window win, final byte[] txt) {
     super(win);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     setFocusable(true);
     setFocusTraversalKeysEnabled(!edit);
     editable = edit;
@@ -145,10 +146,11 @@ public class Editor extends BaseXPanel {
    * @param edit editable flag
    * @param win parent window
    * @param txt initial text
+   * @param rtl the orientation of the editor
    */
-  public Editor(final boolean edit, final Window win, final byte[] txt, final boolean rtl) {
+  public Editor(final boolean edit, final Window win,
+      final byte[] txt, final boolean rtl) {
     super(win);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     setFocusable(true);
     setFocusTraversalKeysEnabled(!edit);
     editable = edit;
@@ -173,7 +175,7 @@ public class Editor extends BaseXPanel {
 
     layout(new BorderLayout(4, 0));
     scroll = new BaseXBar(this);
-    if(Prop.langright && rtl) rend = new RTLRenderer(text,scroll);
+    if(Prop.langright && rtl) rend = new RTLRenderer(text, scroll);
     else rend = new Renderer(text, scroll);
     setFont(GUIConstants.dmfont);
 

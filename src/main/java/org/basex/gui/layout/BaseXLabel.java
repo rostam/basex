@@ -5,7 +5,6 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import org.basex.core.*;
 import org.basex.gui.GUIConstants.Msg;
 
 /**

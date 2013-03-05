@@ -202,8 +202,12 @@ public final class DialogProps extends BaseXDialog {
    */
   private void add(final int i, final BaseXBack tab, final BaseXBack info) {
     final BaseXBack idx = new BaseXBack(new BorderLayout(8, 0));
-    idx.add(labels[i], BorderLayout.WEST);
-    if(indxs[i] != null) idx.add(indxs[i], BorderLayout.EAST);
+    if (Prop.langright) idx.add(labels[i], BorderLayout.EAST);
+    else idx.add(labels[i], BorderLayout.WEST);
+    if(indxs[i] != null) {
+      if (Prop.langright) idx.add(indxs[i], BorderLayout.WEST);
+      else idx.add(indxs[i], BorderLayout.EAST);
+    }
     panels[i].add(idx, BorderLayout.NORTH);
 
     final BaseXBack b = info != null ? info : new SearchEditor(gui, infos[i]);

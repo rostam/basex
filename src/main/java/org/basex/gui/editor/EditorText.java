@@ -12,7 +12,7 @@ import org.basex.util.list.*;
  * @author BaseX Team 2005-12, BSD License
  * @author Christian Gruen
  */
-public final class EditorText {
+public class EditorText {
   /** Tab width. */
   static final int TAB = 2;
 

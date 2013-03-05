@@ -3,11 +3,8 @@ package org.basex.gui.editor;
 import java.awt.*;
 
 import org.basex.gui.*;
-import org.basex.gui.GUIConstants.Fill;
-import org.basex.gui.editor.Editor.SearchDir;
 import org.basex.gui.layout.*;
 import org.basex.util.*;
-import org.basex.util.list.*;
 
 /**
  * Efficient Text Editor and Renderer, supporting syntax highlighting and
@@ -18,8 +15,9 @@ import org.basex.util.list.*;
  */
   class RTLRenderer extends Renderer {
 
+    /** String containing a line of the text. */
     String line = "";
-    int xline=0;
+
   /** Default Constructor.
    * @param t text to be drawn
    * @param b scrollbar reference
@@ -72,7 +70,7 @@ import org.basex.util.list.*;
       text.pos(cp);
 
       if(text.erroneous()) drawError(g);
-      
+
       // don't write whitespaces
       boolean test = false;
       if(ch == '\n') test = true;
@@ -92,25 +90,26 @@ import org.basex.util.list.*;
         }
 
         if(test) {
-          
+
           if(line.contains(":")) {
           line = line.trim();
-          String tilDP = line.substring(0,line.indexOf(':'));
-          String afterDP = line.substring(line.indexOf(':')+1);
+          String tilDP = line.substring(0, line.indexOf(':'));
+          String afterDP = line.substring(line.indexOf(':') + 1);
           int lw = g.getFontMetrics().charsWidth(tilDP.toCharArray(), 0, tilDP.length());
-          int alw = g.getFontMetrics().charsWidth(afterDP.toCharArray(), 0, afterDP.length());
-          lw += 18;
-          alw +=18;
+          int alw = g.getFontMetrics().charsWidth(afterDP.toCharArray(), 0,
+              afterDP.length());
+          lw += 12;
+          alw += 12;
           g.drawString(tilDP, w - lw , y);
-          g.drawString(":", w - lw-3,y);
-          g.drawString(afterDP, w-lw-alw-1-3,y);
+          g.drawString(":", w - lw - 6, y);
+          g.drawString(afterDP, w - lw - alw, y);
          } else {
            int lw = g.getFontMetrics().charsWidth(line.toCharArray(), 0, line.length());
            //lw += 8;
            Font ff = g.getFont();
            if(line.length() > 3)
-             line = line.substring(1,line.length()-1);
-           g.setFont(new Font(g.getFont().getName(),Font.BOLD,g.getFont().getSize()));
+             line = line.substring(1, line.length() - 1);
+           g.setFont(new Font(g.getFont().getName(), Font.BOLD, g.getFont().getSize()));
            g.drawString(line, w - lw - 8, y);
            g.setFont(ff);
          }

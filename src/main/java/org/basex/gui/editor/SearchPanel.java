@@ -147,19 +147,16 @@ public final class SearchPanel extends BaseXBack {
     if(editor == null || ed != editor.isEditable()) {
       removeAll();
       final BaseXBack wst = new BaseXBack(Fill.NONE).layout(new TableLayout(1, 4, 1, 0));
-      if (Prop.langright) wst.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
       wst.add(mcase);
       wst.add(word);
       wst.add(regex);
       wst.add(multi);
 
       final BaseXBack ctr = new BaseXBack(Fill.NONE).layout(new GridLayout(1, 2, 2, 0));
-      if (Prop.langright) ctr.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
       ctr.add(search);
       if(ed) ctr.add(replace);
 
-      final BaseXBack est = new BaseXBack(Fill.NONE).layout(new TableLayout(1, 3, 1, 0));
-      if (Prop.langright) est.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+      final BaseXBack est = new BaseXBack(Fill.NONE).layout(new TableLayout(1, 2, 1, 0));
       if(ed) est.add(rplc);
       est.add(cls);
 
