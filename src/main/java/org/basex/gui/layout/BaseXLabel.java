@@ -5,6 +5,7 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import org.basex.core.*;
 import org.basex.gui.GUIConstants.Msg;
 
 /**
@@ -19,6 +20,7 @@ public class BaseXLabel extends JLabel {
    */
   public BaseXLabel() {
     this("", false, false);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -27,6 +29,7 @@ public class BaseXLabel extends JLabel {
    */
   public BaseXLabel(final String txt) {
     this(txt, false, false);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -38,6 +41,7 @@ public class BaseXLabel extends JLabel {
    */
   public BaseXLabel(final String txt, final boolean dist, final boolean bold) {
     super(txt);
+    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     if(dist) border(0, 0, 6, 0);
     setFont(getFont().deriveFont(bold ? Font.BOLD : Font.PLAIN));
   }
@@ -73,8 +77,8 @@ public class BaseXLabel extends JLabel {
    * @return self reference
    */
   public BaseXLabel setText(final String text, final Msg icon) {
-    setIcon(text == null ? null : icon.small);
-    setText(text == null ? " " : text);
+      setIcon(text == null ? null : icon.small);
+      setText(text == null ? " " : text);
     return this;
   }
 

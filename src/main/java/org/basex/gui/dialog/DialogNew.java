@@ -44,7 +44,6 @@ public final class DialogNew extends BaseXDialog {
    */
   public DialogNew(final GUI main) {
     super(main, CREATE_DATABASE);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     // define buttons first to assign simplest mnemonics
     buttons = okCancel();
 
@@ -55,8 +54,7 @@ public final class DialogNew extends BaseXDialog {
     dbname = new BaseXTextField(gprop.get(GUIProp.DBNAME), this);
 
     final BaseXBack pnl = new BaseXBack(new TableLayout(2, 1));
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-    pnl.add(new BaseXLabel(NAME_OF_DB + COLS, false, true).border(8, 0, 6, 0));
+      pnl.add(new BaseXLabel(NAME_OF_DB + COLS, false, true).border(8, 0, 6, 0));
     pnl.add(dbname);
 
     // option panels

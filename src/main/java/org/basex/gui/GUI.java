@@ -136,6 +136,7 @@ public final class GUI extends AGUI {
 
     buttons = new BaseXBack(new BorderLayout());
     toolbar = new GUIToolBar(TOOLBAR, this);
+   // rtl orientation of toolbar
     if(Prop.langright)
       buttons.add(toolbar, BorderLayout.EAST);
     else
@@ -150,6 +151,7 @@ public final class GUI extends AGUI {
     BaseXBack b = new BaseXBack();
     b.add(hits);
 
+ // Right to Left orientation of hits number
     if (Prop.langright)
       buttons.add(b, BorderLayout.WEST);
     else

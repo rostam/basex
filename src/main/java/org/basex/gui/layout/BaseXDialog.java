@@ -51,7 +51,6 @@ public abstract class BaseXDialog extends JDialog {
    */
   public BaseXDialog(final BaseXDialog d, final String title) {
     super(d, title, true);
-    
     init(d.gui);
   }
 
@@ -193,7 +192,8 @@ public abstract class BaseXDialog extends JDialog {
     }
 
     final BaseXBack but = new BaseXBack(Fill.NONE).layout(new BorderLayout());
-    if(Prop.langright) but.add(pnl,BorderLayout.WEST);
+    // Adding buttons regarding RTL orientation
+    if(Prop.langright) but.add(pnl, BorderLayout.WEST);
     else but.add(pnl, BorderLayout.EAST);
 
     return but;

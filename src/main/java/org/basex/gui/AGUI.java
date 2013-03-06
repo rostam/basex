@@ -32,9 +32,7 @@ public abstract class AGUI extends JFrame {
     setTitle(null);
     context = ctx;
     gprop = gprops;
-    if(Prop.langright)
-      applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-  }
+    }
 
   @Override
   public final void setTitle(final String title) {

@@ -37,7 +37,7 @@ public final class DialogAbout extends BaseXDialog {
 
     if (Prop.langright) p.add(label, BorderLayout.EAST);
     else p.add(label, BorderLayout.WEST);
-    
+
     final BaseXBack pp = new BaseXBack(Fill.NONE).layout(new TableLayout(17, 1));
 
     pp.add(new BaseXLabel(TITLE, false, true));
@@ -65,12 +65,14 @@ public final class DialogAbout extends BaseXDialog {
     final String lang = main.context.mprop.get(MainProp.LANG);
     BaseXLabel tempLabel = null;
     if(Prop.langright)
-       tempLabel = new BaseXLabel(TRANSLATION + " : " + lang + " - " + DialogPrefs.creds(lang)); 
-    else 
-      tempLabel = new BaseXLabel(TRANSLATION + " (" + lang + "): " + DialogPrefs.creds(lang)); 
-     
+      tempLabel = new BaseXLabel(TRANSLATION + ": "
+            + lang + "-" + DialogPrefs.creds(lang));
+    else
+      tempLabel = new BaseXLabel(TRANSLATION + " (" + lang +
+          "): " + DialogPrefs.creds(lang));
+
     pp.add(tempLabel);
-    
+
     if (Prop.langright) p.add(pp, BorderLayout.WEST);
     else p.add(pp, BorderLayout.EAST);
     add(p, BorderLayout.NORTH);

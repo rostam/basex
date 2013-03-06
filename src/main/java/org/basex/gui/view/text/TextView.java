@@ -49,7 +49,6 @@ public final class TextView extends View {
    */
   public TextView(final ViewNotifier man) {
     super(TEXTVIEW, man);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 
     border(6, 6, 6, 6).layout(new BorderLayout(0, 4)).setFocusable(false);
 
@@ -68,6 +67,7 @@ public final class TextView extends View {
     buttons.add(save);
 
     final BaseXBack b = new BaseXBack(Fill.NONE).layout(new BorderLayout());
+    // Changing the position of header and buttons regarding rtl
     if (Prop.langright) {
       b.add(buttons, BorderLayout.WEST);
       b.add(header, BorderLayout.EAST);

@@ -40,7 +40,7 @@ public final class DialogMessage extends BaseXDialog {
     final BaseXLabel b = new BaseXLabel();
     b.setIcon(ic.large);
     back.add(b);
-    
+
     final Editor text = new Editor(false, this, Token.token(txt));
     text.setFont(b.getFont());
     back.add(text);

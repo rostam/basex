@@ -74,6 +74,7 @@ public final class InfoView extends View {
     buttons.add(srch);
 
     final BaseXBack north = new BaseXBack(Fill.NONE).layout(new BorderLayout());
+    // Cahange the title and buttons position for rtl
     if (Prop.langright) {
       north.add(buttons, BorderLayout.WEST);
       north.add(title, BorderLayout.EAST);

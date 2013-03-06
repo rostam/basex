@@ -4,6 +4,7 @@ import static org.basex.core.Text.*;
 
 import java.awt.*;
 
+import org.basex.core.*;
 import org.basex.gui.layout.*;
 
 /**
@@ -29,8 +30,13 @@ public final class GUIStatus extends BaseXPanel {
 
     layout(new BorderLayout(4, 0));
     label = new BaseXLabel(OK).border(0, 4, 0, 0);
-    add(label, BorderLayout.CENTER);
-    add(new BaseXMem(main, true), BorderLayout.EAST);
+    if (Prop.langright) {
+      add(new BaseXMem(main, true), BorderLayout.WEST);
+      add(label, BorderLayout.EAST);
+    } else {
+      add(new BaseXMem(main, true), BorderLayout.EAST);
+      add(label, BorderLayout.CENTER);
+    }
   }
 
   /**

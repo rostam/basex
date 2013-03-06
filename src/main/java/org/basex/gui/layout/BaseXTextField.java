@@ -65,7 +65,6 @@ public class BaseXTextField extends JTextField {
     BaseXLayout.setWidth(this, DWIDTH);
     BaseXLayout.addInteraction(this, win);
     if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-    
     if(txt != null) setText(txt);
 
     addFocusListener(new FocusAdapter() {

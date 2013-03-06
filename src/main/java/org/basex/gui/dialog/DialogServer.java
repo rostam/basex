@@ -197,13 +197,15 @@ public final class DialogServer extends BaseXDialog {
     pp.add(logc);
     pp.add(delete);
     pp.add(deleteAll);
-    p.add(pp, BorderLayout.WEST);
+    if (Prop.langright) p.add(pp, BorderLayout.EAST);
+    else p.add(pp, BorderLayout.WEST);
     logs.add(p, BorderLayout.NORTH);
     logs.add(new SearchEditor(main, logt), BorderLayout.CENTER);
 
     p = new BaseXBack(new BorderLayout(8, 0));
     p.add(infoL, BorderLayout.WEST);
     p.add(refreshLog, BorderLayout.EAST);
+
     logs.add(p, BorderLayout.SOUTH);
 
     tabs = new BaseXTabs(this);

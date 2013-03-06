@@ -29,6 +29,7 @@ public final class GUIToolBar extends JToolBar {
     setFloatable(false);
     cmd = tb;
     gui = main;
+    // Set trl orientation o toolbar buttons
     if(Prop.langright)
       setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 

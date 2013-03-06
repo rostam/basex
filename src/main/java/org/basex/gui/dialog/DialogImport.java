@@ -108,6 +108,7 @@ public final class DialogImport extends BaseXBack {
     skipCorrupt = new BaseXCheckBox(SKIP_CORRUPT_FILES, prop.is(Prop.SKIPCORRUPT), dial);
     archives = new BaseXCheckBox(PARSE_ARCHIVES, prop.is(Prop.ADDARCHIVES), dial);
 
+    // Using 2 TableLayouts (1,2) instead of a TabelLayout(2,2) for RTL orientation
     if (Prop.langright) {
       final BaseXBack p1 = new BaseXBack(new TableLayout(1, 2, 20, 0));
       final BaseXBack p2 = new BaseXBack(new TableLayout(1, 2, 20, 0));

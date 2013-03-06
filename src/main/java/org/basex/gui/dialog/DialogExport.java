@@ -55,7 +55,9 @@ public final class DialogExport extends BaseXDialog {
     super(main, EXPORT);
 
     // create checkboxes
-    final BaseXBack p = new BaseXBack(new TableLayout(6, 1, 0, 0));
+    final BaseXBack p;
+    if (Prop.langright) p = new BaseXBack(new TableLayout(6, 1, 0, 0));
+    else p = new BaseXBack(new TableLayout(4, 1, 0, 0));
     p.add(new BaseXLabel(OUTPUT_DIR + COL, true, true).border(0, 0, 6, 0));
 
     // output label
@@ -97,18 +99,31 @@ public final class DialogExport extends BaseXDialog {
 
     params = new BaseXTextField(exporter, this);
 
-    pp = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
-    pp.add(new BaseXLabel(METHOD + COL, true, true));
-    pp.add(method);
-    p.add(pp);
-    pp = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
-    pp.add(new BaseXLabel(ENCODING + COL, true, true));
-    pp.add(encoding);
-    p.add(pp);
-    pp = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
-    pp.add(new BaseXLabel(PARAMETERS + COL, true, true));
-    pp.add(params);
-    p.add(pp);
+    if (Prop.langright) {
+      BaseXBack ppR = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
+      ppR.add(new BaseXLabel(METHOD + COL, true, true));
+      ppR.add(method);
+      p.add(ppR);
+      ppR = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
+      ppR.add(new BaseXLabel(ENCODING + COL, true, true));
+      ppR.add(encoding);
+      p.add(ppR);
+      ppR = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
+      ppR.add(new BaseXLabel(PARAMETERS + COL, true, true));
+      ppR.add(params);
+      p.add(ppR);
+    } else {
+      pp = new BaseXBack(new TableLayout(3, 2, 16, 6)).border(8, 0, 8, 0);
+      pp.add(new BaseXLabel(METHOD + COL, true, true));
+      pp.add(method);
+      p.add(pp);
+      pp.add(new BaseXLabel(ENCODING + COL, true, true));
+      pp.add(encoding);
+      p.add(pp);
+      pp.add(new BaseXLabel(PARAMETERS + COL, true, true));
+      pp.add(params);
+      p.add(pp);
+    }
     info = new BaseXLabel(" ").border(8, 0, 0, 0);
     p.add(info);
 

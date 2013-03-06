@@ -5,6 +5,8 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import org.basex.core.*;
+
 /**
  * Project specific ComboBox implementation.
  *
@@ -19,6 +21,7 @@ public final class BaseXCombo extends JComboBox {
    */
   public BaseXCombo(final Window win, final String... ch) {
     super(ch);
+    if (Prop.langright) setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     BaseXLayout.addInteraction(this, win);
 
     if(!(win instanceof BaseXDialog)) return;
