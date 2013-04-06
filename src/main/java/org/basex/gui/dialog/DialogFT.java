@@ -52,7 +52,7 @@ final class DialogFT extends BaseXBack {
    */
   DialogFT(final BaseXDialog d, final boolean create) {
     dialog = d;
-    layout(new TableLayout(create ? 9 : 15, 1));
+    layout(new RTLTableLayout(create ? 9 : 15, 1));
 
     final Prop prop = d.gui.context.prop;
     add(new BaseXLabel(H_FULLTEXT_INDEX, true, false).border(0, 0, 6, 0));

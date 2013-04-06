@@ -178,10 +178,10 @@ final class DialogParsing extends BaseXBack {
     final boolean rsen = CatalogWrapper.available();
     // Deviding the TablLayout for RTL orientation
     if (Prop.langright) {
-      final BaseXBack fl = new BaseXBack(new TableLayout(1, 1));
+      final BaseXBack fl = new BaseXBack(new RTLTableLayout(1, 1));
       usecat.setEnabled(rsen);
       fl.add(usecat);
-      final BaseXBack f2 = new BaseXBack(new TableLayout(2, 1, 8, 0));
+      final BaseXBack f2 = new BaseXBack(new RTLTableLayout(2, 1, 8, 0));
       cfile.setEnabled(rsen);
       f2.add(cfile);
       browsec.addActionListener(new ActionListener() {

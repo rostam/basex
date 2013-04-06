@@ -62,7 +62,7 @@ public final class DialogInsert extends BaseXDialog {
     input2.addKeyListener(keys);
     BaseXLayout.setWidth(input2, 500);
 
-    final BaseXBack knd = new BaseXBack(new TableLayout(1, 5));
+    final BaseXBack knd = new BaseXBack(new RTLTableLayout(1, 5));
     final ButtonGroup group = new ButtonGroup();
 
     final ActionListener al = new ActionListener() {

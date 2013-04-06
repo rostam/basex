@@ -31,7 +31,7 @@ public final class DialogColors extends BaseXDialog {
     super(main, COLOR_SCHEMA, false);
 
     final GUIProp gprop = gui.gprop;
-    final BaseXBack p = new BaseXBack(new TableLayout(3, 2, 16, 8));
+    final BaseXBack p = new BaseXBack(new RTLTableLayout(3, 2, 16, 8));
 
     p.add(new BaseXLabel(RED));
     sliderRed = newSlider(gprop.num(GUIProp.COLORRED));

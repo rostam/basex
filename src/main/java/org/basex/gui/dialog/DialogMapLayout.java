@@ -34,7 +34,7 @@ public final class DialogMapLayout extends BaseXDialog {
   public DialogMapLayout(final GUI main) {
     super(main, MAP_LAYOUT, false);
 
-    final BaseXBack p = new BaseXBack(new TableLayout(4, 1, 0, 8));
+    final BaseXBack p = new BaseXBack(new RTLTableLayout(4, 1, 0, 8));
 
     // create list
     algo = new BaseXList(MAP_LAYOUTS, this);
@@ -45,7 +45,7 @@ public final class DialogMapLayout extends BaseXDialog {
     border = new BaseXCombo(this, MAP_CHOICES);
     border.setSelectedIndex(gprop.num(GUIProp.MAPOFFSETS));
 
-    BaseXBack tmp = new BaseXBack(new TableLayout(1, 3));
+    BaseXBack tmp = new BaseXBack(new RTLTableLayout(1, 3));
     tmp.add(new BaseXLabel(OFFSETS + COL));
     tmp.add(Box.createHorizontalStrut(25));
     tmp.add(border);
@@ -58,7 +58,7 @@ public final class DialogMapLayout extends BaseXDialog {
     sizeSlider = new BaseXSlider(0, 100, gprop.num(GUIProp.MAPWEIGHT), this);
     BaseXLayout.setWidth(sizeSlider, p.getPreferredSize().width);
 
-    tmp = new BaseXBack(new TableLayout(2, 1));
+    tmp = new BaseXBack(new RTLTableLayout(2, 1));
     tmp.add(sizeLabel);
     tmp.add(sizeSlider);
     p.add(tmp);

@@ -169,7 +169,7 @@ public final class SearchPanel extends BaseXBack {
         add(ctr, BorderLayout.CENTER);
         add(est, BorderLayout.EAST);
       }
-          }
+    }
 
     editor = e;
     refreshLayout();

@@ -218,7 +218,7 @@ public final class GUI extends AGUI {
 
     filter = BaseXButton.command(GUICommands.C_FILTER, this);
 
-    b = new BaseXBack(new TableLayout(1, 3));
+    b = new BaseXBack(new RTLTableLayout(1, 3));
     b.add(go);
     b.add(Box.createHorizontalStrut(1));
     b.add(filter);

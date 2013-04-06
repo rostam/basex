@@ -5,6 +5,7 @@ import static org.basex.core.Text.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import org.basex.core.*;
 import org.basex.core.cmd.*;
 import org.basex.data.*;
 import org.basex.gui.GUIConstants.Fill;
@@ -126,8 +127,14 @@ final class ExploreArea extends BaseXPanel implements ActionListener {
     cm.addActionListener(this);
     cm.addKeyListener(main);
     if(tmp.isEmpty()) cm.setEnabled(false);
-    panel.add(cm);
-    panel.add(new BaseXLabel(""));
+    if (Prop.langright) {
+      panel.add(new BaseXLabel(""));
+      panel.add(cm);
+    } else {
+      panel.add(cm);
+      panel.add(new BaseXLabel(""));
+    }
+    
   }
 
   /**

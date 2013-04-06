@@ -6,6 +6,7 @@ import static org.basex.gui.GUIConstants.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import org.basex.core.*;
 import org.basex.data.*;
 import org.basex.gui.*;
 import org.basex.gui.GUIConstants.Fill;
@@ -45,7 +46,8 @@ public final class ExploreView extends View {
 
     final BaseXBack back = new BaseXBack(Fill.NONE);
     back.add(filter);
-    b.add(back, BorderLayout.EAST);
+    if (Prop.langright) b.add(back, BorderLayout.WEST);
+    else b.add(back, BorderLayout.EAST);
     add(b, BorderLayout.NORTH);
 
     search = new ExploreArea(this);

@@ -56,12 +56,14 @@ public final class DialogExport extends BaseXDialog {
 
     // create checkboxes
     final BaseXBack p;
-    if (Prop.langright) p = new BaseXBack(new TableLayout(6, 1, 0, 0));
+    if (Prop.langright) p = new BaseXBack(new RTLTableLayout(6, 1, 0, 0));
     else p = new BaseXBack(new TableLayout(4, 1, 0, 0));
     p.add(new BaseXLabel(OUTPUT_DIR + COL, true, true).border(0, 0, 6, 0));
 
     // output label
-    BaseXBack pp = new BaseXBack(new TableLayout(1, 2, 8, 0));
+    BaseXBack pp;
+    if (Prop.langright) pp = new BaseXBack(new RTLTableLayout(1, 2, 8, 0));
+    else 
 
     path = new BaseXTextField(main.gprop.get(GUIProp.INPUTPATH), this);
     pp.add(path);

@@ -63,7 +63,7 @@ public final class DialogPackages extends BaseXDialog {
     type = new BaseXLabel(" ");
     path = new BaseXLabel(" ");
 
-    final BaseXBack table = new BaseXBack(new TableLayout(4, 2, 16, 0)).border(5);
+    final BaseXBack table = new BaseXBack(new RTLTableLayout(4, 2, 16, 0)).border(5);
     table.add(new BaseXLabel(NAME + COL, false, true));
     table.add(name);
     table.add(new BaseXLabel(VERSINFO + COL, false, true));
@@ -79,7 +79,7 @@ public final class DialogPackages extends BaseXDialog {
 
     BaseXBack p = new BaseXBack(new BorderLayout());
     p.add(packages, BorderLayout.CENTER);
-    final BaseXBack ss = new BaseXBack(new TableLayout(1, 2, 8, 0)).border(8, 0, 0, 0);
+    final BaseXBack ss = new BaseXBack(new RTLTableLayout(1, 2, 8, 0)).border(8, 0, 0, 0);
     ss.add(new BaseXLabel(PATH + COL, true, true), BorderLayout.NORTH);
     ss.add(new BaseXLabel(main.context.mprop.get(MainProp.REPOPATH)));
     p.add(ss, BorderLayout.SOUTH);

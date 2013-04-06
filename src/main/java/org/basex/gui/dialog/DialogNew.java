@@ -53,8 +53,8 @@ public final class DialogNew extends BaseXDialog {
 
     dbname = new BaseXTextField(gprop.get(GUIProp.DBNAME), this);
 
-    final BaseXBack pnl = new BaseXBack(new TableLayout(2, 1));
-      pnl.add(new BaseXLabel(NAME_OF_DB + COLS, false, true).border(8, 0, 6, 0));
+    final BaseXBack pnl = new BaseXBack(new RTLTableLayout(2, 1));
+    pnl.add(new BaseXLabel(NAME_OF_DB + COLS, false, true).border(8, 0, 6, 0));
     pnl.add(dbname);
 
     // option panels
@@ -63,7 +63,7 @@ public final class DialogNew extends BaseXDialog {
     general = new DialogImport(this, pnl, parsing);
 
     // index panel
-    final BaseXBack indexes = new BaseXBack(new TableLayout(6, 1, 0, 0)).border(8);
+    final BaseXBack indexes = new BaseXBack(new RTLTableLayout(6, 1, 0, 0)).border(8);
 
     txtindex = new BaseXCheckBox(TEXT_INDEX, prop.is(Prop.TEXTINDEX), 0, this).large();
     indexes.add(txtindex);

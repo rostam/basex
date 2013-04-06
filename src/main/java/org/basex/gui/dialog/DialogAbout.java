@@ -38,7 +38,7 @@ public final class DialogAbout extends BaseXDialog {
     if (Prop.langright) p.add(label, BorderLayout.EAST);
     else p.add(label, BorderLayout.WEST);
 
-    final BaseXBack pp = new BaseXBack(Fill.NONE).layout(new TableLayout(17, 1));
+    final BaseXBack pp = new BaseXBack(Fill.NONE).layout(new RTLTableLayout(17, 1));
 
     pp.add(new BaseXLabel(TITLE, false, true));
     final BaseXLabel url = new BaseXLabel("<html><u>" + URL + "</u></html>");
