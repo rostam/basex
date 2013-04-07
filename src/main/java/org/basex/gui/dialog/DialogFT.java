@@ -74,7 +74,9 @@ final class DialogFT extends BaseXBack {
       }
     }
 
-    final BaseXBack b1 = new BaseXBack(new TableLayout(1, 2, 8, 0));
+    final BaseXBack b1;
+    if (Prop.langright) b1 = new BaseXBack(new RTLTableLayout(1, 2, 8, 0));
+    else b1 = new BaseXBack(new TableLayout(1, 2, 8, 0));
     b1.add(check[F_LANG]);
     final StringList langs = FTLexer.languages();
     language = new BaseXCombo(d, langs.toArray());

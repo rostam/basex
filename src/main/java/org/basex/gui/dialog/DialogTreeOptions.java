@@ -4,6 +4,7 @@ import static org.basex.core.Text.*;
 
 import java.awt.*;
 
+import org.basex.core.*;
 import org.basex.gui.*;
 import org.basex.gui.layout.*;
 
@@ -26,7 +27,9 @@ public final class DialogTreeOptions extends BaseXDialog {
   public DialogTreeOptions(final GUI main) {
     super(main, TREE_OPTIONS, false);
 
-    final BaseXBack p = new BaseXBack(new TableLayout(2, 1, 0, 8));
+    final BaseXBack p;
+    if (Prop.langright) p = new BaseXBack(new RTLTableLayout(2, 1, 0, 8));
+    else p = new BaseXBack(new TableLayout(2, 1, 0, 8));
     final GUIProp gprop = gui.gprop;
 
     // create checkbox

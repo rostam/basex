@@ -67,7 +67,7 @@ public final class DialogImport extends BaseXBack {
     gui = dial.gui;
     parsing = parse;
 
-    if (Prop.langright) layout(new TableLayout(11, 1));
+    if (Prop.langright) layout(new RTLTableLayout(11, 1));
     else layout(new TableLayout(10, 1));
     border(8);
 
@@ -86,7 +86,9 @@ public final class DialogImport extends BaseXBack {
       @Override
       public void actionPerformed(final ActionEvent e) { choose(); }
     });
-    final BaseXBack b = new BaseXBack(new TableLayout(1, 2, 8, 0));
+    final BaseXBack b;
+    if (Prop.langright) b = new BaseXBack(new RTLTableLayout(1, 2, 8, 0));
+    else b = new BaseXBack(new TableLayout(1, 2, 8, 0));
     b.add(input);
     b.add(browse);
     add(b);
@@ -110,8 +112,8 @@ public final class DialogImport extends BaseXBack {
 
     // Using 2 TableLayouts (1,2) instead of a TabelLayout(2,2) for RTL orientation
     if (Prop.langright) {
-      final BaseXBack p1 = new BaseXBack(new TableLayout(1, 2, 20, 0));
-      final BaseXBack p2 = new BaseXBack(new TableLayout(1, 2, 20, 0));
+      final BaseXBack p1 = new BaseXBack(new RTLTableLayout(1, 2, 20, 0));
+      final BaseXBack p2 = new BaseXBack(new RTLTableLayout(1, 2, 20, 0));
       p1.add(new BaseXLabel(INPUT_FORMAT, false, true).border(0, 0, 6, 0));
       p1.add(new BaseXLabel(FILE_PATTERNS + COL, false, true).border(0, 0, 6, 0));
       p2.add(parser);

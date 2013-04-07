@@ -70,7 +70,9 @@ public final class DialogProgress extends BaseXDialog implements ActionListener 
     BaseXLayout.setWidth(info, MAX);
 
     final BaseXBack s = new BaseXBack(new BorderLayout()).border(10, 0, 0, 0);
-    final BaseXBack m = new BaseXBack(new TableLayout(1, 2, 5, 0));
+    final BaseXBack m;
+    if (Prop.langright) m = new BaseXBack(new RTLTableLayout(1, 2, 5, 0));
+    else m = new BaseXBack(new TableLayout(1, 2, 5, 0));
     mem = new BaseXMem(this, false);
     m.add(new BaseXLabel(MEMUSED_C));
     m.add(mem);

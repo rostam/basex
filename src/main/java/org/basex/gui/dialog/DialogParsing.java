@@ -96,7 +96,8 @@ final class DialogParsing extends BaseXBack {
    * @param t tabs
    */
   public DialogParsing(final BaseXDialog d, final BaseXTabs t) {
-    main = new BaseXBack(new TableLayout(2, 1)).border(8);
+    if (Prop.langright) main = new BaseXBack(new RTLTableLayout(2, 1)).border(8);
+    else main = new BaseXBack(new TableLayout(2, 1)).border(8);
     gui = d.gui;
     tabs = t;
 
@@ -124,7 +125,8 @@ final class DialogParsing extends BaseXBack {
     lines = new BaseXCheckBox(SPLIT_INPUT_LINES, props.is(ParserProp.LINES), 0, d);
     header = new BaseXCheckBox(FIRST_LINE_HEADER, props.is(ParserProp.HEADER), 0, d);
 
-    separator = new BaseXBack().layout(new TableLayout(1, 2, 6, 0));
+    if (Prop.langright) separator = new BaseXBack().layout(new RTLTableLayout(1, 2, 6, 0));
+    else separator = new BaseXBack().layout(new TableLayout(1, 2, 6, 0));
     final StringList sl = new StringList();
     sl.add(CSVParser.SEPARATORS).add("");
     sepcombo = new BaseXCombo(d, sl.toArray());
@@ -151,14 +153,25 @@ final class DialogParsing extends BaseXBack {
     tencoding = DialogExport.encoding(d, enc);
     jencoding = DialogExport.encoding(d, enc);
 
-    xmlopts  = new BaseXBack(new TableLayout(10, 1));
-    htmlopts = new BaseXBack(new TableLayout(2, 1));
-    jsonopts = new BaseXBack(new TableLayout(2, 1));
-    csvopts  = new BaseXBack(new TableLayout(2, 1));
-    textopts = new BaseXBack(new TableLayout(2, 1));
+    if (Prop.langright){
+      xmlopts  = new BaseXBack(new RTLTableLayout(10, 1));
+      htmlopts = new BaseXBack(new RTLTableLayout(2, 1));
+      jsonopts = new BaseXBack(new RTLTableLayout(2, 1));
+      csvopts  = new BaseXBack(new RTLTableLayout(2, 1));
+      textopts = new BaseXBack(new RTLTableLayout(2, 1));
+
+    } else {
+      xmlopts  = new BaseXBack(new TableLayout(10, 1));
+      htmlopts = new BaseXBack(new TableLayout(2, 1));
+      jsonopts = new BaseXBack(new TableLayout(2, 1));
+      csvopts  = new BaseXBack(new TableLayout(2, 1));
+      textopts = new BaseXBack(new TableLayout(2, 1));
+
+    }
     createOptionsPanels();
 
-    setLayout(new TableLayout(1, 1));
+    if (Prop.langright) setLayout(new RTLTableLayout(1, 1));
+    else setLayout(new TableLayout(1, 1));
     add(main);
   }
 
@@ -207,7 +220,9 @@ final class DialogParsing extends BaseXBack {
         xmlopts.add(fl);
     }
     if(!rsen) {
-      final BaseXBack rs = new BaseXBack(new TableLayout(2, 1));
+      final BaseXBack rs;
+      if (Prop.langright) rs = new BaseXBack(new RTLTableLayout(2, 1));
+      else rs = new BaseXBack(new TableLayout(2, 1));
       rs.add(new BaseXLabel(HELP1_USE_CATALOG).color(GUIConstants.DGRAY));
       rs.add(new BaseXLabel(HELP2_USE_CATALOG).color(GUIConstants.DGRAY));
       xmlopts.add(rs);
@@ -218,19 +233,24 @@ final class DialogParsing extends BaseXBack {
         border(0, 0, 12, 0));
 
     if(avl) {
-      final BaseXBack p = new BaseXBack(new TableLayout(1, 2, 8, 0));
+      final BaseXBack p;
+      if (Prop.langright) p = new BaseXBack(new RTLTableLayout(1, 2, 8, 0));
+      else p = new BaseXBack(new TableLayout(1, 2, 8, 0));
       p.add(new BaseXLabel(PARAMETERS + COL, true, true));
       p.add(params);
       htmlopts.add(p);
     }
 
-    BaseXBack p = new BaseXBack(new TableLayout(1, 2, 8, 4));
+    BaseXBack p;
+    if (Prop.langright) p = new BaseXBack(new RTLTableLayout(1, 2, 8, 4));
+    else p = new BaseXBack(new TableLayout(1, 2, 8, 4));
     p.add(new BaseXLabel(ENCODING + COL, true, true));
     p.add(jencoding);
     jsonopts.add(p);
     jsonopts.add(jsonml);
 
-    p = new BaseXBack(new TableLayout(3, 2, 8, 4));
+    if (Prop.langright) p = new BaseXBack(new RTLTableLayout(3, 2, 8, 4));
+    else p = new BaseXBack(new TableLayout(3, 2, 8, 4));
     p.add(new BaseXLabel(ENCODING + COL, true, true));
     p.add(cencoding);
     p.add(new BaseXLabel(SEPARATOR, true, true));
@@ -240,7 +260,8 @@ final class DialogParsing extends BaseXBack {
     csvopts.add(p);
     csvopts.add(header);
 
-    p = new BaseXBack(new TableLayout(1, 2, 8, 4));
+    if (Prop.langright) p = new BaseXBack(new RTLTableLayout(1, 2, 8, 4));
+    else p = new BaseXBack(new TableLayout(1, 2, 8, 4));
     p.add(new BaseXLabel(ENCODING + COL, true, true));
     p.add(tencoding);
     textopts.add(p);

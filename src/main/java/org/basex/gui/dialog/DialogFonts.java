@@ -4,6 +4,7 @@ import static org.basex.core.Text.*;
 
 import java.awt.*;
 
+import org.basex.core.*;
 import org.basex.gui.*;
 import org.basex.gui.layout.*;
 
@@ -38,7 +39,9 @@ public final class DialogFonts extends BaseXDialog {
     final String[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().
       getAvailableFontFamilyNames();
 
-    final BaseXBack p = new BaseXBack(new TableLayout(1, 4, 8, 0));
+    final BaseXBack p;
+    if (Prop.langright) p = new BaseXBack(new RTLTableLayout(1, 4, 8, 0));
+    else p = new BaseXBack(new TableLayout(1, 4, 8, 0));
     font = new BaseXList(fonts, this);
     p.add(font);
     font2 = new BaseXList(fonts, this);

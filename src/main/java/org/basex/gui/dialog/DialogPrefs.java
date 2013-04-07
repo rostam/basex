@@ -59,10 +59,14 @@ public final class DialogPrefs extends BaseXDialog {
     super(main, PREFERENCES);
 
     // create checkboxes
-    final BaseXBack pp = new BaseXBack(new TableLayout(12, 1));
+    final BaseXBack pp;
+    if (Prop.langright) pp = new BaseXBack(new RTLTableLayout(12, 1));
+    else pp = new BaseXBack(new TableLayout(12, 1));
     pp.add(new BaseXLabel(DATABASE_PATH + COL, true, true));
 
-    BaseXBack p = new BaseXBack(new TableLayout(1, 2, 8, 0));
+    BaseXBack p;
+    if (Prop.langright) p = new BaseXBack(new RTLTableLayout(1, 2, 8, 0));
+    else p = new BaseXBack(new TableLayout(1, 2, 8, 0));
 
     final MainProp mprop = gui.context.mprop;
     final GUIProp gprop = gui.gprop;
@@ -110,7 +114,8 @@ public final class DialogPrefs extends BaseXDialog {
       public void actionPerformed(final ActionEvent e) { action(limit); }
     });
     label = new BaseXLabel(" ");
-    p = new BaseXBack(new TableLayout(1, 4, 12, 0));
+    if (Prop.langright) p = new BaseXBack(new RTLTableLayout(1, 4, 12, 0));
+    else p = new BaseXBack(new TableLayout(1, 4, 12, 0));
     p.add(new BaseXLabel(MAX_NO_OF_HITS + COL));
     p.add(limit);
     p.add(label);
@@ -121,7 +126,8 @@ public final class DialogPrefs extends BaseXDialog {
     lang = new BaseXCombo(this, LANGS[0]);
     lang.setSelectedItem(mprop.get(MainProp.LANG));
     creds = new BaseXLabel(" ");
-    p = new BaseXBack(new TableLayout(1, 2, 12, 0));
+    if (Prop.langright) p = new BaseXBack(new RTLTableLayout(1, 2, 12, 0));
+    else p = new BaseXBack(new TableLayout(1, 2, 12, 0));
     p.add(lang);
     p.add(creds);
     pp.add(p);

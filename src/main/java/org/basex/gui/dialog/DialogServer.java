@@ -115,15 +115,21 @@ public final class DialogServer extends BaseXDialog {
     infoC = new BaseXLabel(" ").border(12, 0, 0, 0);
 
     // local server panel
-    BaseXBack p = new BaseXBack(new TableLayout(6, 1, 0, 0));
+    BaseXBack p;
+    if(Prop.langright) p = new BaseXBack(new RTLTableLayout(6, 1, 0, 0));
+    else p = new BaseXBack(new TableLayout(6, 1, 0, 0));
     p.add(new BaseXLabel(S_LOCALSERVER + COLS, true, true));
 
-    BaseXBack pp = new BaseXBack(new TableLayout(2, 2, 8, 4)).border(0, 0, 0, 0);
+    BaseXBack pp;
+    if (Prop.langright) pp = new BaseXBack(new RTLTableLayout(2, 2, 8, 4)).border(0, 0, 0, 0);
+    else pp = new BaseXBack(new TableLayout(2, 2, 8, 4)).border(0, 0, 0, 0);
     pp.add(new BaseXLabel(S_PORT + COLS));
     pp.add(ports);
     if (Prop.langright) pp.add(new BaseXLabel("        "));
     else pp.add(new BaseXLabel());
-    BaseXBack ppp = new BaseXBack(new TableLayout(1, 2, 5, 0));
+    BaseXBack ppp;
+    if (Prop.langright) ppp = new BaseXBack(new RTLTableLayout(1, 2, 5, 0));
+    else ppp = new BaseXBack(new TableLayout(1, 2, 5, 0));
     ppp.add(start);
     ppp.add(stop);
     pp.add(ppp);
@@ -133,7 +139,8 @@ public final class DialogServer extends BaseXDialog {
     p.add(new BaseXLabel(S_ADLOGIN + COLS, true, true).border(12, 0, 6, 0));
 
     // login panel
-    pp = new BaseXBack(new TableLayout(5, 2, 8, 4));
+    if (Prop.langright) pp = new BaseXBack(new RTLTableLayout(5, 2, 8, 4));
+    else pp = new BaseXBack(new TableLayout(5, 2, 8, 4));
     pp.add(new BaseXLabel(USERNAME + COLS));
     pp.add(admuser);
     pp.add(new BaseXLabel(PASSWORD + COLS));
@@ -144,7 +151,8 @@ public final class DialogServer extends BaseXDialog {
     pp.add(portc);
     if (Prop.langright) pp.add(new BaseXLabel("        "));
     else pp.add(new BaseXLabel());
-    ppp = new BaseXBack(new TableLayout(1, 2, 5, 0));
+    if (Prop.langright) ppp = new BaseXBack(new RTLTableLayout(1, 2, 5, 0));
+    else ppp = new BaseXBack(new TableLayout(1, 2, 5, 0));
     ppp.add(connect);
     ppp.add(disconnect);
     pp.add(ppp);
@@ -153,7 +161,8 @@ public final class DialogServer extends BaseXDialog {
 
     conn.add(p, BorderLayout.CENTER);
 
-    p = new BaseXBack(new TableLayout(2, 1));
+    if (Prop.langright) p = new BaseXBack(new RTLTableLayout(2, 1));
+    else p = new BaseXBack(new TableLayout(2, 1));
     BaseXLabel l = new BaseXLabel(S_INFO1);
     l.setForeground(GUIConstants.DGRAY);
     p.add(l);

@@ -63,7 +63,7 @@ public final class DialogExport extends BaseXDialog {
     // output label
     BaseXBack pp;
     if (Prop.langright) pp = new BaseXBack(new RTLTableLayout(1, 2, 8, 0));
-    else 
+    else pp = new BaseXBack(new TableLayout(1, 2, 8, 0));
 
     path = new BaseXTextField(main.gprop.get(GUIProp.INPUTPATH), this);
     pp.add(path);
@@ -102,15 +102,15 @@ public final class DialogExport extends BaseXDialog {
     params = new BaseXTextField(exporter, this);
 
     if (Prop.langright) {
-      BaseXBack ppR = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
+      BaseXBack ppR = new BaseXBack(new RTLTableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
       ppR.add(new BaseXLabel(METHOD + COL, true, true));
       ppR.add(method);
       p.add(ppR);
-      ppR = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
+      ppR = new BaseXBack(new RTLTableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
       ppR.add(new BaseXLabel(ENCODING + COL, true, true));
       ppR.add(encoding);
       p.add(ppR);
-      ppR = new BaseXBack(new TableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
+      ppR = new BaseXBack(new RTLTableLayout(1, 2, 16, 6)).border(8, 0, 8, 0);
       ppR.add(new BaseXLabel(PARAMETERS + COL, true, true));
       ppR.add(params);
       p.add(ppR);
