@@ -152,13 +152,27 @@ public final class SearchPanel extends BaseXBack {
       wst.add(regex);
       wst.add(multi);
 
-      final BaseXBack ctr = new BaseXBack(Fill.NONE).layout(new GridLayout(1, 2, 2, 0));
-      ctr.add(search);
-      if(ed) ctr.add(replace);
+      final BaseXBack ctr;
+      if(ed) {
+        ctr = new BaseXBack(Fill.NONE).layout(new GridLayout(1, 2, 2, 0));
+        if (Prop.langright) ctr.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        ctr.add(search);
+        ctr.add(replace);
+      } else {
+        ctr = new BaseXBack(Fill.NONE).layout(new GridLayout(1, 1, 2, 0));
+        ctr.add(search);
+      }
+      
 
-      final BaseXBack est = new BaseXBack(Fill.NONE).layout(new TableLayout(1, 2, 1, 0));
-      if(ed) est.add(rplc);
-      est.add(cls);
+      final BaseXBack est;
+      if(ed) {
+        est = new BaseXBack(Fill.NONE).layout(new TableLayout(1, 2, 1, 0));
+        est.add(rplc);
+        est.add(cls);
+      } else {
+        est = new BaseXBack(Fill.NONE).layout(new TableLayout(1, 1, 1, 0));
+        est.add(cls);
+      }
 
       if (Prop.langright) {
         add(wst, BorderLayout.EAST);

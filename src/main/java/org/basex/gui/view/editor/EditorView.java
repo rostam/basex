@@ -80,7 +80,6 @@ public final class EditorView extends View {
    */
   public EditorView(final ViewNotifier man) {
     super(EDITORVIEW, man);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 
     border(6, 6, 6, 6).layout(new BorderLayout(0, 2)).setFocusable(false);
 
@@ -118,7 +117,9 @@ public final class EditorView extends View {
     // status and query pane
     search.editor(addTab(), false);
 
-    info = new BaseXLabel().setText(OK, Msg.SUCCESS);
+    info = new BaseXLabel();
+    info.SetRtlEx(true);
+    info.setText(OK, Msg.SUCCESS);
     pos = new BaseXLabel(" ");
     posCode.invokeLater();
 
@@ -134,7 +135,8 @@ public final class EditorView extends View {
     filter.setEnabled(false);
 
     final BaseXBack status = new BaseXBack(Fill.NONE).layout(new BorderLayout(4, 0));
-    status.add(info, BorderLayout.CENTER);
+    if (Prop.langright) status.add(info, BorderLayout.WEST);
+    else status.add(info, BorderLayout.CENTER);
     status.add(pos, BorderLayout.EAST);
 
     final BaseXBack query = new BaseXBack(Fill.NONE).layout(new TableLayout(1, 3, 1, 0));

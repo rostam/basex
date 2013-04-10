@@ -15,12 +15,17 @@ import org.basex.gui.GUIConstants.Msg;
  * @author Christian Gruen
  */
 public class BaseXLabel extends JLabel {
+  
+  public boolean rtlEx;
+  
+  
   /**
    * Constructor.
    */
   public BaseXLabel() {
     this("", false, false);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+    //rtlEx = false;
+    if (Prop.langright && !rtlEx) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -29,7 +34,8 @@ public class BaseXLabel extends JLabel {
    */
   public BaseXLabel(final String txt) {
     this(txt, false, false);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+    //rtlEx = false;
+    if (Prop.langright && !rtlEx) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
   }
 
   /**
@@ -37,15 +43,22 @@ public class BaseXLabel extends JLabel {
    * component, and a property for printing the label in bold.
    * @param txt label text
    * @param dist vertical distance to next component
-   * @param bold bold flag
+   * @param bold bold flagRIGHT_TO_LEFT
    */
   public BaseXLabel(final String txt, final boolean dist, final boolean bold) {
     super(txt);
-    if (Prop.langright) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+    if (Prop.langright && !rtlEx) applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
     if(dist) border(0, 0, 6, 0);
     setFont(getFont().deriveFont(bold ? Font.BOLD : Font.PLAIN));
   }
 
+  public void SetRtlEx(final boolean rtl) {
+    rtlEx = rtl;
+  }
+  
+  public boolean GetRtlEx () {
+    return rtlEx;
+  }
   /**
    * Sets the label borders.
    * @param t top distance
@@ -77,8 +90,11 @@ public class BaseXLabel extends JLabel {
    * @return self reference
    */
   public BaseXLabel setText(final String text, final Msg icon) {
-      setIcon(text == null ? null : icon.small);
-      setText(text == null ? " " : text);
+    System.out.println(text + " " + rtlEx);
+    if (Prop.langright && rtlEx) 
+      this.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);  
+    setIcon(text == null ? null : icon.small);
+    setText(text == null ? " " : text);
     return this;
   }
 

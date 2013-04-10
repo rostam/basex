@@ -28,6 +28,8 @@ public final class TableLayout implements LayoutManager {
   private final int[] posX;
   /** Vertical position. */
   private final int[] posY;
+  /** TRL Exception. */
+  public boolean rtlEx;
 
   /**
    * Creates a grid layout with the specified number of rows and columns.
@@ -37,6 +39,7 @@ public final class TableLayout implements LayoutManager {
    */
   public TableLayout(final int r, final int c) {
     this(r, c, 0, 0);
+    rtlEx = false;
   }
 
   /**
@@ -54,8 +57,23 @@ public final class TableLayout implements LayoutManager {
     insetY = iy;
     posX = new int[c];
     posY = new int[r];
+    rtlEx = false;
   }
 
+  /**
+   * @param rtl boolean value to set rtlEx 
+   */
+  public void SetRtlEx (final boolean rtl) {
+    rtlEx = rtl;
+  }
+  
+  /**
+   * @return relEx value
+   */
+  public boolean GetRtlEx () {
+    return rtlEx;
+  }
+  
   @Override
   public void addLayoutComponent(final String name, final Component comp) { }
 
@@ -77,7 +95,7 @@ public final class TableLayout implements LayoutManager {
 
         for(int j = 0; j < rows; ++j) {
           int n = 0;
-          if (Prop.langright) n = j * cols + (cols - i - 1);
+          if (Prop.langright && !rtlEx) n = j * cols + (cols - i - 1);
           else n = j * cols + i;
           if(n >= nr) break;
 
@@ -109,7 +127,7 @@ public final class TableLayout implements LayoutManager {
       final Insets in = p.getInsets();
       final int nr = p.getComponentCount();
       for(int j = 0; j < rows; ++j) {
-        if (Prop.langright) {
+        if (Prop.langright && !rtlEx) {
           int wJ = 0;
           for(int k = 0; k < cols; k++) {
             final int m = j * cols + (cols - k - 1);

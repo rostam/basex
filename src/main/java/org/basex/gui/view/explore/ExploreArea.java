@@ -62,7 +62,9 @@ final class ExploreArea extends BaseXPanel implements ActionListener {
     });
     add(all, BorderLayout.NORTH);
 
-    panel = new BaseXBack(Fill.NONE).layout(new TableLayout(32, 2, 10, 5));
+    TableLayout tb = new TableLayout(32, 2, 10, 5);
+    tb.rtlEx = true;
+    panel = new BaseXBack(Fill.NONE).layout(tb);
     add(panel, BorderLayout.CENTER);
   }
 
@@ -184,6 +186,7 @@ final class ExploreArea extends BaseXPanel implements ActionListener {
           final Stats stat = names.stat(names.id(key));
           switch(stat.type) {
             case INTEGER:
+              
               addSlider(stat.min, stat.max, cp + 1, true);
               break;
             case DOUBLE:

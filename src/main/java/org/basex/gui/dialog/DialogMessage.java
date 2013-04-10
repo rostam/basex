@@ -41,7 +41,7 @@ public final class DialogMessage extends BaseXDialog {
     b.setIcon(ic.large);
     back.add(b);
 
-    final Editor text = new Editor(false, this, Token.token(txt));
+    final Editor text = new Editor(false, this, Token.token(txt), false);
     text.setFont(b.getFont());
     back.add(text);
 

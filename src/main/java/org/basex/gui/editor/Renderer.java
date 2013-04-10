@@ -2,6 +2,7 @@ package org.basex.gui.editor;
 
 import java.awt.*;
 
+import org.basex.core.*;
 import org.basex.gui.*;
 import org.basex.gui.GUIConstants.Fill;
 import org.basex.gui.editor.Editor.SearchDir;
@@ -194,7 +195,7 @@ class Renderer extends BaseXBack {
    * @param g graphics reference
    * @param pos current text position
    */
-  private void init(final Graphics g, final int pos) {
+  protected void init(final Graphics g, final int pos) {
     font = dfont;
     color = Color.black;
     syntax.init();
@@ -236,7 +237,7 @@ class Renderer extends BaseXBack {
    * @param g graphics reference
    * @return true if the text has more words
    */
-  private boolean more(final Graphics g) {
+  protected boolean more(final Graphics g) {
     // no more words found; quit
     if(!text.moreTokens()) return false;
 

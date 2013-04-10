@@ -8,6 +8,7 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import org.basex.core.*;
 import org.basex.data.*;
 import org.basex.gui.*;
 import org.basex.gui.GUIConstants.Msg;
@@ -92,7 +93,8 @@ public final class DialogInsert extends BaseXDialog {
     pp.add(info, BorderLayout.WEST);
 
     buttons = okCancel();
-    pp.add(buttons, BorderLayout.EAST);
+    if (Prop.langright) pp.add(buttons, BorderLayout.WEST);
+    else pp.add(buttons, BorderLayout.EAST);
     set(pp, BorderLayout.SOUTH);
 
     setResizable(true);

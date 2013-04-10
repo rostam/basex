@@ -101,7 +101,8 @@ public final class DialogEdit extends BaseXDialog {
 
     // create buttons
     buttons = okCancel();
-    pp.add(buttons, BorderLayout.EAST);
+    if (Prop.langright) pp.add(buttons, BorderLayout.WEST);
+    else pp.add(buttons, BorderLayout.EAST);
 
     set(pp, BorderLayout.SOUTH);
     finish(null);

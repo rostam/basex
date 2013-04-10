@@ -62,7 +62,17 @@ public final class DialogProgress extends BaseXDialog implements ActionListener 
     set(info, BorderLayout.NORTH);
 
     if(cmd.supportsProg()) {
-      bar = new JProgressBar(0, MAX);
+      // RTL ProgressBar
+      if (Prop.langright) bar = new JProgressBar(0, MAX) {
+        @Override
+        protected void paintComponent(Graphics g) {
+          Graphics2D g2d = (Graphics2D) g;
+          g2d.scale(-1, 1); //Flips over y-axis
+          g2d.translate(-getWidth(), 0); //Moves back to old position.
+          super.paintComponent(g2d);
+        }
+      };
+      else bar = new JProgressBar(0, MAX);
       set(bar, BorderLayout.CENTER);
     } else {
       bar = null;
