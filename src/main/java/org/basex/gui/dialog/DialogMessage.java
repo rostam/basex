@@ -36,12 +36,17 @@ public final class DialogMessage extends BaseXDialog {
 
     panel.setLayout(new BorderLayout());
 
-    final BaseXBack back = new BaseXBack(new TableLayout(1, 2, 12, 0));
+    TableLayout tl = new TableLayout(1, 2, 12, 0);
+    if (Prop.langright) tl.setRtlEx(true);
+    final BaseXBack back = new BaseXBack(tl);
+
     final BaseXLabel b = new BaseXLabel();
     b.setIcon(ic.large);
     back.add(b);
 
-    final Editor text = new Editor(false, this, Token.token(txt), false);
+    final Editor text;
+    if (Prop.langright) text = new Editor(false, this, Token.token(txt), true);
+    else text = new Editor(false, this, Token.token(txt), false);
     text.setFont(b.getFont());
     back.add(text);
 

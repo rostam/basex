@@ -17,7 +17,8 @@ import org.basex.util.*;
 
     /** String containing a line of the text. */
     String line = "";
-
+    /** RTL Functions. */
+    RTLFunctions rtl = new RTLFunctions();
   /** Default Constructor.
    * @param t text to be drawn
    * @param b scrollbar reference
@@ -26,11 +27,26 @@ import org.basex.util.*;
     super(t, b);
   }
 
+  @Override
+  public void paintComponent(final Graphics g) {
+    super.paintComponent(g);
+
+    pars.reset();
+    init(g, bar.pos());
+    line = "";
+    while(more(g)) write(g);
+    wordW = 0;
+    final int s = text.size();
+    if(cursor && s == text.getCaret()) drawCursor(g, x);
+    if(s == text.error()) drawError(g);
+  }
+
    @Override
   protected void write(final Graphics g) {
      //Font f = new Font("Times New Roman", Font.BOLD,12);
      //g.getFontMetrics()
      //g.setFont(f);
+     System.out.println("Salam");
      if(high) {
       high = false;
     } else {
@@ -72,96 +88,114 @@ import org.basex.util.*;
 
     // don't write whitespaces
     boolean test = false;
-    if(ch == '\n') test = true;
-    g.setColor(color);
-    String n = text.nextString();
-    if(!test) line += n;
-    int ww = w - x;
-    if(x + wordW > ww) {
-      // shorten string if it cannot be completely shown (saves memory)
-      int c = 0;
-      for(final int nl = n.length(); c < nl && ww > 0; c++) {
-        //ww -= charW(g, n.charAt(c));
-      }
-      n = n.substring(0, c);
-    }
+    //if (text.moreTokens()) {
+      if(ch == '\n') test = true;
+      g.setColor(color);
+      String n = text.nextString();
+//      if(cp == text.size() - 1) test = true;
+//      if(cp == text.size() - 2) test = true;
+      byte[] tmp = text.text();
+      System.out.println("text: " + tmp.toString());
+      //if (cp == 0) test = true;
+      if(!test) line += n;
+      if(cp == text.size()) test = true;
+      if(cp == text.size() - 1) test = true;
+      if(cp == text.size() - 2) test = true;
+      System.out.println(cp + " = " + text.size());
 
-    if(test) {
-      if(line.contains(":") && !line.contains("://")) {
-      line = line.trim();
-      String tilDP = line.substring(0, line.indexOf(':'));
-      String afterDP = line.substring(line.indexOf(':') + 1);
-      if (tilDP.charAt(0) == '-'
-          && Character.toLowerCase(tilDP.charAt(2)) >= 'a'
-          && Character.toLowerCase(tilDP.charAt(2)) <= 'z')
-          tilDP = tilDP.substring(1) + " -";
-      int lw = g.getFontMetrics().charsWidth(tilDP.toCharArray(), 0, tilDP.length());
-      int alw = g.getFontMetrics().charsWidth(afterDP.toCharArray(), 0,
-          afterDP.length());
-      lw += 12;
-      alw += 12;
-      g.drawString(tilDP, w - lw , y);
-      g.drawString(":", w - lw - 6, y);
-      g.drawString(afterDP, w - lw - alw, y);
-     } else {
-         int lw = g.getFontMetrics().charsWidth(line.toCharArray(), 0, line.length());
-         Font ff = g.getFont();
-         if(line.length() >= 1) {
-         if(line.charAt(0) == 2) {
-            g.setFont(new Font(g.getFont().getName(),
-                Font.BOLD, g.getFont().getSize()));
-           line = line.substring(1);
-       }
-       if(line.length() >= 1)
-         if(line.charAt(line.length() - 1) == 3)
-           line = line.substring(0, line.length() - 1);
-       }
-       g.drawString(line, w - lw - 8, y);
-       g.setFont(ff);
-      }
-      line = "";
-    }
-    if(ch <= TokenBuilder.MARK) {
-      g.setFont(font);
-    }
-
-    // show cursor
-    if(cursor && text.edited()) {
-      xx = x;
-      while(text.more()) {
-        if(cc == text.pos()) {
-          drawCursor(g, xx);
-          break;
+      int ww = w - x;
+      if(x + wordW > ww) {
+        // shorten string if it cannot be completely shown (saves memory)
+        int c = 0;
+        for(final int nl = n.length(); c < nl && ww > 0; c++) {
+          ww -= charW(g, n.charAt(c));
         }
-        xx += charW(g, text.next());
+        n = n.substring(0, c);
       }
-      text.pos(cp);
-     }
-    }
 
-    // handle matching parentheses
-    if(ch == '(' || ch == '[' || ch == '{') {
-      pars.add(x);
-      pars.add(y);
-      pars.add(cp);
-      pars.add(ch);
-    } else if((ch == ')' || ch == ']' || ch == '}') && !pars.isEmpty()) {
-      final int open = ch == ')' ? '(' : ch == ']' ? '[' : '{';
-      if(pars.peek() == open) {
-        pars.pop();
-        final int cr = pars.pop();
-        final int yy = pars.pop();
-        final int xx = pars.pop();
-        if(cc == cp || cc == cr) {
-          g.setColor(GUIConstants.color3);
-          g.drawRect(xx, yy - fontH * 4 / 5, charW(g, open), fontH);
-          g.drawRect(x, y - fontH * 4 / 5, charW(g, ch), fontH);
+      if (test) {
+
+        if(rtl.rtlChar(line)) {
+        System.out.println("chetori: " + line);
+        line = line.trim();
+        int lw = g.getFontMetrics().charsWidth(line.toCharArray(), 0, line.length());
+
+        if (line.contains(":") && !line.contains("://")) {
+          String tilDP = line.substring(0, line.indexOf(':'));
+          String afterDP = line.substring(line.indexOf(':') + 1);
+          if (tilDP.charAt(0) == '-'
+              && Character.toLowerCase(tilDP.charAt(2)) >= 'a'
+              && Character.toLowerCase(tilDP.charAt(2)) <= 'z')
+              tilDP = tilDP.substring(1) + " -";
+          int frstL = g.getFontMetrics().charsWidth(tilDP.toCharArray(), 0, tilDP.length());
+          int scndL = g.getFontMetrics().charsWidth(afterDP.toCharArray(), 0,
+              afterDP.length());
+          frstL += 12;
+          scndL += 12;
+          g.drawString(tilDP, w - frstL , y);
+          g.drawString(":", w - frstL - 6, y);
+          g.drawString(afterDP, w - frstL - scndL, y);
+        } else g.drawString(line, w - lw , y);
+       } else {
+           Font ff = g.getFont();
+           if(line.length() >= 1) {
+           if(line.charAt(0) == 2) {
+              g.setFont(new Font(g.getFont().getName(),
+                  Font.BOLD, g.getFont().getSize()));
+             line = line.substring(1);
+         }
+         if(line.length() >= 1)
+           if(line.charAt(line.length() - 1) == 3)
+             line = line.substring(0, line.length() - 1);
+         }
+         //g.drawString(line, w-lw-8 , y);
+           g.drawString(line, 8, y);
+         g.setFont(ff);
+        }
+        line = "";
+      }
+      if(ch <= TokenBuilder.MARK) {
+        g.setFont(font);
+      }
+
+      // show cursor
+      if(cursor && text.edited()) {
+        xx = x;
+        while(text.more()) {
+          if(cc == text.pos()) {
+            drawCursor(g, xx);
+            break;
+          }
+          xx += charW(g, text.next());
+        }
+        text.pos(cp);
+       }
+
+      // handle matching parentheses
+      if(ch == '(' || ch == '[' || ch == '{') {
+        pars.add(x);
+        pars.add(y);
+        pars.add(cp);
+        pars.add(ch);
+      } else if((ch == ')' || ch == ']' || ch == '}') && !pars.isEmpty()) {
+        final int open = ch == ')' ? '(' : ch == ']' ? '[' : '{';
+        if(pars.peek() == open) {
+          pars.pop();
+          final int cr = pars.pop();
+          final int yy = pars.pop();
+          final int xX = pars.pop();
+          if(cc == cp || cc == cr) {
+            g.setColor(GUIConstants.color3);
+            g.drawRect(xX, yy - fontH * 4 / 5, charW(g, open), fontH);
+            g.drawRect(x, y - fontH * 4 / 5, charW(g, ch), fontH);
+          }
         }
       }
+      next();
     }
-    next();
-  }
-   
+   }
+ // }
+
    /**
     * Paints the text cursor.
     * @param g graphics reference

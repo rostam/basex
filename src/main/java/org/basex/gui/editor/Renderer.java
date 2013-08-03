@@ -19,7 +19,7 @@ import org.basex.util.list.*;
  */
 class Renderer extends BaseXBack {
   /** Vertical start position. */
-  private final BaseXBar bar;
+  protected final BaseXBar bar;
 
   /** Font. */
   protected Font font;

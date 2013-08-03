@@ -72,12 +72,11 @@ public final class InfoView extends View {
     buttons = new BaseXBack(Fill.NONE);
     buttons.layout(new TableLayout(1, 1, 1, 0));
     buttons.add(srch);
-
     final BaseXBack north = new BaseXBack(Fill.NONE).layout(new BorderLayout());
     // Cahange the title and buttons position for rtl
     if (Prop.langright) {
       north.add(buttons, BorderLayout.WEST);
-      north.add(title, BorderLayout.EAST);
+      north.add(title, BorderLayout.WEST);
     } else {
       north.add(buttons, BorderLayout.EAST);
       north.add(title, BorderLayout.CENTER);
@@ -85,7 +84,8 @@ public final class InfoView extends View {
     add(north, BorderLayout.NORTH);
 
     final BaseXBack center = new BaseXBack(Fill.NONE).layout(new BorderLayout(0, 2));
-    area = new Editor(false, gui);
+    if (Prop.langright) area = new Editor(false, gui, true);
+    else area = new Editor(false, gui, false);
     search = new SearchEditor(gui, area).button(srch);
     add(search, BorderLayout.CENTER);
 

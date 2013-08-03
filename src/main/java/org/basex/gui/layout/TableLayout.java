@@ -61,19 +61,19 @@ public final class TableLayout implements LayoutManager {
   }
 
   /**
-   * @param rtl boolean value to set rtlEx 
+   * @param rtl boolean value to set rtlEx
    */
-  public void SetRtlEx (final boolean rtl) {
+  public void setRtlEx (final boolean rtl) {
     rtlEx = rtl;
   }
-  
+
   /**
    * @return relEx value
    */
-  public boolean GetRtlEx () {
+  public boolean getRtlEx () {
     return rtlEx;
   }
-  
+
   @Override
   public void addLayoutComponent(final String name, final Component comp) { }
 
